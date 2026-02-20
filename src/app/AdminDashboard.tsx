@@ -50,6 +50,13 @@ import { AbastecimientoView } from './components/admin/views/AbastecimientoView'
 import { MapaEnviosView }     from './components/admin/views/MapaEnviosView';
 import { TrackingPublicoView } from './components/admin/views/TrackingPublicoView';
 import { SEOView }            from './components/admin/views/SEOView';
+import { IdeasBoardView }     from './components/admin/views/IdeasBoardView';
+// ── Integraciones (5 módulos independientes) ──────────────────────────────
+import { IntegracionesPagosView }      from './components/admin/views/IntegracionesPagosView';
+import { IntegracionesLogisticaView }  from './components/admin/views/IntegracionesLogisticaView';
+import { IntegracionesTiendasView }    from './components/admin/views/IntegracionesTiendasView';
+import { IntegracionesRRSSView }       from './components/admin/views/IntegracionesRRSSView';
+import { IntegracionesServiciosView }  from './components/admin/views/IntegracionesServiciosView';
 import { Toaster } from 'sonner';
 
 export type MainSection =
@@ -98,7 +105,13 @@ export type MainSection =
   | 'fulfillment'
   | 'seo'
   | 'etiqueta-emotiva'
-  | 'roadmap';
+  | 'roadmap'
+  | 'ideas-board'
+  | 'integraciones-pagos'
+  | 'integraciones-logistica'
+  | 'integraciones-tiendas'
+  | 'integraciones-rrss'
+  | 'integraciones-servicios';
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<MainSection>('dashboard');
@@ -127,7 +140,7 @@ export default function AdminDashboard() {
           {activeSection === 'rueda-sorteos'   && <RuedaSorteosView   onNavigate={nav} />}
           {activeSection === 'fidelizacion'    && <FidelizacionView   onNavigate={nav} />}
           {activeSection === 'redes-sociales'  && <RedesSocialesView  onNavigate={nav} />}
-          {activeSection === 'rrss'            && <RRSSHubView          onNavigate={nav} />}
+          {activeSection === 'rrss'            && <RRSSHubView        onNavigate={nav} />}
           {activeSection === 'departamentos'   && <DepartamentosView  onNavigate={nav} />}
           {activeSection === 'secondhand'      && <SecondHandView     onNavigate={nav} />}
           {activeSection === 'erp-inventario'  && <ERPInventarioView  onNavigate={nav} />}
@@ -156,6 +169,12 @@ export default function AdminDashboard() {
           {activeSection === 'fulfillment'     && <FulfillmentView     onNavigate={nav} />}
           {activeSection === 'seo'             && <SEOView             onNavigate={nav} />}
           {activeSection === 'etiqueta-emotiva'&& <EtiquetaEmotivaView onNavigate={nav} />}
+          {activeSection === 'ideas-board'             && <IdeasBoardView             onNavigate={nav} />}
+          {activeSection === 'integraciones-pagos'     && <IntegracionesPagosView     onNavigate={nav} />}
+          {activeSection === 'integraciones-logistica' && <IntegracionesLogisticaView onNavigate={nav} />}
+          {activeSection === 'integraciones-tiendas'   && <IntegracionesTiendasView   onNavigate={nav} />}
+          {activeSection === 'integraciones-rrss'      && <IntegracionesRRSSView      onNavigate={nav} />}
+          {activeSection === 'integraciones-servicios' && <IntegracionesServiciosView onNavigate={nav} />}
         </main>
       </div>
     </>

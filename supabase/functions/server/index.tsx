@@ -10,6 +10,7 @@ import { metodosPago } from "./metodos_pago.tsx";
 import { metodosEnvio } from "./metodos_envio.tsx";
 import { etiquetas } from "./etiquetas.tsx";
 import { roadmap } from "./roadmap.tsx";
+import { ideasBoard } from "./ideas_board.tsx";
 
 const app = new Hono();
 
@@ -48,5 +49,8 @@ app.route("/make-server-75638143/etiquetas", etiquetas);
 
 // Roadmap + archivos adjuntos
 app.route("/make-server-75638143/roadmap", roadmap);
+
+// Ideas Board
+app.route("/make-server-75638143/ideas", ideasBoard);
 
 Deno.serve(app.fetch);

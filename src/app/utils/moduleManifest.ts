@@ -314,6 +314,14 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     isReal: true,
     notes: 'Generador QR — sin APIs externas, genera PNG y SVG vectorial',
   },
+  {
+    checklistIds: ['tools-ideas-board'],
+    section: 'ideas-board',
+    viewFile: 'IdeasBoardView.tsx',
+    isReal: true,
+    hasSupabase: true,
+    notes: 'Canvas visual de módulos e ideas — stickers, conectores, canvases jerárquicos, lamparita en Mi Vista',
+  },
 
   // ══════════════════════════════════════════════════════
   // ERP
@@ -402,22 +410,53 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
   // ══════════════════════════════════════════════════════
   {
     checklistIds: [
-      'integrations-mercadolibre',  // tab Marketplaces — card UI
-      'integrations-mercadopago',   // tab Pagos — card UI
-      'integrations-plexo',         // tab Pagos — card UI (sandbox)
-      'integrations-paypal',        // tab Pagos — card UI
-      'integrations-stripe',        // tab Pagos — card UI
-      'integrations-meta',          // tab Redes Sociales — cards Meta/IG/WA/FB
-      'integrations-twilio',        // tab Mensajería — formulario real con campos
-      // integrations-resend    → SIN UI en esta vista todavía
-      // integrations-fixed     → SIN UI en esta vista todavía
-      // integrations-replicate → SIN UI en esta vista todavía
-      // integrations-removebg  → SIN UI en esta vista todavía
+      'integrations-mercadolibre',
+      'integrations-mercadopago',
+      'integrations-plexo',
+      'integrations-paypal',
+      'integrations-stripe',
+      'integrations-meta',
+      'integrations-twilio',
     ],
     section: 'integraciones',
     viewFile: 'IntegracionesView.tsx',
     isReal: true,
-    notes: 'UI con 4 tabs: Marketplaces (ML), Pagos (MP+Plexo+PayPal+Stripe), Redes (Meta/IG/WA/FB→ 1 entry meta), Mensajería (Twilio form). Ninguna conecta APIs reales todavía.',
+    notes: 'Hub de 5 módulos de integración — Uruguay first, Latam progresivo',
+  },
+  {
+    checklistIds: ['integrations-plexo', 'integrations-mercadopago', 'integrations-paypal', 'integrations-stripe'],
+    section: 'integraciones-pagos',
+    viewFile: 'IntegracionesPagosView.tsx',
+    isReal: true,
+    notes: '💳 Pasarela de pagos — Plexo, OCA, Abitab, RedPagos, MP, PayPal, Stripe',
+  },
+  {
+    checklistIds: ['integrations-logistics'],
+    section: 'integraciones-logistica',
+    viewFile: 'IntegracionesLogisticaView.tsx',
+    isReal: true,
+    notes: '🚚 Logística — Carriers con y sin API. URL de tracking configurable para carriers sin API',
+  },
+  {
+    checklistIds: ['integrations-mercadolibre'],
+    section: 'integraciones-tiendas',
+    viewFile: 'IntegracionesTiendasView.tsx',
+    isReal: true,
+    notes: '🏪 Tiendas — ML, TiendaNube, WooCommerce, Shopify, VTEX, Magento',
+  },
+  {
+    checklistIds: ['integrations-meta'],
+    section: 'integraciones-rrss',
+    viewFile: 'IntegracionesRRSSView.tsx',
+    isReal: true,
+    notes: '📱 Redes Sociales — Meta, Instagram Shopping, WhatsApp, Facebook Shops, TikTok, Pinterest',
+  },
+  {
+    checklistIds: ['integrations-twilio'],
+    section: 'integraciones-servicios',
+    viewFile: 'IntegracionesServiciosView.tsx',
+    isReal: true,
+    notes: '⚙️ Servicios — Twilio, Resend, SendGrid, GA4, GTM, Zapier, n8n',
   },
 ];
 

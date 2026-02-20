@@ -6,11 +6,12 @@ import {
 import { OrangeHeader } from '../OrangeHeader';
 import {
   ShoppingCart, Megaphone, Database, Monitor,
-  BookOpen, Store,
+  BookOpen, Store, Lightbulb,
 } from 'lucide-react';
 import { ModuleCard, ModuleCardGrid } from '../ModuleCard';
 import type { CardDef } from '../ModuleCard';
 import type { MainSection } from '../../../AdminDashboard';
+import { IdeaQuickModal } from '../IdeaQuickModal';
 
 const ORANGE = '#FF6835';
 
@@ -20,6 +21,7 @@ interface Props {
 
 export function DashboardView({ onNavigate }: Props) {
   const [timeRange, setTimeRange] = useState('7d');
+  const [showIdeaModal, setShowIdeaModal] = useState(false);
 
   /* ── KPIs ── */
   const kpis = [
@@ -82,7 +84,37 @@ export function DashboardView({ onNavigate }: Props) {
           { label: 'Nueva Venta', primary: true },
           { label: 'Reportes' },
         ]}
+        rightSlot={
+          <button
+            onClick={() => setShowIdeaModal(true)}
+            title="Nueva Idea"
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
+              border: '2px solid rgba(255,255,255,0.55)',
+              backgroundColor: showIdeaModal ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.32)')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = showIdeaModal ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.18)')}
+          >
+            <Lightbulb size={20} color="#fff" strokeWidth={2.2} />
+          </button>
+        }
       />
+
+      {showIdeaModal && (
+        <IdeaQuickModal
+          onClose={() => setShowIdeaModal(false)}
+          onOpenBoard={() => { setShowIdeaModal(false); onNavigate('ideas-board'); }}
+        />
+      )}
 
       <div
         style={{

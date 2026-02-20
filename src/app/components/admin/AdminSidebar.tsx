@@ -11,7 +11,8 @@ import {
   ExternalLink, FolderTree, User, Building2, ShoppingBag,
   ShoppingCart as OrderIcon, CreditCard, MapPin, Navigation,
   QrCode, Rss, Map, Factory, Box, AlertTriangle, Radio,
-  Search, Zap, Globe,
+  Search, Zap, Globe, Lightbulb, Plug, CreditCard as PayCard,
+  Smartphone,
 } from 'lucide-react';
 import type { MainSection } from '../../AdminDashboard';
 
@@ -81,7 +82,14 @@ const NAV_GROUPS: NavGroup[] = [
       { id: 'migracion-rrss', label: 'Migración RRSS',    icon: ArrowLeftRight},
     ],
   },
-  { id: 'herramientas', icon: Wrench, label: 'Herramientas' },
+  {
+    id: 'herramientas', icon: Wrench, label: 'Herramientas',
+    children: [
+      { id: 'herramientas',  label: 'Hub Herramientas', icon: Wrench     },
+      { id: 'qr-generator',  label: 'Generador QR',     icon: QrCode     },
+      { id: 'ideas-board',   label: 'Ideas Board',      icon: Lightbulb  },
+    ],
+  },
   {
     id: 'gestion', icon: Database, label: 'Gestión ERP',
     children: [
@@ -105,8 +113,18 @@ const NAV_GROUPS: NavGroup[] = [
       { id: 'sistema',       label: 'Configuración',     icon: Settings    },
       { id: 'metodos-pago',  label: 'Métodos de Pago',   icon: CreditCard  },
       { id: 'metodos-envio', label: 'Métodos de Envío',  icon: Truck       },
-      { id: 'integraciones', label: 'Integraciones',     icon: Link2       },
       { id: 'diseno',        label: 'Diseño / Marca',    icon: Sparkles    },
+    ],
+  },
+  {
+    id: 'integraciones', icon: Plug, label: 'Integraciones',
+    children: [
+      { id: 'integraciones',           label: 'Resumen',          icon: Plug        },
+      { id: 'integraciones-pagos',     label: '💳 Pagos',         icon: PayCard     },
+      { id: 'integraciones-logistica', label: '🚚 Logística',     icon: Truck       },
+      { id: 'integraciones-tiendas',   label: '🏪 Tiendas',       icon: Store       },
+      { id: 'integraciones-rrss',      label: '📱 Redes Sociales',icon: Smartphone  },
+      { id: 'integraciones-servicios', label: '⚙️ Servicios',     icon: Zap         },
     ],
   },
   { id: 'roadmap', icon: Map, label: 'Checklist & Roadmap' },

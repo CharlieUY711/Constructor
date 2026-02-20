@@ -12,9 +12,10 @@ interface Props {
   title: React.ReactNode;
   subtitle?: string;
   actions?: HeaderAction[];
+  rightSlot?: React.ReactNode;
 }
 
-export function OrangeHeader({ title, subtitle, actions }: Props) {
+export function OrangeHeader({ title, subtitle, actions, rightSlot }: Props) {
   return (
     <header
       style={{
@@ -52,28 +53,31 @@ export function OrangeHeader({ title, subtitle, actions }: Props) {
         )}
       </div>
 
-      {actions && actions.length > 0 && (
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {actions.map((action, i) => (
-            <button
-              key={i}
-              onClick={action.onClick}
-              style={{
-                padding: '9px 22px',
-                borderRadius: '8px',
-                border: '1.5px solid rgba(255,255,255,0.5)',
-                backgroundColor: action.primary ? '#FFFFFF' : 'transparent',
-                color: action.primary ? ORANGE : '#FFFFFF',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {rightSlot}
+        {actions && actions.length > 0 && (
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {actions.map((action, i) => (
+              <button
+                key={i}
+                onClick={action.onClick}
+                style={{
+                  padding: '9px 22px',
+                  borderRadius: '8px',
+                  border: '1.5px solid rgba(255,255,255,0.5)',
+                  backgroundColor: action.primary ? '#FFFFFF' : 'transparent',
+                  color: action.primary ? ORANGE : '#FFFFFF',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </header>
   );
 }

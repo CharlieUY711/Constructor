@@ -234,6 +234,7 @@ const MODULES_DATA: Module[] = [
   { id: "tools-quotes", name: "Generador de Presupuestos", category: "tools", status: "not-started", priority: "high", description: "Presupuestos personalizados para clientes con PDF y firma digital", estimatedHours: 20 },
   { id: "tools-print", name: "Impresión", category: "tools", status: "not-started", priority: "low", description: "Gestión de trabajos de impresión, etiquetas y documentos físicos", estimatedHours: 16 },
   { id: "tools-library", name: "Biblioteca / Documentación", category: "tools", status: "not-started", priority: "low", description: "Manuales, guías técnicas y documentación del sistema", estimatedHours: 12 },
+  { id: "tools-ideas-board", name: "Ideas Board", category: "tools", status: "not-started", priority: "high", description: "Canvas visual de módulos e ideas — stickers, conectores de colores, múltiples canvases jerárquicos con navegación ⊙/⊕, lamparita de acceso rápido desde Mi Vista", estimatedHours: 20 },
 
   // ==================== MARKETPLACE ====================
   { id: "marketplace-secondhand",           name: "Segunda Mano",          category: "marketplace", status: "not-started", priority: "high", description: "Marketplace de artículos de segunda mano con moderación, stats y publicaciones", estimatedHours: 48 },
@@ -253,7 +254,9 @@ const MODULES_DATA: Module[] = [
   { id: "integrations-paypal",       name: "PayPal",                     category: "integrations", status: "not-started", priority: "medium", description: "Pagos internacionales con tarjetas y cuenta PayPal", estimatedHours: 12 },
   { id: "integrations-stripe",       name: "Stripe",                     category: "integrations", status: "not-started", priority: "medium", description: "Procesamiento de tarjetas Visa/Mastercard internacional", estimatedHours: 16 },
   { id: "integrations-twilio",       name: "Twilio SMS/WhatsApp",        category: "integrations", status: "not-started", priority: "medium", description: "Notificaciones SMS y WhatsApp — formulario de config disponible en UI", estimatedHours: 16 },
-  // Sin UI en IntegracionesView todavía — pendientes de construcción
+  { id: "integrations-meta",         name: "Meta Business Suite",        category: "integrations", status: "not-started", priority: "high",   description: "Catálogos y shopping en Instagram, WhatsApp Business y Facebook Shops", estimatedHours: 32 },
+  { id: "integrations-logistics",    name: "Carriers Logísticos",        category: "integrations", status: "not-started", priority: "high",   description: "Brixo, Correo UY, OCA, Fedex, DHL — con y sin API. URL de tracking configurable.", estimatedHours: 28 },
+  // Sin UI directa — pendientes de construcción
   { id: "integrations-resend",       name: "Resend Email",               category: "integrations", status: "not-started", priority: "medium", description: "Envío de emails transaccionales y campañas vía Resend API", estimatedHours: 8 },
   { id: "integrations-fixed",        name: "API Tipos de Cambio",        category: "integrations", status: "not-started", priority: "low",    description: "Tipos de cambio en tiempo real (Fixer / ExchangeRate API)", estimatedHours: 8 },
   { id: "integrations-replicate",    name: "Replicate AI",               category: "integrations", status: "not-started", priority: "low",    description: "Modelos de IA generativos para procesamiento de imágenes", estimatedHours: 12 },
@@ -316,18 +319,46 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
           const merged = MODULES_DATA.map((def) => {
             const saved = data.modules.find((m: Module) => m.id === def.id);
             const base = saved ? { ...def, ...saved } : def;
-            return applyBuiltStatus(base);
+            const result = applyBuiltStatus(base);
+
+            // ── FIX: para módulos NO en BUILT_MODULE_IDS con status hardcodeado
+            //    en MODULES_DATA (ej: logistics-hub = "completed"):
+            //    si el KV tiene "not-started" stale, preservar el status del def.
+            //    Re-aplica con status+submodules del def para honrar MODULES_DATA,
+            //    preservando otros campos del saved (execOrder, notas, etc.).
+            if (
+              !BUILT_MODULE_IDS.has(def.id) &&
+              def.status !== "not-started" &&
+              result.status === "not-started"
+            ) {
+              return applyBuiltStatus({
+                ...def,
+                ...(saved ?? {}),
+                status: def.status,
+                submodules: def.submodules,
+              });
+            }
+            return result;
           });
           setModules(merged);
 
-          // ── Auto-resync: detecta si el manifest cambió desde el último save
-          //    Compara status guardado vs status que applyBuiltStatus computaría.
-          const needsResync = merged.some((m) => {
+          // ── Auto-resync mejorado: detecta TRES casos de desincronización:
+          //    (a) módulos cuyo status difiere entre KV y manifest-computed
+          //    (b) módulos nuevos en MODULES_DATA que aún no están en el KV
+          //    (c) módulos no-BUILT con hardcoded status que el KV perdió (init stale)
+          const hasNewModules = MODULES_DATA.some(
+            def => !data.modules.find((s: Module) => s.id === def.id)
+          );
+          const hasDiffStatus = merged.some((m) => {
             const saved = data.modules.find((s: Module) => s.id === m.id);
             return saved && saved.status !== m.status;
           });
+          const needsResync = hasNewModules || hasDiffStatus;
+
           if (needsResync) {
-            console.log("[ChecklistRoadmap] Manifest actualizado detectado → auto-resync al backend");
+            console.log(
+              `[ChecklistRoadmap] Resync necesario → módulos nuevos: ${hasNewModules}, diff status: ${hasDiffStatus}`
+            );
             fetch(`${API_URL}/roadmap/modules-bulk`, {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
@@ -517,7 +548,10 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   // ── Stats globales (usa getEffectivePercent para honrar submódulos) ────────
   const stats = useMemo(() => {
     const total = modules.length;
-    const completed = modules.filter((m) => getEffectivePercent(m) === 100).length;
+    const completed  = modules.filter((m) => getEffectivePercent(m) === 100).length;
+    const uiOnly     = modules.filter((m) => m.status === "ui-only").length;
+    const specReady  = modules.filter((m) => m.status === "spec-ready").length;
+    const notStarted = modules.filter((m) => getEffectivePercent(m) === 0).length;
     const inProgress = modules.filter((m) => { const p = getEffectivePercent(m); return p > 0 && p < 100; }).length;
     const totalHours = modules.reduce((s, m) => s + (m.estimatedHours || 0), 0);
     const completedHours = modules
@@ -529,7 +563,7 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
       return sum + pct * w;
     }, 0);
     return {
-      total, completed, inProgress,
+      total, completed, uiOnly, specReady, notStarted, inProgress,
       completedPercent: Math.round((completed / total) * 100),
       progressPercent: Math.round(progressPercent),
       totalHours, completedHours,
@@ -725,27 +759,78 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
 
       {/* ── Stats Cards ───────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Progreso Total",    value: `${stats.progressPercent}%`,         sub: null,                            Icon: TrendingUp,  progress: stats.progressPercent },
-          { label: "Completados",       value: `${stats.completed}/${stats.total}`, sub: `${stats.completedPercent}% módulos`, Icon: CheckCircle2, progress: null },
-          { label: "En Progreso",       value: `${stats.inProgress}`,               sub: "módulos activos",               Icon: Clock,       progress: null },
-          { label: "Horas Restantes",   value: `${stats.remainingHours}h`,          sub: `de ${stats.totalHours}h totales`, Icon: AlertCircle, progress: null },
-        ].map((card, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-            className="bg-card rounded-xl p-5 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-muted-foreground">{card.label}</span>
-              <card.Icon className="h-4 w-4 text-[#FF6835]" />
-            </div>
-            <div className="text-2xl font-bold text-foreground mb-1">{card.value}</div>
-            {card.sub && <div className="text-xs text-muted-foreground">{card.sub}</div>}
-            {card.progress !== null && (
-              <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                <div className="bg-[#FF6835] h-1.5 rounded-full transition-all duration-500" style={{ width: `${card.progress}%` }} />
-              </div>
-            )}
-          </motion.div>
-        ))}
+        {/* Progreso Total */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
+          className="bg-card rounded-xl p-5 border border-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">Progreso Total</span>
+            <TrendingUp className="h-4 w-4 text-[#FF6835]" />
+          </div>
+          <div className="text-2xl font-bold text-foreground mb-1">{stats.progressPercent}%</div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+            <div className="bg-[#FF6835] h-1.5 rounded-full transition-all duration-700"
+              style={{ width: `${stats.progressPercent}%` }} />
+          </div>
+          <div className="text-xs text-muted-foreground mt-1.5">
+            promedio ponderado por horas
+          </div>
+        </motion.div>
+
+        {/* Completados con DB */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+          className="bg-card rounded-xl p-5 border border-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">Completados</span>
+            <CheckCircle2 className="h-4 w-4 text-[#FF6835]" />
+          </div>
+          <div className="text-2xl font-bold text-foreground mb-1">
+            {stats.completed}/{stats.total}
+          </div>
+          <div className="text-xs text-muted-foreground mb-2">{stats.completedPercent}% módulos con DB</div>
+          {/* Mini breakdown de los 3 estados */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+              🟢 {stats.completed} DB
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              🔵 {stats.uiOnly} UI
+            </span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200">
+              ⚫ {stats.notStarted} pend.
+            </span>
+          </div>
+        </motion.div>
+
+        {/* UI Lista / En Progreso */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
+          className="bg-card rounded-xl p-5 border border-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">UI Lista / En Progreso</span>
+            <Monitor className="h-4 w-4 text-blue-500" />
+          </div>
+          <div className="text-2xl font-bold text-foreground mb-1">{stats.uiOnly}</div>
+          <div className="text-xs text-muted-foreground mb-2">vistas construidas sin backend</div>
+          {stats.specReady > 0 && (
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+              🟣 {stats.specReady} en cola
+            </span>
+          )}
+        </motion.div>
+
+        {/* Horas Restantes */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}
+          className="bg-card rounded-xl p-5 border border-border">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">Horas Restantes</span>
+            <AlertCircle className="h-4 w-4 text-[#FF6835]" />
+          </div>
+          <div className="text-2xl font-bold text-foreground mb-1">{stats.remainingHours}h</div>
+          <div className="text-xs text-muted-foreground">de {stats.totalHours}h estimadas totales</div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+            <div className="bg-green-500 h-1.5 rounded-full transition-all duration-700"
+              style={{ width: `${Math.round((stats.completedHours / Math.max(stats.totalHours, 1)) * 100)}%` }} />
+          </div>
+        </motion.div>
       </div>
 
       {/* ── Filters ───────────────────────────────────── */}
