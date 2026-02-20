@@ -9,6 +9,7 @@ import { DashboardView }      from './components/admin/views/DashboardView';
 import { EcommerceView }      from './components/admin/views/EcommerceView';
 import { MarketingView }      from './components/admin/views/MarketingView';
 import { HerramientasView }   from './components/admin/views/HerramientasView';
+import { QrGeneratorView }    from './components/admin/views/QrGeneratorView';
 import { GestionView }        from './components/admin/views/GestionView';
 import { SistemaView }        from './components/admin/views/SistemaView';
 import { DisenoView }         from './components/admin/views/DisenoView';
@@ -27,13 +28,19 @@ import { ERPFacturacionView } from './components/admin/views/ERPFacturacionView'
 import { ERPComprasView }     from './components/admin/views/ERPComprasView';
 import { StorefrontAdminView } from './components/admin/views/StorefrontAdminView';
 import { ERPCRMView }         from './components/admin/views/ERPCRMView';
-import { ERPLogisticaView }   from './components/admin/views/ERPLogisticaView';
 import { ERPContabilidadView } from './components/admin/views/ERPContabilidadView';
 import { ERPRRHHView }        from './components/admin/views/ERPRRHHView';
 import { ProyectosView }      from './components/admin/views/ProyectosView';
 import { PersonasView }       from './components/admin/views/PersonasView';
 import { OrganizacionesView } from './components/admin/views/OrganizacionesView';
 import { ClientesView }       from './components/admin/views/ClientesView';
+import { PedidosView }        from './components/admin/views/PedidosView';
+import { MetodosPagoView }    from './components/admin/views/MetodosPagoView';
+import { MetodosEnvioView }   from './components/admin/views/MetodosEnvioView';
+import { PagosView }          from './components/admin/views/PagosView';
+import { EnviosView }         from './components/admin/views/EnviosView';
+import { LogisticaView }      from './components/admin/views/LogisticaView';
+import { EtiquetaEmotivaView } from './components/admin/views/EtiquetaEmotivaView';
 import { Toaster } from 'sonner';
 
 export type MainSection =
@@ -41,6 +48,7 @@ export type MainSection =
   | 'ecommerce'
   | 'marketing'
   | 'herramientas'
+  | 'qr-generator'
   | 'gestion'
   | 'sistema'
   | 'diseno'
@@ -58,14 +66,20 @@ export type MainSection =
   | 'erp-facturacion'
   | 'erp-compras'
   | 'erp-crm'
-  | 'erp-logistica'
   | 'erp-contabilidad'
   | 'erp-rrhh'
   | 'proyectos'
   | 'storefront'
   | 'personas'
   | 'organizaciones'
-  | 'clientes';
+  | 'clientes'
+  | 'pedidos'
+  | 'metodos-pago'
+  | 'metodos-envio'
+  | 'pagos'
+  | 'envios'
+  | 'logistica'
+  | 'etiqueta-emotiva';
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<MainSection>('dashboard');
@@ -80,7 +94,8 @@ export default function AdminDashboard() {
           {activeSection === 'dashboard'       && <DashboardView      onNavigate={nav} />}
           {activeSection === 'ecommerce'       && <EcommerceView      onNavigate={nav} />}
           {activeSection === 'marketing'       && <MarketingView      onNavigate={nav} />}
-          {activeSection === 'herramientas'    && <HerramientasView   />}
+          {activeSection === 'herramientas'    && <HerramientasView   onNavigate={nav} />}
+          {activeSection === 'qr-generator'    && <QrGeneratorView    onNavigate={nav} />}
           {activeSection === 'gestion'         && <GestionView        onNavigate={nav} />}
           {activeSection === 'sistema'         && <SistemaView        onNavigate={nav} />}
           {activeSection === 'diseno'          && <DisenoView         onNavigate={nav} />}
@@ -98,7 +113,6 @@ export default function AdminDashboard() {
           {activeSection === 'erp-facturacion' && <ERPFacturacionView onNavigate={nav} />}
           {activeSection === 'erp-compras'     && <ERPComprasView     onNavigate={nav} />}
           {activeSection === 'erp-crm'         && <ERPCRMView         onNavigate={nav} />}
-          {activeSection === 'erp-logistica'   && <ERPLogisticaView   onNavigate={nav} />}
           {activeSection === 'erp-contabilidad'&& <ERPContabilidadView onNavigate={nav} />}
           {activeSection === 'erp-rrhh'        && <ERPRRHHView        onNavigate={nav} />}
           {activeSection === 'proyectos'       && <ProyectosView      onNavigate={nav} />}
@@ -106,6 +120,13 @@ export default function AdminDashboard() {
           {activeSection === 'personas'        && <PersonasView        onNavigate={nav} />}
           {activeSection === 'organizaciones'  && <OrganizacionesView  onNavigate={nav} />}
           {activeSection === 'clientes'        && <ClientesView        onNavigate={nav} />}
+          {activeSection === 'pedidos'         && <PedidosView         onNavigate={nav} />}
+          {activeSection === 'metodos-pago'    && <MetodosPagoView     onNavigate={nav} />}
+          {activeSection === 'metodos-envio'   && <MetodosEnvioView    onNavigate={nav} />}
+          {activeSection === 'pagos'           && <PagosView           onNavigate={nav} />}
+          {activeSection === 'envios'          && <EnviosView          onNavigate={nav} />}
+          {activeSection === 'logistica'       && <LogisticaView       onNavigate={nav} />}
+          {activeSection === 'etiqueta-emotiva'&& <EtiquetaEmotivaView onNavigate={nav} />}
         </main>
       </div>
     </>

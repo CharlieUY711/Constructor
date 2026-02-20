@@ -5,7 +5,7 @@ import type { CardDef } from '../ModuleCard';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Users, Mail, Share2, Database, RotateCcw, TrendingUp,
-  Ticket, Target, MessageSquare, BarChart2, Megaphone,
+  Ticket, Target, MessageSquare, BarChart2, Megaphone, QrCode,
 } from 'lucide-react';
 
 interface Props {
@@ -14,6 +14,14 @@ interface Props {
 
 export function MarketingView({ onNavigate }: Props) {
   const cards: CardDef[] = [
+    {
+      id: 'etiqueta-emotiva',
+      icon: QrCode,
+      label: 'Etiqueta Emotiva ✨',
+      description: 'Mensajes personalizados con QR en cada envío. Prueba de entrega real y conexión emocional con el destinatario.',
+      color: 'orange',
+      onClick: () => onNavigate('etiqueta-emotiva'),
+    },
     {
       id: 'mailing',
       icon: Mail,

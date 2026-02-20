@@ -11,32 +11,61 @@ import type { MainSection } from '../AdminDashboard';
 
 /** Secciones con vista implementada */
 export const BUILT_SECTIONS: MainSection[] = [
+  // ── Shell & Admin ──────────────────────────────────
   'dashboard',
-  'ecommerce',
-  'marketing',
-  'herramientas',
-  'gestion',
   'sistema',
-  'diseno',
   'checklist',
-  'integraciones',
-  'migracion-rrss',
+  'departamentos',
+  'diseno',
+
+  // ── Base de Personas ───────────────────────────────
+  'personas',
+  'organizaciones',
+  'clientes',
+
+  // ── eCommerce ─────────────────────────────────────
+  'ecommerce',
+  'pedidos',
+  'metodos-pago',
+  'metodos-envio',
+  'pagos',
+
+  // ── Logística ─────────────────────────────────────
+  'envios',
+  'logistica',
+
+  // ── Marketing ─────────────────────────────────────
+  'marketing',
   'mailing',
   'google-ads',
   'rueda-sorteos',
   'fidelizacion',
   'redes-sociales',
-  'departamentos',
-  'secondhand',
+  'migracion-rrss',
+  'etiqueta-emotiva',   // ← Etiqueta Emotiva completa
+
+  // ── Herramientas ──────────────────────────────────
+  'herramientas',
+  'qr-generator',       // ← Generador QR interno
+
+  // ── ERP módulos ───────────────────────────────────
   'erp-inventario',
   'erp-facturacion',
   'erp-compras',
-  'erp-crm',           // ← CRM completo
-  'erp-logistica',     // ← Logística completa
-  'erp-contabilidad',  // ← Contabilidad completa
-  'erp-rrhh',          // ← RRHH completo
-  'proyectos',         // ← Proyectos + Kanban
-  'storefront',        // ← Portal del Cliente v1
+  'erp-crm',
+  'erp-contabilidad',
+  'erp-rrhh',
+  'gestion',
+
+  // ── Proyectos ─────────────────────────────────────
+  'proyectos',
+
+  // ── Marketplace ───────────────────────────────────
+  'secondhand',
+  'storefront',
+
+  // ── Integraciones ─────────────────────────────────
+  'integraciones',
 ];
 
 /**
@@ -52,18 +81,24 @@ export const SECTION_TO_MODULE_IDS: Partial<Record<MainSection, string[]>> = {
   'gestion':           ['erp-sales'],
   // CRM
   'erp-crm':           ['crm-contacts', 'crm-opportunities', 'crm-activities'],
-  // Logística
-  'erp-logistica':     ['logistics-fulfillment', 'logistics-picking', 'logistics-shipping', 'logistics-tracking'],
-  // Contabilidad
+  // Contabilidad / RRHH
   'erp-contabilidad':  ['erp-accounting'],
-  // RRHH
   'erp-rrhh':          ['erp-hr'],
   // Proyectos
   'proyectos':         ['projects-management', 'projects-tasks', 'projects-time'],
-  // Marketplace
-  'secondhand':        ['marketplace-secondhand'],
-  'ecommerce':         ['marketplace-secondhand'],
-  'storefront':        ['marketplace-storefront'],
+  // Base de Personas
+  'personas':          ['base-personas'],
+  'organizaciones':    ['base-personas'],
+  'clientes':          ['base-personas'],
+  // eCommerce / Pedidos
+  'ecommerce':         ['marketplace-secondhand', 'ecommerce-pedidos'],
+  'pedidos':           ['ecommerce-pedidos'],
+  'metodos-pago':      ['ecommerce-metodos-pago'],
+  'metodos-envio':     ['ecommerce-metodos-envio'],
+  'pagos':             ['ecommerce-pedidos'],
+  // Logística
+  'envios':            ['logistics-shipping', 'logistics-fulfillment'],
+  'logistica':         ['logistics-fulfillment', 'logistics-picking', 'logistics-shipping', 'logistics-tracking', 'logistics-routes'],
   // Marketing
   'marketing':         ['marketing-campaigns', 'marketing-seo'],
   'mailing':           ['marketing-email', 'marketing-email-bulk'],
@@ -72,11 +107,16 @@ export const SECTION_TO_MODULE_IDS: Partial<Record<MainSection, string[]>> = {
   'redes-sociales':    ['marketing-social'],
   'migracion-rrss':    ['marketing-social'],
   'rueda-sorteos':     ['marketing-loyalty'],
+  'etiqueta-emotiva':  ['marketing-etiqueta-emotiva'],   // ← nuevo
   // Herramientas
   'herramientas':      ['tools-media', 'tools-documents'],
+  'qr-generator':      ['tools-qr'],                     // ← nuevo
   'diseno':            ['tools-media'],
+  // Marketplace
+  'secondhand':        ['marketplace-secondhand'],
+  'storefront':        ['marketplace-storefront'],
   // Integraciones
-  'integraciones':     ['integrations-mercadolibre', 'integrations-mercadopago', 'integrations-resend', 'integrations-twilio'],
+  'integraciones':     ['integrations-mercadolibre', 'integrations-mercadopago', 'integrations-resend', 'integrations-twilio', 'integrations-fixed', 'integrations-replicate', 'integrations-removebg'],
   // Admin / Sistema
   'dashboard':         ['admin-settings', 'admin-users'],
   'sistema':           ['admin-settings', 'admin-users'],
@@ -95,7 +135,6 @@ export const isBuilt = (s: MainSection) => BUILT_SECTIONS.includes(s);
 /** Progreso global */
 export const getBuildProgress = () => {
   const total = BUILT_SECTIONS.length;
-  // Módulos del checklist marcados como built
   const mapped = BUILT_SECTIONS.filter(s => s in SECTION_TO_MODULE_IDS).length;
   return { builtSections: total, mappedToChecklist: mapped };
 };

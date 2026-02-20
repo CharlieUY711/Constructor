@@ -5,6 +5,10 @@ import * as kv from "./kv_store.tsx";
 import { personas } from "./personas.tsx";
 import { organizaciones } from "./organizaciones.tsx";
 import { roles } from "./roles.tsx";
+import { pedidos } from "./pedidos.tsx";
+import { metodosPago } from "./metodos_pago.tsx";
+import { metodosEnvio } from "./metodos_envio.tsx";
+import { etiquetas } from "./etiquetas.tsx";
 
 const app = new Hono();
 
@@ -32,5 +36,13 @@ app.get("/make-server-75638143/health", (c) => {
 app.route("/make-server-75638143/personas", personas);
 app.route("/make-server-75638143/organizaciones", organizaciones);
 app.route("/make-server-75638143/roles", roles);
+
+// eCommerce
+app.route("/make-server-75638143/pedidos", pedidos);
+app.route("/make-server-75638143/metodos-pago", metodosPago);
+app.route("/make-server-75638143/metodos-envio", metodosEnvio);
+
+// Marketing
+app.route("/make-server-75638143/etiquetas", etiquetas);
 
 Deno.serve(app.fetch);

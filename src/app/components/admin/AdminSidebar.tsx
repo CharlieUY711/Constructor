@@ -9,6 +9,8 @@ import {
   Mail, BarChart3, Heart, Gift, Share2, ArrowLeftRight,
   Settings, Link2, Shield, CheckSquare, Store, Layers,
   ExternalLink, FolderTree, User, Building2, ShoppingBag,
+  ShoppingCart as OrderIcon, CreditCard, MapPin, Navigation,
+  QrCode,
 } from 'lucide-react';
 import type { MainSection } from '../../AdminDashboard';
 
@@ -36,23 +38,33 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: 'ecommerce', icon: ShoppingCart, label: 'eCommerce',
     children: [
-      { id: 'ecommerce',     label: 'Catálogo de Artículos',        icon: Store      },
-      { id: 'departamentos', label: 'Departamentos y Categorías',    icon: FolderTree },
-      { id: 'clientes',      label: 'Clientes',                     icon: ShoppingBag},
-      { id: 'storefront',    label: 'Portal del Cliente',            icon: Layers     },
-      { id: 'secondhand',    label: 'Second Hand',                   icon: RefreshCw  },
+      { id: 'ecommerce',      label: 'eCommerce',                    icon: Store       },
+      { id: 'pedidos',        label: 'Pedidos',                      icon: OrderIcon   },
+      { id: 'pagos',          label: 'Pagos & Transacciones',        icon: CreditCard  },
+      { id: 'departamentos',  label: 'Departamentos y Categorías',   icon: FolderTree  },
+      { id: 'clientes',       label: 'Clientes',                     icon: ShoppingBag },
+      { id: 'storefront',     label: 'Portal del Cliente',           icon: Layers      },
+      { id: 'secondhand',     label: 'Second Hand',                  icon: RefreshCw   },
+    ],
+  },
+  {
+    id: 'logistica', icon: Truck, label: 'Logística',
+    children: [
+      { id: 'logistica',      label: 'Logística',                    icon: Navigation  },
+      { id: 'envios',         label: 'Envíos',                       icon: Truck       },
     ],
   },
   {
     id: 'marketing', icon: Megaphone, label: 'Marketing',
     children: [
-      { id: 'marketing',      label: 'Dashboard RRSS',    icon: BarChart3     },
-      { id: 'mailing',        label: 'Email / Mailing',   icon: Mail          },
-      { id: 'google-ads',     label: 'Google Ads',        icon: BarChart3     },
-      { id: 'redes-sociales', label: 'Redes Sociales',    icon: Share2        },
-      { id: 'fidelizacion',   label: 'Fidelización',      icon: Heart         },
-      { id: 'rueda-sorteos',  label: 'Rueda de Sorteos',  icon: Gift          },
-      { id: 'migracion-rrss', label: 'Migración RRSS',    icon: ArrowLeftRight},
+      { id: 'marketing',        label: 'Dashboard RRSS',    icon: BarChart3     },
+      { id: 'mailing',          label: 'Email / Mailing',   icon: Mail          },
+      { id: 'google-ads',       label: 'Google Ads',        icon: BarChart3     },
+      { id: 'redes-sociales',   label: 'Redes Sociales',    icon: Share2        },
+      { id: 'fidelizacion',     label: 'Fidelización',      icon: Heart         },
+      { id: 'rueda-sorteos',    label: 'Rueda de Sorteos',  icon: Gift          },
+      { id: 'migracion-rrss',   label: 'Migración RRSS',    icon: ArrowLeftRight},
+      { id: 'etiqueta-emotiva', label: 'Etiqueta Emotiva',  icon: QrCode        },
     ],
   },
   { id: 'herramientas', icon: Wrench, label: 'Herramientas' },
@@ -65,7 +77,6 @@ const NAV_GROUPS: NavGroup[] = [
       { id: 'erp-facturacion',  label: 'Facturación',                icon: Receipt       },
       { id: 'erp-compras',      label: 'Compras',                    icon: ClipboardList },
       { id: 'erp-crm',          label: 'CRM',                        icon: Users         },
-      { id: 'erp-logistica',    label: 'Logística',                  icon: Truck         },
       { id: 'erp-contabilidad', label: 'Contabilidad',               icon: BookOpen      },
       { id: 'erp-rrhh',         label: 'RRHH',                       icon: UserCheck     },
       { id: 'proyectos',        label: 'Proyectos',                  icon: FolderKanban  },
@@ -77,10 +88,12 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: 'sistema', icon: Monitor, label: 'Sistema',
     children: [
-      { id: 'sistema',       label: 'Configuración',   icon: Settings    },
-      { id: 'integraciones', label: 'Integraciones',   icon: Link2       },
-      { id: 'diseno',        label: 'Diseño / Marca',  icon: Sparkles    },
-      { id: 'checklist',     label: 'Checklist',       icon: CheckSquare },
+      { id: 'sistema',       label: 'Configuración',     icon: Settings    },
+      { id: 'metodos-pago',  label: 'Métodos de Pago',   icon: CreditCard  },
+      { id: 'metodos-envio', label: 'Métodos de Envío',  icon: Truck       },
+      { id: 'integraciones', label: 'Integraciones',     icon: Link2       },
+      { id: 'diseno',        label: 'Diseño / Marca',    icon: Sparkles    },
+      { id: 'checklist',     label: 'Checklist',         icon: CheckSquare },
     ],
   },
 ];

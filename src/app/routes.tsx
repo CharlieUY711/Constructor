@@ -10,6 +10,7 @@ import StorefrontCheckoutPage  from './storefront/StorefrontCheckoutPage';
 import StorefrontSecondHandPage from './storefront/StorefrontSecondHandPage';
 import StorefrontPublishPage   from './storefront/StorefrontPublishPage';
 import StorefrontAccountPage   from './storefront/StorefrontAccountPage';
+import MensajePage             from './storefront/MensajePage';
 import AdminDashboard          from './AdminDashboard';
 
 export const router = createBrowserRouter([
@@ -17,6 +18,12 @@ export const router = createBrowserRouter([
   {
     path: '/admin',
     Component: AdminDashboard,
+  },
+
+  /* ── Etiqueta Emotiva — pública ─────────────── */
+  {
+    path: '/m/:token',
+    Component: MensajePage,
   },
 
   /* ── Storefront ─────────────────────────────── */
@@ -30,7 +37,7 @@ export const router = createBrowserRouter([
       { path: 'checkout',               Component: StorefrontCheckoutPage },
       { path: 'secondhand',             Component: StorefrontSecondHandPage },
       { path: 'secondhand/publish',     Component: StorefrontPublishPage },
-      { path: 'account',                Component: StorefrontAccountPage },
+      { path: 'account',               Component: StorefrontAccountPage },
     ],
   },
 ]);

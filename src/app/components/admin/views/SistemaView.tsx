@@ -5,6 +5,7 @@ import type { CardDef } from '../ModuleCard';
 import {
   Sparkles, Box, Activity, CheckSquare, DollarSign, BookOpen,
   Shield, Building, BarChart2, Clock, Plug, Settings2, Eye,
+  CreditCard, Truck,
 } from 'lucide-react';
 import type { MainSection } from '../../../AdminDashboard';
 
@@ -21,6 +22,38 @@ export function SistemaView({ onNavigate }: Props) {
       description: 'Espacio de diseño y pruebas visuales',
       color: 'orange',
       onClick: () => onNavigate('diseno'),
+    },
+    {
+      id: 'metodos-pago',
+      icon: CreditCard,
+      label: 'Métodos de Pago',
+      description: 'Configuración de pasarelas, transferencias y formas de cobro',
+      color: 'purple',
+      onClick: () => onNavigate('metodos-pago'),
+    },
+    {
+      id: 'metodos-envio',
+      icon: Truck,
+      label: 'Métodos de Envío',
+      description: 'Configuración de zonas, tarifas y opciones de entrega',
+      color: 'rose',
+      onClick: () => onNavigate('metodos-envio'),
+    },
+    {
+      id: 'integraciones',
+      icon: Plug,
+      label: 'Integraciones',
+      description: 'RRSS, Mercado Libre, Pagos y más',
+      color: 'teal',
+      onClick: () => onNavigate('integraciones'),
+    },
+    {
+      id: 'config-apis',
+      icon: Settings2,
+      label: 'Configurar APIs',
+      description: 'Claves y configuración de servicios',
+      color: 'orange',
+      onClick: () => onNavigate('integraciones'),
     },
     {
       id: 'marketplace-mod',
@@ -78,22 +111,6 @@ export function SistemaView({ onNavigate }: Props) {
       label: 'Auditoría y Logs',
       description: 'Historial de acciones del sistema',
       color: 'lavender',
-    },
-    {
-      id: 'integraciones',
-      icon: Plug,
-      label: 'Integraciones',
-      description: 'RRSS, Mercado Libre, Pagos y más',
-      color: 'teal',
-      onClick: () => onNavigate('integraciones'),
-    },
-    {
-      id: 'config-apis',
-      icon: Settings2,
-      label: 'Configurar APIs',
-      description: 'Claves y configuración de servicios',
-      color: 'orange',
-      onClick: () => onNavigate('integraciones'),
     },
     {
       id: 'config-vistas',

@@ -37,6 +37,14 @@ export function GestionView({ onNavigate }: Props) {
       onClick: () => onNavigate('departamentos'),
     },
     {
+      id: 'clientes',
+      icon: ShoppingBag,
+      label: 'Clientes',
+      description: 'Personas y organizaciones con rol de cliente en el sistema',
+      color: 'green',
+      onClick: () => onNavigate('clientes'),
+    },
+    {
       id: 'personas',
       icon: User,
       label: 'Personas',
@@ -107,14 +115,6 @@ export function GestionView({ onNavigate }: Props) {
       description: 'Kanban, tareas y seguimiento de proyectos',
       color: 'teal',
       onClick: () => onNavigate('proyectos'),
-    },
-    {
-      id: 'clientes',
-      icon: ShoppingBag,
-      label: 'Clientes',
-      description: 'Personas con rol de cliente activo en el sistema',
-      color: 'green',
-      onClick: () => onNavigate('clientes'),
     },
   ];
 
