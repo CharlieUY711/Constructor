@@ -42,6 +42,14 @@ import { PagosView }          from './components/admin/views/PagosView';
 import { EnviosView }         from './components/admin/views/EnviosView';
 import { LogisticaView }      from './components/admin/views/LogisticaView';
 import { EtiquetaEmotivaView } from './components/admin/views/EtiquetaEmotivaView';
+import { TransportistasView } from './components/admin/views/TransportistasView';
+import { RutasView }          from './components/admin/views/RutasView';
+import { FulfillmentView }    from './components/admin/views/FulfillmentView';
+import { ProduccionView }     from './components/admin/views/ProduccionView';
+import { AbastecimientoView } from './components/admin/views/AbastecimientoView';
+import { MapaEnviosView }     from './components/admin/views/MapaEnviosView';
+import { TrackingPublicoView } from './components/admin/views/TrackingPublicoView';
+import { SEOView }            from './components/admin/views/SEOView';
 import { Toaster } from 'sonner';
 
 export type MainSection =
@@ -81,6 +89,14 @@ export type MainSection =
   | 'pagos'
   | 'envios'
   | 'logistica'
+  | 'transportistas'
+  | 'rutas'
+  | 'produccion'
+  | 'abastecimiento'
+  | 'mapa-envios'
+  | 'tracking-publico'
+  | 'fulfillment'
+  | 'seo'
   | 'etiqueta-emotiva'
   | 'roadmap';
 
@@ -131,6 +147,14 @@ export default function AdminDashboard() {
           {activeSection === 'pagos'           && <PagosView           onNavigate={nav} />}
           {activeSection === 'envios'          && <EnviosView          onNavigate={nav} />}
           {activeSection === 'logistica'       && <LogisticaView       onNavigate={nav} />}
+          {activeSection === 'transportistas'  && <TransportistasView  onNavigate={nav} />}
+          {activeSection === 'rutas'           && <RutasView           onNavigate={nav} />}
+          {activeSection === 'produccion'      && <ProduccionView      onNavigate={nav} />}
+          {activeSection === 'abastecimiento'  && <AbastecimientoView  onNavigate={nav} />}
+          {activeSection === 'mapa-envios'     && <MapaEnviosView      onNavigate={nav} />}
+          {activeSection === 'tracking-publico'&& <TrackingPublicoView onNavigate={nav} />}
+          {activeSection === 'fulfillment'     && <FulfillmentView     onNavigate={nav} />}
+          {activeSection === 'seo'             && <SEOView             onNavigate={nav} />}
           {activeSection === 'etiqueta-emotiva'&& <EtiquetaEmotivaView onNavigate={nav} />}
         </main>
       </div>

@@ -10,7 +10,8 @@ import {
   Settings, Link2, Shield, CheckSquare, Store, Layers,
   ExternalLink, FolderTree, User, Building2, ShoppingBag,
   ShoppingCart as OrderIcon, CreditCard, MapPin, Navigation,
-  QrCode, Rss, Map,
+  QrCode, Rss, Map, Factory, Box, AlertTriangle, Radio,
+  Search, Zap, Globe,
 } from 'lucide-react';
 import type { MainSection } from '../../AdminDashboard';
 
@@ -50,8 +51,15 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: 'logistica', icon: Truck, label: 'Logística',
     children: [
-      { id: 'logistica',      label: 'Logística',                    icon: Navigation  },
-      { id: 'envios',         label: 'Envíos',                       icon: Truck       },
+      { id: 'logistica',        label: 'Hub Logístico',          icon: Navigation  },
+      { id: 'envios',           label: 'Envíos',                 icon: Truck       },
+      { id: 'transportistas',   label: 'Transportistas',         icon: Users       },
+      { id: 'rutas',            label: 'Rutas',                  icon: Map         },
+      { id: 'fulfillment',      label: 'Fulfillment / Picking',  icon: Box         },
+      { id: 'produccion',       label: 'Producción / Armado',    icon: Factory     },
+      { id: 'abastecimiento',   label: 'Abastecimiento',         icon: Package     },
+      { id: 'mapa-envios',      label: 'Mapa de Envíos',         icon: MapPin      },
+      { id: 'tracking-publico', label: 'Tracking Público',       icon: Radio       },
     ],
   },
   {
@@ -60,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id: 'marketing',        label: 'Dashboard Marketing', icon: BarChart3     },
       { id: 'mailing',          label: 'Email / Mailing',    icon: Mail          },
       { id: 'google-ads',       label: 'Google Ads',         icon: BarChart3     },
+      { id: 'seo',              label: 'SEO',                icon: Search        },
       { id: 'fidelizacion',     label: 'Fidelización',       icon: Heart         },
       { id: 'rueda-sorteos',    label: 'Rueda de Sorteos',   icon: Gift          },
       { id: 'etiqueta-emotiva', label: 'Etiqueta Emotiva',   icon: QrCode        },

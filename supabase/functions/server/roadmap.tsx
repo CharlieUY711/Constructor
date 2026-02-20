@@ -6,6 +6,7 @@
  *   module-files:{moduleId}    → array de ModuleFileEntry
  */
 
+import { Hono } from "npm:hono";
 import { createClient } from "npm:@supabase/supabase-js";
 import * as kv from "./kv_store.tsx";
 
@@ -58,6 +59,41 @@ roadmap.post("/modules-bulk", async (c) => {
   } catch (err) {
     console.log(`[roadmap] POST /modules-bulk error: ${err}`);
     return c.json({ error: `Error guardando módulos: ${err}` }, 500);
+  }
+});
+
+/** POST /modules/:moduleId — guarda el estado de un módulo individual */
+roadmap.post("/modules/:moduleId", async (c) => {
+  try {
+    const moduleId = c.req.param("moduleId");
+    const updatedModule = await c.req.json();
+
+    // Load existing array, replace or append this module
+    const existing: any[] = ((await kv.get("roadmap:modules")) ?? []) as any[];
+    const idx = existing.findIndex((m: any) => m.id === moduleId);
+    if (idx !== -1) {
+      existing[idx] = updatedModule;
+    } else {
+      existing.push(updatedModule);
+    }
+    await kv.set("roadmap:modules", existing);
+    console.log(`[roadmap] POST /modules/${moduleId} — estado actualizado`);
+    return c.json({ ok: true });
+  } catch (err) {
+    console.log(`[roadmap] POST /modules/:moduleId error: ${err}`);
+    return c.json({ error: `Error actualizando módulo: ${err}` }, 500);
+  }
+});
+
+/** DELETE /modules/reset — limpia todos los estados guardados (fuerza resync desde manifest) */
+roadmap.delete("/modules/reset", async (c) => {
+  try {
+    await kv.set("roadmap:modules", []);
+    console.log("[roadmap] DELETE /modules/reset — KV borrado, próximo load recomputa desde manifest");
+    return c.json({ ok: true, message: "Estado del roadmap reseteado. El próximo load aplicará el manifest." });
+  } catch (err) {
+    console.log(`[roadmap] DELETE /modules/reset error: ${err}`);
+    return c.json({ error: `Error reseteando: ${err}` }, 500);
   }
 });
 

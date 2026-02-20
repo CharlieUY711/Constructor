@@ -27,6 +27,7 @@ import {
   Play,
   Inbox,
   Paperclip,
+  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -277,11 +278,12 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
-  const [modules, setModules] = useState<Module[]>(MODULES_DATA);
+  const [modules, setModules] = useState<Module[]>(() => MODULES_DATA.map(applyBuiltStatus));
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const API_URL = projectId
     ? `https://${projectId}.supabase.co/functions/v1/make-server-75638143`
@@ -317,8 +319,30 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
             return applyBuiltStatus(base);
           });
           setModules(merged);
+
+          // ── Auto-resync: detecta si el manifest cambió desde el último save
+          //    Compara status guardado vs status que applyBuiltStatus computaría.
+          const needsResync = merged.some((m) => {
+            const saved = data.modules.find((s: Module) => s.id === m.id);
+            return saved && saved.status !== m.status;
+          });
+          if (needsResync) {
+            console.log("[ChecklistRoadmap] Manifest actualizado detectado → auto-resync al backend");
+            fetch(`${API_URL}/roadmap/modules-bulk`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
+              body: JSON.stringify({ modules: merged }),
+            }).catch(() => {/* silent */});
+          }
         } else {
-          setModules(MODULES_DATA.map(applyBuiltStatus));
+          // KV vacío → computar desde manifest y guardar en backend
+          const fresh = MODULES_DATA.map(applyBuiltStatus);
+          setModules(fresh);
+          fetch(`${API_URL}/roadmap/modules-bulk`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
+            body: JSON.stringify({ modules: fresh }),
+          }).catch(() => {/* silent */});
         }
       } else {
         setModules(MODULES_DATA.map(applyBuiltStatus));
@@ -430,6 +454,40 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
       toast.warning("⚠️ Cambios guardados localmente");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // ── Resync forzado: limpia KV y recomputa desde MODULES_DATA + manifest ──
+  const forceResyncFromManifest = async () => {
+    setIsSyncing(true);
+    try {
+      const fresh = MODULES_DATA.map(applyBuiltStatus);
+      setModules(fresh);
+      if (API_URL) {
+        // Primero limpiar el KV
+        await fetch(`${API_URL}/roadmap/modules/reset`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${publicAnonKey}` },
+        }).catch(() => {/* silent */});
+        // Luego guardar el estado fresco
+        const res = await fetch(`${API_URL}/roadmap/modules-bulk`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
+          body: JSON.stringify({ modules: fresh }),
+        });
+        if (res.ok) {
+          toast.success("🔄 Resincronizado — estadísticas actualizadas desde el manifest");
+        } else {
+          toast.warning("⚠️ Resync aplicado localmente, backend no respondió");
+        }
+      } else {
+        toast.success("🔄 Estadísticas actualizadas desde el manifest");
+      }
+      setHasUnsavedChanges(false);
+    } catch (err) {
+      toast.error(`Error en resync: ${err}`);
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -571,6 +629,15 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={forceResyncFromManifest}
+                disabled={isSyncing}
+                title="Resincroniza estadísticas desde el manifest — corrige estados stale del backend"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                <RefreshCw className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`} />
+                {isSyncing ? "Sincronizando..." : "Resync manifest"}
+              </button>
+              <button
                 onClick={() => setShowAudit(true)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-orange-50 hover:border-[#FF6835]/40 text-gray-600 hover:text-[#FF6835] transition-colors text-sm font-medium"
               >
@@ -614,6 +681,15 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={forceResyncFromManifest}
+              disabled={isSyncing}
+              title="Resincroniza estadísticas desde el manifest — corrige estados stale del backend"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              {isSyncing ? "Sincronizando..." : "Resync"}
+            </button>
             <button
               onClick={() => setShowAudit(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#FF6835]/30 bg-orange-50 hover:bg-orange-100 text-[#FF6835] font-semibold transition-colors"

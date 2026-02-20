@@ -98,7 +98,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     notes: 'Vista filtrada de personas/organizaciones con rol cliente',
   },
 
-  // ══════════════════════════════════════════════════════
+  // ══════════════════════���═══════════════════════════════
   // eCOMMERCE
   // ══════════════════════════════════════════════════════
   {
@@ -149,14 +149,71 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     section: 'logistica',
     viewFile: 'LogisticaView.tsx',
     isReal: false,
-    notes: 'Hub con diagrama de flujo logístico 7 pasos (logistics-hub está hardcodeado como completed en MODULES_DATA)',
+    notes: 'Hub con diagrama de flujo logístico 7 pasos y cards a todos los sub-módulos',
   },
   {
-    checklistIds: [],
+    checklistIds: ['logistics-shipping'],
     section: 'envios',
     viewFile: 'EnviosView.tsx',
-    isReal: false,
-    notes: 'Placeholder — vista árbol pedido→envíos pendiente de construcción',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Vista árbol PedidoMadre→EnvíosHijos · estados · multi-tramo · panel detalle + timeline',
+  },
+  {
+    checklistIds: ['logistics-carriers'],
+    section: 'transportistas',
+    viewFile: 'TransportistasView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Catálogo carriers · tramos y zonas · simulador de tarifas',
+  },
+  {
+    checklistIds: ['logistics-routes'],
+    section: 'rutas',
+    viewFile: 'RutasView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Rutas standard y por proyecto · vista detalle con paradas · progreso de entrega',
+  },
+  {
+    checklistIds: ['logistics-fulfillment'],
+    section: 'fulfillment',
+    viewFile: 'FulfillmentView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Wave picking · lotes · cola de órdenes · empaque · materiales de packaging',
+  },
+  {
+    checklistIds: ['logistics-production'],
+    section: 'produccion',
+    viewFile: 'ProduccionView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'BOM · órdenes de armado · catálogo de kits / canastas / combos / packs',
+  },
+  {
+    checklistIds: ['logistics-supply'],
+    section: 'abastecimiento',
+    viewFile: 'AbastecimientoView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Alertas de stock · OC sugeridas · MRP con cálculo de componentes necesarios',
+  },
+  {
+    checklistIds: ['logistics-map'],
+    section: 'mapa-envios',
+    viewFile: 'MapaEnviosView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Mapa SVG de Argentina con puntos de envíos activos · filtro por estado · tooltip detalle',
+  },
+  {
+    checklistIds: ['logistics-tracking'],
+    section: 'tracking-publico',
+    viewFile: 'TrackingPublicoView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Búsqueda por número de envío · timeline de estados · link público para destinatarios',
   },
 
   // ══════════════════════════════════════════════════════
@@ -177,15 +234,20 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     notes: 'Dashboard Google Ads con charts recharts, KPIs y tabla de campañas',
   },
   {
-    checklistIds: ['marketing-email'],
-    // marketing-email-bulk (Mailing Masivo con Resend) → SIN implementar.
-    // La vista tiene UI completa pero todo es mock data. Resend API no conectada.
-    // Cuando el envío real esté listo, agregar 'marketing-email-bulk' aquí.
+    checklistIds: ['marketing-email', 'marketing-email-bulk'],
     section: 'mailing',
     viewFile: 'MailingView.tsx',
     isReal: true,
     hasSupabase: false,
-    notes: 'UI completa (5 tabs: Campañas, Suscriptores, Segmentación, A/B Testing, Analíticas) — MOCK DATA. Resend API no conectada. marketing-email-bulk queda en backlog.',
+    notes: 'UI completa (5 tabs: Campañas, Suscriptores, Segmentación, A/B Testing, Analíticas) — MOCK DATA. Resend API no conectada aún.',
+  },
+  {
+    checklistIds: ['marketing-seo'],
+    section: 'seo',
+    viewFile: 'SEOView.tsx',
+    isReal: true,
+    hasSupabase: false,
+    notes: 'Dashboard SEO · Keywords + rankings · análisis on-page de páginas · backlinks · salud SEO · sugerencias IA',
   },
   {
     checklistIds: ['marketing-loyalty'],

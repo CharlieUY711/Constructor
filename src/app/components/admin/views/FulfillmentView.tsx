@@ -252,7 +252,7 @@ export function FulfillmentView({ onNavigate }: Props) {
                         <h3 style={{ margin: '0 0 12px', fontSize: '13px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Líneas de Picking</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {selectedOrden.lineas.map((linea, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', backgroundColor: '#fff', borderRadius: '10px', border: `1px solid ${linea.pickeado ? '#A7F3D0' : '#E5E7EB'}`, backgroundColor: linea.pickeado ? '#F0FDF4' : '#fff' }}>
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '10px', border: `1px solid ${linea.pickeado ? '#A7F3D0' : '#E5E7EB'}`, backgroundColor: linea.pickeado ? '#F0FDF4' : '#fff' }}>
                               <div style={{ width: '28px', height: '28px', borderRadius: '8px', backgroundColor: linea.pickeado ? '#D1FAE5' : '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 {linea.pickeado ? <Check size={14} color="#059669" /> : <Package size={14} color="#9CA3AF" />}
                               </div>
