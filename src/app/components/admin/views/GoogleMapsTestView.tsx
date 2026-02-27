@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { GoogleAddressAutocomplete } from '../../ui/GoogleAddressAutocomplete';
 import { GoogleMap, type MapMarker } from '../../ui/GoogleMap';
-import { geocodeAddress, reverseGeocode } from '../../../utils/google/geocoding';
+import { geocodeAddress, reverseGeocode } from '../../../../utils/google/geocoding';
 import { toast } from 'sonner';
 import { MapPin, Navigation, Search, Loader2 } from 'lucide-react';
 

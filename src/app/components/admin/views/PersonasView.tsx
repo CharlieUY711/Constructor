@@ -7,7 +7,7 @@ import type { MainSection } from '../../../AdminDashboard';
 import { toast } from 'sonner';
 import { getPersonas, createPersona, updatePersona, deletePersona, type Persona } from '../../../services/personasApi';
 import { GoogleAddressAutocomplete } from '../../ui/GoogleAddressAutocomplete';
-import { getPlaceDetails } from '../../../utils/google/places';
+import { getPlaceDetails } from '../../../../utils/google/places';
 import {
   Search, Plus, Edit2, Trash2, User, Building2,
   Mail, Phone, FileText, RefreshCw, X, Save, Filter,

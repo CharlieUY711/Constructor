@@ -177,7 +177,8 @@ function applyBuiltStatus(m: Module): Module {
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MODULES_DATA  (fuente de verdad frontend)
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const MODULES_DATA: Module[] = [
+// MODULES_DATA eliminado - ahora se usa solo roadmapApi.getModules()
+const MODULES_DATA_PLACEHOLDER: Module[] = [
   // ==================== ADMIN ====================
   { id: "admin-settings", name: "Configuración del Sistema", category: "admin", status: "not-started", priority: "critical", description: "Panel de configuración global", estimatedHours: 24, submodules: [ { id: "admin-set-global", name: "Configuración Global", status: "not-started", estimatedHours: 8 }, { id: "admin-set-theme", name: "Temas y Diseño", status: "not-started", estimatedHours: 8 }, { id: "admin-set-notif", name: "Notificaciones", status: "not-started", estimatedHours: 8 } ] },
   { id: "admin-users", name: "Gestión de Usuarios y Roles", category: "admin", status: "not-started", priority: "critical", description: "Administración de usuarios del sistema", estimatedHours: 32, submodules: [ { id: "admin-usr-crud", name: "CRUD de Usuarios", status: "not-started", estimatedHours: 12 }, { id: "admin-usr-roles", name: "Roles y Permisos", status: "not-started", estimatedHours: 12 }, { id: "admin-usr-audit", name: "Auditoría", status: "not-started", estimatedHours: 8 } ] },
@@ -373,7 +374,7 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const [tasksByModule, setTasksByModule] = useState<Record<string, roadmapApi.RoadmapTask[]>>({});
   const [ideasPromovidas, setIdeasPromovidas] = useState<roadmapApi.IdeaPromovida[]>([]);
   const [showIdeasTab, setShowIdeasTab] = useState(false);
-  const [modules, setModules] = useState<Module[]>(() => MODULES_DATA.map(applyBuiltStatus));
+  const [modules, setModules] = useState<Module[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -396,7 +397,7 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
 
   useEffect(() => {
     if (!projectId) {
-      setModules(MODULES_DATA.map(applyBuiltStatus));
+      setModules([]);
       setIsLoading(false);
       return;
     }
