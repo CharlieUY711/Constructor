@@ -9,7 +9,7 @@ import {
   Download, RefreshCw, HardDrive,
 } from 'lucide-react';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 

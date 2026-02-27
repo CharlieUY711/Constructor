@@ -392,7 +392,7 @@ Deploy:      Vercel / Netlify (frontend) + Supabase (backend)
 ## Base URL
 
 \`\`\`
-https://{projectId}.supabase.co/functions/v1/make-server-75638143
+https://{projectId}.supabase.co/functions/v1/api
 \`\`\`
 
 ## Autenticación

@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 const ORANGE = '#FF6835';
 interface Props { onNavigate: (s: MainSection) => void; }
 
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 
 const WEBHOOK_URL = `https://${projectId}.supabase.co/functions/v1/api/age-verification/metamap-webhook`;
 

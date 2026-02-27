@@ -30,7 +30,7 @@ interface ServiceCheck {
 const initialServices: ServiceCheck[] = [
   { id: 'supabase-db',    name: 'Supabase Database',    description: 'PostgreSQL + kv_store_75638143',      category: 'Backend',  icon: Database, color: '#059669', status: 'checking' },
   { id: 'supabase-auth',  name: 'Supabase Auth',        description: 'Autenticación y sesiones',             category: 'Backend',  icon: Shield,   color: '#059669', status: 'checking' },
-  { id: 'supabase-edge',  name: 'Edge Functions (Hono)',description: 'Servidor /make-server-75638143',        category: 'Backend',  icon: Server,   color: '#059669', status: 'checking' },
+  { id: 'supabase-edge',  name: 'Edge Functions (Hono)',description: 'Servidor /api',        category: 'Backend',  icon: Server,   color: '#059669', status: 'checking' },
   { id: 'kv-store',       name: 'KV Store',             description: 'Tabla clave-valor persistente',        category: 'Backend',  icon: Cpu,      color: '#059669', status: 'checking' },
   { id: 'storage',        name: 'Supabase Storage',     description: 'Buckets make-75638143-*',              category: 'Backend',  icon: Database, color: '#059669', status: 'checking' },
   { id: 'plexo',          name: 'Plexo UV',             description: 'API de pagos Uruguay',                 category: 'Pagos',    icon: Globe,    color: '#6B7280', status: 'pending' },
@@ -60,7 +60,7 @@ export function HealthMonitorView({ onNavigate }: Props) {
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const [checking, setChecking] = useState(false);
 
-  const API_URL = projectId ? `https://${projectId}.supabase.co/functions/v1/make-server-75638143` : null;
+  const API_URL = projectId ? `https://${projectId}.supabase.co/functions/v1/api` : null;
 
   const runChecks = useCallback(async () => {
     setChecking(true);
