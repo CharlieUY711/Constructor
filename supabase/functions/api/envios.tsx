@@ -35,6 +35,8 @@ envios.get("/", async (c) => {
     const { pedido_madre_id, estado, carrier, tramo } = c.req.query();
     const supabase = getSupabase();
     
+    console.log(`[envios] GET / - Filtros:`, { pedido_madre_id, estado, carrier, tramo });
+    
     let query = supabase
       .from("envios_75638143")
       .select("*")
@@ -46,7 +48,13 @@ envios.get("/", async (c) => {
     if (tramo) query = query.eq("tramo", tramo);
     
     const { data: envios, error } = await query;
-    if (error) throw error;
+    
+    if (error) {
+      console.error(`[envios] GET / - Error en query:`, error);
+      throw error;
+    }
+    
+    console.log(`[envios] GET / - Envíos encontrados: ${envios?.length ?? 0}`);
     
     // Cargar eventos para todos los envíos en una sola query
     const envioIds = (envios ?? []).map(e => e.id);
@@ -59,8 +67,11 @@ envios.get("/", async (c) => {
         .in("envio_id", envioIds)
         .order("fecha", { ascending: false });
       
-      if (!eventosErr) {
+      if (eventosErr) {
+        console.error(`[envios] GET / - Error cargando eventos:`, eventosErr);
+      } else {
         eventos = eventosData ?? [];
+        console.log(`[envios] GET / - Eventos encontrados: ${eventos.length}`);
       }
     }
     
@@ -70,7 +81,7 @@ envios.get("/", async (c) => {
       count: envios?.length ?? 0 
     });
   } catch (err) {
-    console.log(`[envios] GET / error: ${err}`);
+    console.error(`[envios] GET / error: ${err}`);
     return c.json({ error: `Error cargando envíos: ${err}` }, 500);
   }
 });

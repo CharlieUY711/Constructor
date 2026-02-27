@@ -183,11 +183,18 @@ export function EnviosView({ onNavigate }: Props) {
   const loadEnvios = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('[EnviosView] Iniciando carga de envíos...');
       const filters: any = {};
       if (filterEstado !== 'todos') filters.estado = filterEstado;
       if (filterTramo !== 'todos') filters.tramo = filterTramo;
       
+      console.log('[EnviosView] Filtros aplicados:', filters);
       const { envios: enviosData, eventos: todosEventos } = await enviosApi.getEnvios(filters);
+      
+      console.log('[EnviosView] Datos recibidos:', { 
+        envios: enviosData.length, 
+        eventos: todosEventos.length 
+      });
       
       // Crear un mapa de eventos por envío para acceso rápido
       const eventosPorEnvio = new Map<string, enviosApi.EventoTracking[]>();
@@ -198,14 +205,19 @@ export function EnviosView({ onNavigate }: Props) {
         eventosPorEnvio.get(ev.envio_id)!.push(ev);
       });
       
+      console.log('[EnviosView] Eventos agrupados por envío:', eventosPorEnvio.size);
+      
       // Transformar envíos con sus eventos
       const enviosConEventos = enviosData.map(envio => {
         const eventos = eventosPorEnvio.get(envio.id) || [];
         return transformEnvio(envio, eventos);
       });
       
+      console.log('[EnviosView] Envíos transformados:', enviosConEventos.length);
+      
       // Agrupar por pedido
       const pedidosAgrupados = agruparPorPedido(enviosConEventos);
+      console.log('[EnviosView] Pedidos agrupados:', pedidosAgrupados.length);
       setPedidos(pedidosAgrupados);
       
       // Expandir el primer pedido solo la primera vez

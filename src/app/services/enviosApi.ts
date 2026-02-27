@@ -1,7 +1,7 @@
 /* =====================================================
    Envíos API Service — Frontend ↔ Backend
    ===================================================== */
-import { projectId, publicAnonKey } from '../../utils/supabase/info';
+import { projectId, publicAnonKey } from '/utils/supabase/info';
 
 const BASE = `https://${projectId}.supabase.co/functions/v1/api/envios`;
 const HEADERS = {
@@ -174,11 +174,21 @@ export async function getEnvios(filters?: {
   
   const query = params.toString() ? `?${params.toString()}` : '';
   const res = await apiGet<{ envios: Envio[]; eventos: EventoTracking[]; count: number }>(query);
+  
+  console.log('[enviosApi] getEnvios response:', { ok: res.ok, error: res.error, data: res.data });
+  
   if (!res.ok) {
     console.error('[enviosApi] Error en getEnvios:', res.error);
     throw new Error(res.error || 'Error cargando envíos');
   }
-  if (!res.data) return { envios: [], eventos: [] };
+  
+  if (!res.data) {
+    console.warn('[enviosApi] getEnvios: res.data es null/undefined');
+    return { envios: [], eventos: [] };
+  }
+  
+  console.log('[enviosApi] getEnvios: envíos encontrados:', res.data.envios?.length || 0, 'eventos:', res.data.eventos?.length || 0);
+  
   return { envios: res.data.envios || [], eventos: res.data.eventos || [] };
 }
 
