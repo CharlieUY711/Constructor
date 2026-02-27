@@ -1,10 +1,10 @@
-/**
- * Ideas Board — Canvas visual de ideas y módulos
- * ═══════════════════════════════════════════════
- * Módulo independiente en Herramientas.
- * Stickers = módulos del sistema + ideas libres.
- * Conectores con 5 colores. Múltiples canvases vinculables.
- * Navegación jerárquica con ⊙ (padre) y ⊕ (hijo).
+﻿/**
+ * Ideas Board - Canvas visual de ideas y modulos
+ * ===============================================
+ * Modulo independiente en Herramientas.
+ * Stickers = modulos del sistema + ideas libres.
+ * Conectores con 5 colores. Multiples canvases vinculables.
+ * Navegacion jerarquica con (o) (padre) y (+) (hijo).
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
@@ -46,7 +46,7 @@ const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${p
 
 const ORANGE = '#FF6835';
 
-/* ── Colores de conectores ── */
+/* -- Colores de conectores -- */
 export const EDGE_COLORS = [
   { id: 'general', label: 'General',   color: '#9CA3AF' },
   { id: 'depends', label: 'Depende de', color: '#FF6835' },
@@ -55,7 +55,7 @@ export const EDGE_COLORS = [
   { id: 'part_of', label: 'Parte de',  color: '#3B82F6' },
 ];
 
-/* ── Familias de módulos (espejo del sidebar) ── */
+/* -- Familias de modulos (espejo del sidebar) -- */
 const FAMILIES = [
   {
     id: 'ecommerce', label: 'eCommerce', emoji: '🛒', color: '#3B82F6',
@@ -136,7 +136,7 @@ const FAMILIES = [
   },
 ];
 
-/* ── Helper: obtener status del módulo ── */
+/* -- Helper: obtener status del modulo -- */
 function getModuleStatus(sectionId: string): 'completed-db' | 'ui-only' | 'pending' {
   const entry = MANIFEST_BY_SECTION.get(sectionId as MainSection);
   if (!entry || !entry.isReal) return 'pending';
@@ -151,7 +151,7 @@ const STATUS_DOT: Record<string, { color: string; label: string }> = {
   'idea':         { color: '#FF6835', label: '💡 Idea' },
 };
 
-/* ── Tipos de nodos ── */
+/* -- Tipos de nodos -- */
 export type StickerData = {
   label: string;
   text?: string;
@@ -174,9 +174,9 @@ export type CanvasLinkData = {
   onNavigate?: (id: string) => void;
 };
 
-/* ══════════════════════════════════════════════
+/* ==============================================
    CUSTOM NODE: STICKER
-══════════════════════════════════════════════ */
+============================================== */
 function StickerNode({ id, data, selected }: NodeProps) {
   const d = data as StickerData;
   const [editing, setEditing] = useState(false);
@@ -367,7 +367,7 @@ function StickerNode({ id, data, selected }: NodeProps) {
         </div>
       </div>
 
-      {/* Modal de promover a módulo */}
+      {/* Modal de promover a modulo */}
       {showPromoteModal && (
         <div style={{
           position: 'fixed',
@@ -390,14 +390,14 @@ function StickerNode({ id, data, selected }: NodeProps) {
             boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '700', color: '#111827' }}>
-              ⬆️ Promover a módulo
+              Promover a modulo
             </h3>
             <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: '#6B7280' }}>
               {d.text}
             </p>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: 'block', marginBottom: 6, fontSize: '0.8rem', fontWeight: '600', color: '#374151' }}>
-                Área / Categoría
+                Area / Categoria
               </label>
               <input
                 type="text"
@@ -472,9 +472,9 @@ function StickerNode({ id, data, selected }: NodeProps) {
   );
 }
 
-/* ══════════════════════════════════════════════
-   CUSTOM NODE: CANVAS LINK (⊙ padre / ⊕ hijo)
-══════════════════════════════════════════════ */
+/* ==============================================
+   CUSTOM NODE: CANVAS LINK - circulo padre / cruz hijo
+============================================== */
 function CanvasLinkNode({ data }: NodeProps) {
   const d = data as CanvasLinkData;
   const [hovered, setHovered] = useState(false);
@@ -506,7 +506,7 @@ function CanvasLinkNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 4, height: 4 }} />
 
       {isParent ? (
-        /* ⊙ círculo con punto */
+        /* (o) circulo con punto */
         <div style={{
           width: 10,
           height: 10,
@@ -514,7 +514,7 @@ function CanvasLinkNode({ data }: NodeProps) {
           backgroundColor: ORANGE,
         }} />
       ) : (
-        /* ⊕ círculo con cruz */
+        /* (+) circulo con cruz */
         <svg width="14" height="14" viewBox="0 0 14 14">
           <line x1="7" y1="1" x2="7" y2="13" stroke={ORANGE} strokeWidth="2.2" strokeLinecap="round" />
           <line x1="1" y1="7" x2="13" y2="7" stroke={ORANGE} strokeWidth="2.2" strokeLinecap="round" />
@@ -538,7 +538,7 @@ function CanvasLinkNode({ data }: NodeProps) {
           pointerEvents: 'none',
           zIndex: 100,
         }}>
-          {isParent ? '⊙' : '⊕'} {d.canvasName}
+          {isParent ? '(o)' : '(+)'} {d.canvasName}
         </div>
       )}
     </div>
@@ -547,9 +547,9 @@ function CanvasLinkNode({ data }: NodeProps) {
 
 const NODE_TYPES = { sticker: StickerNode, canvasLink: CanvasLinkNode };
 
-/* ══════════════════════════════════════════════
+/* ==============================================
    PANEL IZQUIERDO: FAMILIAS DE MÓDULOS
-══════════════════════════════════════════════ */
+============================================== */
 interface ModulePanelProps {
   canvasNodes: Node[];
   onDragStart: (e: React.DragEvent, family: typeof FAMILIES[0], mod: { id: string; label: string }) => void;
@@ -690,9 +690,9 @@ function ModulePanel({ canvasNodes, onDragStart, onAddIdea }: ModulePanelProps) 
   );
 }
 
-/* ══════════════════════════════════════════════
+/* ==============================================
    MODAL: NUEVA IDEA
-══════════════════════════════════════════════ */
+============================================== */
 const AREAS = ['General', 'Logística', 'Pagos', 'Tiendas', 'Redes Sociales', 'Servicios', 'eCommerce', 'Marketing', 'ERP', 'Sistema', 'Herramientas'];
 
 interface IdeaModalProps {
@@ -739,9 +739,9 @@ function IdeaModal({ onClose, onSave, ideas }: IdeaModalProps) {
       </div>
 
       <div style={{ padding: '16px 18px' }}>
-        {/* Área */}
+        {/* Area */}
         <label style={{ fontSize: '0.72rem', fontWeight: '700', color: '#374151', display: 'block', marginBottom: 5 }}>
-          Área
+          Area
         </label>
         <select
           value={area}
@@ -785,7 +785,7 @@ function IdeaModal({ onClose, onSave, ideas }: IdeaModalProps) {
           onBlur={e => (e.target.style.borderColor = '#E5E7EB')}
         />
 
-        {/* Recientes del área */}
+        {/* Recientes del area */}
         {recent.length > 0 && (
           <div style={{ marginTop: 12 }}>
             <p style={{ fontSize: '0.68rem', fontWeight: '700', color: '#9CA3AF', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -814,7 +814,7 @@ function IdeaModal({ onClose, onSave, ideas }: IdeaModalProps) {
           </div>
         )}
 
-        {/* Botón guardar */}
+        {/* Boton guardar */}
         <button
           disabled={!text.trim()}
           onClick={() => { onSave(area, text); onClose(); }}
@@ -839,9 +839,9 @@ function IdeaModal({ onClose, onSave, ideas }: IdeaModalProps) {
   );
 }
 
-/* ══════════════════════════════════════════════
+/* ==============================================
    COMPONENTE INTERNO (necesita useReactFlow)
-══════════════════════════════════════════════ */
+============================================== */
 interface InnerProps {
   canvases: any[];
   activeCanvas: any;
@@ -1042,7 +1042,7 @@ function IdeasBoardInner({
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
 
-      {/* ── Top Bar ── */}
+      {/* -- Top Bar -- */}
       <div style={{
         height: 54,
         backgroundColor: '#FFFFFF',
@@ -1156,7 +1156,7 @@ function IdeasBoardInner({
 
         <div style={{ width: 1, height: 24, backgroundColor: '#E5E7EB' }} />
 
-        {/* Navegación jerárquica */}
+        {/* Navegacion jerarquica */}
         {parentCanvas && (
           <button
             onClick={() => onSelectCanvas(parentCanvas.id)}
@@ -1254,7 +1254,7 @@ function IdeasBoardInner({
         </div>
       </div>
 
-      {/* ── Body: panel + canvas ── */}
+      {/* -- Body: panel + canvas -- */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
         <ModulePanel
           canvasNodes={nodes}
@@ -1373,9 +1373,9 @@ function IdeasBoardInner({
   );
 }
 
-/* ══════════════════════════════════════════════
+/* ==============================================
    MAIN VIEW (con ReactFlowProvider + data layer)
-══════════════════════════════════════════════ */
+============================================== */
 interface Props {
   onNavigate: (section: MainSection) => void;
 }
@@ -1530,7 +1530,7 @@ export function IdeasBoardView({ onNavigate }: Props) {
       <OrangeHeader
         icon={Lightbulb}
         title="Registro de Ideas"
-        subtitle={`Canvas visual de módulos e ideas — ${canvases.length} canvas${canvases.length !== 1 ? 'es' : ''}`}
+        subtitle={`Canvas visual de modulos e ideas - ${canvases.length} canvas${canvases.length !== 1 ? 'es' : ''}`}
         actions={[
           {
             label: '← Herramientas',
