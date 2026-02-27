@@ -30,6 +30,7 @@ import { abastecimiento } from "./abastecimiento.tsx";
 import { mapaEnvios } from "./mapa-envios.tsx";
 import { tracking } from "./tracking.tsx";
 import { integraciones } from "./integraciones.tsx";
+import { envios } from "./envios.tsx";
 
 const app = new Hono().basePath("/api");
 
@@ -41,7 +42,7 @@ app.use(
   "/*",
   cors({
     origin: "*",
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "apikey", "x-client-info"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
@@ -65,6 +66,7 @@ app.route("/roles", roles);
 app.route("/pedidos", pedidos);
 app.route("/metodos-pago", metodosPago);
 app.route("/metodos-envio", metodosEnvio);
+app.route("/envios", envios);
 app.route("/rutas", rutas);
 
 // Marketing

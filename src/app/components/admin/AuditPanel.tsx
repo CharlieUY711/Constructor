@@ -15,7 +15,7 @@ import { MODULE_MANIFEST, type ManifestEntry } from '../../utils/moduleManifest'
 
 interface Module { id: string; name: string; category: string; estimatedHours?: number; }
 
-type AuditTab = 'covered' | 'hubs' | 'missing' | 'orphan';
+type AuditTab = 'covered' | 'hubs' | 'missing'; // 'orphan' removido - no hay nada que analizar
 
 interface AuditResult {
   /** IDs en MODULES_DATA cubiertos por vistas reales */
@@ -39,7 +39,7 @@ const TAB_INFO: Record<AuditTab, { label: string; icon: any; color: string; bg: 
   covered: { label: 'Cubiertos',      icon: CheckCircle2,   color: 'text-green-700',  bg: 'bg-green-50 border-green-200'  },
   hubs:    { label: 'Hubs / Placeholders', icon: GitBranch, color: 'text-blue-700',   bg: 'bg-blue-50 border-blue-200'    },
   missing: { label: 'Sin vista',       icon: XCircle,        color: 'text-red-700',    bg: 'bg-red-50 border-red-200'      },
-  orphan:  { label: 'Sin checklist',   icon: AlertTriangle,  color: 'text-amber-700',  bg: 'bg-amber-50 border-amber-200'  },
+  // orphan removido: no hay nada que analizar si no están en el checklist
 };
 
 export function AuditPanel({ modules, onClose }: Props) {
@@ -93,14 +93,17 @@ export function AuditPanel({ modules, onClose }: Props) {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     // Orphan: IDs en manifest que no existen en MODULES_DATA
+    // NOTA: No se incluyen en la auditoría porque no hay nada que analizar
+    // si no están en el checklist
     const orphan: AuditResult['orphan'] = [];
-    for (const entry of MODULE_MANIFEST) {
-      for (const cid of entry.checklistIds) {
-        if (!allChecklistIds.has(cid)) {
-          orphan.push({ id: cid, section: entry.section, viewFile: entry.viewFile });
-        }
-      }
-    }
+    // Comentado: no se calculan porque no hay nada que analizar
+    // for (const entry of MODULE_MANIFEST) {
+    //   for (const cid of entry.checklistIds) {
+    //     if (!allChecklistIds.has(cid)) {
+    //       orphan.push({ id: cid, section: entry.section, viewFile: entry.viewFile });
+    //     }
+    //   }
+    // }
 
     return { covered, realNoIds, hubs, missing, orphan };
   }, [modules, refreshKey]);
@@ -109,7 +112,6 @@ export function AuditPanel({ modules, onClose }: Props) {
     covered: audit.covered.length,
     hubs:    audit.hubs.length,
     missing: audit.missing.length,
-    orphan:  audit.orphan.length,
   };
 
   const totalHoursMissing = audit.missing.reduce((s, m) => s + m.hours, 0);
@@ -165,7 +167,6 @@ export function AuditPanel({ modules, onClose }: Props) {
               { label: 'Cubiertos',    value: audit.covered.length, color: '#22c55e' },
               { label: 'Hubs',         value: audit.hubs.length,    color: '#60a5fa' },
               { label: 'Sin vista',    value: audit.missing.length, color: '#f87171' },
-              { label: 'Sin checklist',value: audit.orphan.length,  color: '#fbbf24' },
               { label: `${totalHoursMissing}h pendientes`, value: null, color: 'rgba(255,255,255,0.5)' },
             ].map(p => (
               <span
@@ -314,31 +315,7 @@ export function AuditPanel({ modules, onClose }: Props) {
                 </div>
               )}
 
-              {/* ── ORPHAN ── */}
-              {activeTab === 'orphan' && (
-                <div className="space-y-1.5">
-                  {audit.orphan.length === 0 && <Empty label="Todos los IDs del manifest existen en MODULES_DATA." icon="✅" />}
-                  {audit.orphan.length > 0 && (
-                    <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-3 text-sm text-amber-700">
-                      <AlertTriangle size={15} className="mt-0.5 shrink-0" />
-                      <span>
-                        El manifest declara estos IDs pero <strong>no existen en MODULES_DATA</strong>.
-                        Hay que agregarlos al checklist o corregir el ID en el manifest.
-                      </span>
-                    </div>
-                  )}
-                  {audit.orphan.map(item => (
-                    <div key={`${item.section}-${item.id}`} className="flex items-center gap-3 px-4 py-3 bg-amber-50 border border-amber-100 rounded-xl">
-                      <AlertTriangle size={15} className="text-amber-400 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <code className="text-sm font-mono text-amber-800">{item.id}</code>
-                        <span className="ml-2 text-xs text-gray-400">en {item.viewFile}</span>
-                      </div>
-                      <code className="text-xs text-gray-400">sección: {item.section}</code>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* ── ORPHAN removido: no hay nada que analizar si no están en el checklist ── */}
 
             </motion.div>
           </AnimatePresence>

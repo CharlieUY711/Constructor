@@ -2,6 +2,8 @@
 
 Este proyecto utiliza Google Maps API para geolocalización, autocompletado de direcciones y visualización de mapas.
 
+**📍 Configurado para: Montevideo, Uruguay**
+
 ## Pasos para configurar
 
 ### 1. Obtener API Key de Google Cloud
@@ -71,20 +73,20 @@ import { GoogleAddressAutocomplete } from '@/app/components/ui/GoogleAddressAuto
 import { GoogleMap } from '@/app/components/ui/GoogleMap';
 
 <GoogleMap
-  center={{ lat: -34.6037, lng: -58.3816 }}
+  center={{ lat: -34.9011, lng: -56.1645 }}
   zoom={13}
   markers={[
     {
       id: '1',
-      lat: -34.6037,
-      lng: -58.3816,
-      title: 'Buenos Aires',
+      lat: -34.9011,
+      lng: -56.1645,
+      title: 'Montevideo, Uruguay',
       color: '#FF6835',
     },
   ]}
   route={{
-    origin: { lat: -34.6037, lng: -58.3816 },
-    destination: { lat: -34.6118, lng: -58.3960 },
+    origin: { lat: -34.9011, lng: -56.1645 },
+    destination: { lat: -34.9063, lng: -56.1914 },
   }}
 />
 ```
@@ -95,14 +97,14 @@ import { GoogleMap } from '@/app/components/ui/GoogleMap';
 import { geocodeAddress, reverseGeocode } from '@/utils/google/geocoding';
 
 // Convertir dirección a coordenadas
-const result = await geocodeAddress('Av. Corrientes 1234, Buenos Aires');
+const result = await geocodeAddress('Av. 18 de Julio 1234, Montevideo, Uruguay');
 if (result) {
   console.log('Lat:', result.lat);
   console.log('Lng:', result.lng);
 }
 
 // Convertir coordenadas a dirección
-const address = await reverseGeocode(-34.6037, -58.3816);
+const address = await reverseGeocode(-34.9011, -56.1645);
 if (address) {
   console.log('Dirección:', address.formatted_address);
 }

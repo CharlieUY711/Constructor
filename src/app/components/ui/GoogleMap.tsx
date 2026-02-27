@@ -35,7 +35,7 @@ export interface GoogleMapProps {
   onMarkerClick?: (marker: MapMarker) => void;
 }
 
-const DEFAULT_CENTER = { lat: -34.6037, lng: -58.3816 }; // Buenos Aires
+const DEFAULT_CENTER = { lat: -34.9011, lng: -56.1645 }; // Montevideo, Uruguay
 const DEFAULT_ZOOM = 13;
 
 export function GoogleMap({
@@ -78,7 +78,7 @@ export function GoogleMap({
           center,
           zoom,
           language: 'es',
-          region: 'AR',
+          region: 'UY', // Uruguay
           mapTypeControl: true,
           streetViewControl: false,
           fullscreenControl: true,

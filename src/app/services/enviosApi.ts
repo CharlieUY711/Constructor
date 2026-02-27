@@ -113,12 +113,38 @@ async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?:
     
     if (!res.ok) {
       console.error(`[enviosApi] Error ${res.status}:`, json);
-      return { ok: false, error: json.error || `Error ${res.status}: ${JSON.stringify(json)}` };
+      // Extraer mensaje de error de forma segura
+      let errorMsg = `Error ${res.status}: ${res.statusText || 'Error en la petición'}`;
+      
+      // El servidor puede devolver el error directamente como string o en un campo 'error'
+      if (typeof json === 'string') {
+        errorMsg = json;
+      } else if (json && typeof json === 'object') {
+        // Prioridad: json.error (string) > json.error.message > json.message > json.details
+        if (typeof json.error === 'string') {
+          errorMsg = json.error;
+        } else if (json.error && typeof json.error === 'object') {
+          errorMsg = json.error.message || json.error.details || json.error.hint || JSON.stringify(json.error);
+        } else if (json.message) {
+          errorMsg = json.message;
+        } else if (json.details) {
+          errorMsg = json.details;
+        } else if (Object.keys(json).length > 0) {
+          // Si es un objeto con propiedades, intentar extraer información útil
+          errorMsg = JSON.stringify(json);
+        }
+      }
+      
+      return { ok: false, error: errorMsg };
     }
     return { ok: true, data: json };
   } catch (err) {
     console.error(`[enviosApi] Error en GET ${path}:`, err);
-    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    // Manejar errores de red (CORS, timeout, etc.)
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      return { ok: false, error: 'Error de conexión. Verifica tu conexión a internet o contacta al administrador.' };
+    }
+    return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido al cargar datos' };
   }
 }
 
@@ -131,12 +157,21 @@ async function apiPost<T>(path: string, body: any): Promise<{ ok: boolean; data?
     });
     const json = await res.json();
     if (!res.ok) {
-      return { ok: false, error: json.error || 'Error en la petición' };
+      // Extraer mensaje de error de forma segura
+      let errorMsg = 'Error en la petición';
+      if (typeof json.error === 'string') {
+        errorMsg = json.error;
+      } else if (json.error && typeof json.error === 'object') {
+        errorMsg = json.error.message || json.error.error || JSON.stringify(json.error);
+      } else if (json.message) {
+        errorMsg = json.message;
+      }
+      return { ok: false, error: errorMsg };
     }
     return { ok: true, data: json };
   } catch (err) {
     console.error(`Envios API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
+    return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido' };
   }
 }
 
@@ -149,12 +184,21 @@ async function apiPut<T>(path: string, body: any): Promise<{ ok: boolean; data?:
     });
     const json = await res.json();
     if (!res.ok) {
-      return { ok: false, error: json.error || 'Error en la petición' };
+      // Extraer mensaje de error de forma segura
+      let errorMsg = 'Error en la petición';
+      if (typeof json.error === 'string') {
+        errorMsg = json.error;
+      } else if (json.error && typeof json.error === 'object') {
+        errorMsg = json.error.message || json.error.error || JSON.stringify(json.error);
+      } else if (json.message) {
+        errorMsg = json.message;
+      }
+      return { ok: false, error: errorMsg };
     }
     return { ok: true, data: json };
   } catch (err) {
     console.error(`Envios API PUT ${path}:`, err);
-    return { ok: false, error: String(err) };
+    return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido' };
   }
 }
 

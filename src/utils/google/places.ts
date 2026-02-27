@@ -59,7 +59,7 @@ export async function getPlacePredictions(
     return new Promise((resolve, reject) => {
       const request: any = {
         input,
-        componentRestrictions: { country: 'ar' },
+        componentRestrictions: { country: 'uy' }, // Uruguay
         language: 'es',
       };
 

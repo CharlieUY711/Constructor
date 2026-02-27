@@ -113,7 +113,7 @@ export function GoogleMapsTestView() {
 
   const center = selectedAddress
     ? { lat: selectedAddress.lat, lng: selectedAddress.lng }
-    : { lat: -34.6037, lng: -58.3816 }; // Buenos Aires por defecto
+    : { lat: -34.9011, lng: -56.1645 }; // Montevideo, Uruguay por defecto
 
   return (
     <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -147,7 +147,7 @@ export function GoogleMapsTestView() {
               value={address1}
               onChange={setAddress1}
               onSelect={handleAddressSelect}
-              placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
+              placeholder="Ej: Av. 18 de Julio 1234, Montevideo"
             />
           </div>
           {selectedAddress && (
@@ -187,7 +187,7 @@ export function GoogleMapsTestView() {
               type="text"
               value={address2}
               onChange={(e) => setAddress2(e.target.value)}
-              placeholder="Ej: Obelisco, Buenos Aires"
+              placeholder="Ej: Plaza Independencia, Montevideo"
               style={{
                 width: '100%',
                 padding: '10px 12px',

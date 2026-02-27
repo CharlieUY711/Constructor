@@ -176,10 +176,11 @@ function applyBuiltStatus(m: Module): Module {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MODULES_DATA  (fuente de verdad frontend)
+// DATOS DE MÓDULOS
 // ─────────────────────────────────────────────────────────────────────────────
-// MODULES_DATA eliminado - ahora se usa solo roadmapApi.getModules()
-// MODULES_DATA eliminado - ahora se usa solo roadmapApi.getModules()
+// Los datos de módulos se cargan desde roadmapApi.getModules() que obtiene
+// el estado desde SQL (roadmap_modules). Los datos base (name, category, 
+// description) deben venir combinados con los datos de estado de la API.
 
 type ViewMode = "list" | "kanban" | "stats" | "queue";
 
@@ -373,7 +374,7 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
     }
   };
 
-  // ── Resync forzado: limpia SQL y recomputa desde MODULES_DATA + manifest ──
+  // ── Resync forzado: limpia SQL y recomputa desde la API + manifest ──
   const forceResyncFromManifest = async () => {
     setIsSyncing(true);
     try {

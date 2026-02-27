@@ -2,7 +2,7 @@
    MapaEnviosView — Mapa Visual de Envíos Activos
    Vista geográfica por ruta y estado
    ===================================================== */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
@@ -11,6 +11,7 @@ import {
   ZoomIn, ZoomOut, Layers, Circle, Loader2,
 } from 'lucide-react';
 import { getPuntosMapa, type PuntoMapa as PuntoMapaApi } from '../../../services/mapaEnviosApi';
+import { GoogleMap, type MapMarker } from '../../ui/GoogleMap';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -19,13 +20,19 @@ interface PuntoMapa {
   id: string;
   tipo: 'deposito' | 'en_transito' | 'entregado' | 'fallido' | 'en_reparto';
   numero: string;
-  x: number; // % horizontal
-  y: number; // % vertical
+  x?: number; // % horizontal (para SVG legacy)
+  y?: number; // % vertical (para SVG legacy)
+  lat?: number; // Latitud (para Google Maps)
+  lng?: number; // Longitud (para Google Maps)
   cliente: string;
   carrier: string;
   localidad: string;
   provincia: string;
 }
+
+// Centro por defecto: Montevideo, Uruguay
+const MONTEVIDEO_CENTER = { lat: -34.9011, lng: -56.1645 };
+const DEFAULT_ZOOM = 12;
 
 
 const TIPO_CFG: Record<string, { color: string; label: string; icon: React.ElementType; size: number }> = {
@@ -36,92 +43,7 @@ const TIPO_CFG: Record<string, { color: string; label: string; icon: React.Eleme
   fallido:     { color: '#DC2626', label: 'Fallido',      icon: AlertCircle,  size: 14 },
 };
 
-// Mapa SVG de Argentina simplificado (outline aproximado)
-function ArgentinaSVG({ puntos, filtro, onSelect, selected }: {
-  puntos: PuntoMapa[];
-  filtro: string;
-  onSelect: (p: PuntoMapa | null) => void;
-  selected: PuntoMapa | null;
-}) {
-  const shown = filtro === 'todos' ? puntos : puntos.filter(p => p.tipo === filtro);
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-      {/* Fondo tipo mapa */}
-      <svg viewBox="0 0 100 120" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
-        {/* Océano */}
-        <rect width="100" height="120" fill="#EFF6FF" />
-        {/* Perfil aproximado de Argentina */}
-        <path
-          d="M 45 15 L 55 14 L 62 18 L 65 22 L 67 28 L 65 35 L 68 42 L 65 50 L 60 55 L 58 60 L 52 63 L 50 68 L 48 74 L 45 80 L 42 88 L 40 96 L 38 104 L 36 110 L 34 115 L 32 118 L 30 115 L 28 108 L 30 98 L 33 88 L 32 80 L 30 74 L 28 68 L 30 62 L 32 55 L 30 48 L 28 40 L 30 32 L 32 26 L 35 20 Z"
-          fill="#E5E7EB" stroke="#D1D5DB" strokeWidth="0.5"
-        />
-        {/* Provincias simplificadas - líneas divisorias */}
-        <line x1="30" y1="50" x2="65" y2="50" stroke="#D1D5DB" strokeWidth="0.3" strokeDasharray="1,1" />
-        <line x1="30" y1="62" x2="60" y2="62" stroke="#D1D5DB" strokeWidth="0.3" strokeDasharray="1,1" />
-        <line x1="32" y1="74" x2="52" y2="74" stroke="#D1D5DB" strokeWidth="0.3" strokeDasharray="1,1" />
-        <line x1="34" y1="88" x2="45" y2="88" stroke="#D1D5DB" strokeWidth="0.3" strokeDasharray="1,1" />
-        {/* Etiquetas de provincias */}
-        {[
-          { x: 48, y: 46, label: 'Salta/Jujuy' },
-          { x: 50, y: 57, label: 'Córdoba/Tucumán' },
-          { x: 42, y: 68, label: 'Cuyo' },
-          { x: 43, y: 55, label: 'CABA/GBA' },
-          { x: 40, y: 80, label: 'Neuquén' },
-          { x: 40, y: 96, label: 'Patagonia' },
-        ].map(({ x, y, label }) => (
-          <text key={label} x={x} y={y} textAnchor="middle" fontSize="2.2" fill="#9CA3AF" fontFamily="sans-serif">{label}</text>
-        ))}
-      </svg>
-
-      {/* Puntos del mapa */}
-      {shown.map(punto => {
-        const cfg = TIPO_CFG[punto.tipo];
-        const Icon = cfg.icon;
-        const isSelected = selected?.id === punto.id;
-        const isDeposito = punto.tipo === 'deposito';
-        return (
-          <div
-            key={punto.id}
-            onClick={() => onSelect(isSelected ? null : punto)}
-            style={{
-              position: 'absolute',
-              left: `${punto.x}%`,
-              top: `${punto.y}%`,
-              transform: 'translate(-50%, -50%)',
-              cursor: 'pointer',
-              zIndex: isDeposito ? 20 : isSelected ? 30 : 10,
-            }}
-          >
-            <div style={{
-              width: isDeposito ? '32px' : '26px',
-              height: isDeposito ? '32px' : '26px',
-              borderRadius: '50%',
-              backgroundColor: isDeposito ? '#374151' : cfg.color,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              border: `2px solid ${isSelected ? '#fff' : isDeposito ? '#1F2937' : cfg.color}`,
-              boxShadow: isSelected ? `0 0 0 3px ${cfg.color}, 0 4px 12px rgba(0,0,0,0.2)` : '0 2px 6px rgba(0,0,0,0.15)',
-              transition: 'all 0.2s',
-              animation: punto.tipo === 'en_reparto' ? 'pulse 2s infinite' : 'none',
-            }}>
-              <Icon size={isDeposito ? 14 : 11} color="#fff" strokeWidth={2.5} />
-            </div>
-            {isDeposito && (
-              <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: '-16px', fontSize: '7px', fontWeight: 700, color: '#374151', whiteSpace: 'nowrap', backgroundColor: 'rgba(255,255,255,0.85)', padding: '1px 4px', borderRadius: '3px' }}>
-                {punto.numero}
-              </div>
-            )}
-            {isSelected && !isDeposito && (
-              <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', top: '-30px', fontSize: '8px', fontWeight: 700, color: '#111', whiteSpace: 'nowrap', backgroundColor: '#fff', padding: '3px 7px', borderRadius: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', border: '1px solid #E5E7EB' }}>
-                {punto.numero}
-              </div>
-            )}
-          </div>
-        );
-      })}
-      <style>{`@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 ${ORANGE}60; } 50% { box-shadow: 0 0 0 8px ${ORANGE}00; } }`}</style>
-    </div>
-  );
-}
+// Función ArgentinaSVG removida - ahora usamos Google Maps
 
 export function MapaEnviosView({ onNavigate }: Props) {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
@@ -144,8 +66,10 @@ export function MapaEnviosView({ onNavigate }: Props) {
         id: p.id,
         tipo: p.tipo,
         numero: p.numero || '',
-        x: p.x || p.lat || 0,
-        y: p.y || p.lng || 0,
+        lat: p.lat || (p.x ? undefined : MONTEVIDEO_CENTER.lat), // Usar lat si existe, sino centro de Montevideo
+        lng: p.lng || (p.y ? undefined : MONTEVIDEO_CENTER.lng), // Usar lng si existe, sino centro de Montevideo
+        x: p.x, // Mantener para compatibilidad
+        y: p.y, // Mantener para compatibilidad
         cliente: p.cliente || '',
         carrier: p.carrier || '',
         localidad: p.localidad || '',
@@ -295,7 +219,81 @@ export function MapaEnviosView({ onNavigate }: Props) {
 
         {/* Mapa */}
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          <ArgentinaSVG puntos={PUNTOS} filtro={filtroTipo} onSelect={setSelectedPunto} selected={selectedPunto} />
+          {/* Google Maps con marcadores de envíos */}
+          {(() => {
+            const puntosFiltrados = PUNTOS.filter(p => 
+              p.tipo !== 'deposito' && 
+              (filtroTipo === 'todos' || p.tipo === filtroTipo) &&
+              p.lat !== undefined && p.lng !== undefined
+            );
+
+            const markers: MapMarker[] = puntosFiltrados.map(p => {
+              const cfg = TIPO_CFG[p.tipo];
+              return {
+                id: p.id,
+                lat: p.lat!,
+                lng: p.lng!,
+                title: `${p.numero} - ${cfg.label}`,
+                color: cfg.color,
+                onClick: () => setSelectedPunto(p),
+              };
+            });
+
+            // Agregar depósitos también
+            const depositos = PUNTOS.filter(p => p.tipo === 'deposito' && p.lat !== undefined && p.lng !== undefined);
+            depositos.forEach(p => {
+              markers.push({
+                id: p.id,
+                lat: p.lat!,
+                lng: p.lng!,
+                title: `Depósito ${p.numero}`,
+                color: '#374151',
+                onClick: () => setSelectedPunto(p),
+              });
+            });
+
+            // Calcular centro del mapa basado en los puntos visibles
+            let mapCenter = MONTEVIDEO_CENTER;
+            let mapZoom = DEFAULT_ZOOM;
+
+            if (markers.length > 0) {
+              const lats = markers.map(m => m.lat);
+              const lngs = markers.map(m => m.lng);
+              const minLat = Math.min(...lats);
+              const maxLat = Math.max(...lats);
+              const minLng = Math.min(...lngs);
+              const maxLng = Math.max(...lngs);
+              
+              mapCenter = {
+                lat: (minLat + maxLat) / 2,
+                lng: (minLng + maxLng) / 2,
+              };
+              
+              // Calcular zoom aproximado basado en el área cubierta
+              const latDiff = maxLat - minLat;
+              const lngDiff = maxLng - minLng;
+              const maxDiff = Math.max(latDiff, lngDiff);
+              
+              if (maxDiff > 0.5) mapZoom = 10;
+              else if (maxDiff > 0.2) mapZoom = 11;
+              else if (maxDiff > 0.1) mapZoom = 12;
+              else if (maxDiff > 0.05) mapZoom = 13;
+              else mapZoom = 14;
+            }
+
+            return (
+              <GoogleMap
+                center={mapCenter}
+                zoom={mapZoom}
+                markers={markers}
+                height="100%"
+                onMarkerClick={(marker) => {
+                  const punto = PUNTOS.find(p => p.id === marker.id);
+                  if (punto) setSelectedPunto(punto);
+                }}
+              />
+            );
+          })()}
 
           {/* Tooltip del punto seleccionado */}
           {selectedPunto && selectedPunto.tipo !== 'deposito' && (

@@ -32,11 +32,16 @@ envios.options('/*', (c) => {
   return c.text('', 204);
 });
 
-const getSupabase = () =>
-  createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  );
+const getSupabase = () => {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  if (!url || !key) {
+    throw new Error("SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no están configurados");
+  }
+  
+  return createClient(url, key);
+};
 
 // GET /envios — lista todos los envíos (con filtros opcionales) + eventos
 envios.get("/", async (c) => {
@@ -59,8 +64,15 @@ envios.get("/", async (c) => {
     const { data: envios, error } = await query;
     
     if (error) {
-      console.error(`[envios] GET / - Error en query:`, error);
-      throw error;
+      console.error(`[envios] GET / - Error en query:`, JSON.stringify(error, null, 2));
+      // Serializar el error de Supabase antes de lanzarlo
+      const errorDetails = {
+        message: error.message || 'Error desconocido en la consulta',
+        details: error.details || null,
+        hint: error.hint || null,
+        code: error.code || null,
+      };
+      throw new Error(JSON.stringify(errorDetails));
     }
     
     console.log(`[envios] GET / - Envíos encontrados: ${envios?.length ?? 0}`);
@@ -90,8 +102,47 @@ envios.get("/", async (c) => {
       count: envios?.length ?? 0 
     });
   } catch (err) {
-    console.error(`[envios] GET / error: ${err}`);
-    return c.json({ error: `Error cargando envíos: ${err}` }, 500);
+    console.error(`[envios] GET / error:`, err);
+    // Serializar error de forma segura - manejar errores de Supabase (PostgError)
+    let errorMsg = 'Error desconocido al cargar envíos';
+    
+    try {
+      if (err instanceof Error) {
+        // Si el mensaje es JSON, intentar parsearlo
+        try {
+          const parsed = JSON.parse(err.message);
+          if (parsed.message) {
+            errorMsg = parsed.message;
+            if (parsed.details) errorMsg += ` - ${parsed.details}`;
+            if (parsed.code) errorMsg = `[${parsed.code}] ${errorMsg}`;
+          } else {
+            errorMsg = err.message;
+          }
+        } catch {
+          errorMsg = err.message;
+        }
+      } else if (typeof err === 'object' && err !== null) {
+        // Errores de Supabase tienen estructura específica
+        const errorObj = err as any;
+        if (errorObj.message) {
+          errorMsg = errorObj.message;
+          if (errorObj.details) errorMsg += ` - ${errorObj.details}`;
+          if (errorObj.code) errorMsg = `[${errorObj.code}] ${errorMsg}`;
+        } else if (errorObj.details) {
+          errorMsg = errorObj.details;
+        } else if (errorObj.hint) {
+          errorMsg = errorObj.hint;
+        } else {
+          errorMsg = JSON.stringify(err);
+        }
+      } else {
+        errorMsg = String(err);
+      }
+    } catch (parseErr) {
+      errorMsg = `Error al procesar el error: ${String(parseErr)}`;
+    }
+    
+    return c.json({ error: errorMsg }, 500);
   }
 });
 

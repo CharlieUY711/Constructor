@@ -15,7 +15,7 @@ export const GOOGLE_MAPS_CONFIG = {
   apiKey: GOOGLE_MAPS_API_KEY,
   libraries: ['places', 'geocoding'] as const,
   language: 'es',
-  region: 'AR',
+  region: 'UY', // Uruguay
 };
 
 // Verificar si Google Maps está cargado

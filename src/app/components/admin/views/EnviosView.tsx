@@ -229,7 +229,22 @@ export function EnviosView({ onNavigate }: Props) {
       });
     } catch (err) {
       console.error('[EnviosView] Error cargando envíos:', err);
-      const errorMsg = err instanceof Error ? err.message : String(err);
+      // Extraer mensaje de error de forma segura
+      let errorMsg = 'Error desconocido';
+      if (err instanceof Error) {
+        errorMsg = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        // Intentar extraer mensaje de objetos de error
+        if ('message' in err && typeof err.message === 'string') {
+          errorMsg = err.message;
+        } else if ('error' in err && typeof err.error === 'string') {
+          errorMsg = err.error;
+        } else {
+          errorMsg = 'Error al cargar envíos. Por favor, intenta nuevamente.';
+        }
+      } else {
+        errorMsg = String(err);
+      }
       toast.error(`Error al cargar envíos: ${errorMsg}`);
       // Mostrar envíos vacíos en caso de error
       setPedidos([]);
