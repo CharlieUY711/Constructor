@@ -23,7 +23,7 @@ import { subcategorias } from "./subcategorias.tsx";
 import { disputas } from "./disputas.tsx";
 import { envios } from "./envios.tsx";
 
-const app = new Hono();
+const app = new Hono().basePath("/api");
 
 // Enable logger
 app.use('*', logger(console.log));
@@ -33,7 +33,7 @@ app.use(
   "/*",
   cors({
     origin: "*",
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "apikey", "x-client-info"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
     maxAge: 600,
