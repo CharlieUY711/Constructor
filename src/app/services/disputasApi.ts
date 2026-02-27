@@ -1,83 +1,59 @@
 /* =====================================================
-   Departamentos API Service — Dashboard ↔ Backend
+   Disputas API Service — Dashboard ↔ Backend
    Charlie Marketplace Builder v1.5
    ===================================================== */
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/departamentos`;
+const BASE = `https://${projectId}.supabase.co/functions/v1/api/disputas`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,
 };
 
 // ── Types ──────────────────────────────────────────────────────────────────
-export interface Departamento {
+export interface Disputa {
   id: string;
-  nombre: string;
-  icono?: string;
-  color?: string;
+  producto_id?: string;
+  comprador_id?: string;
+  vendedor_id?: string;
+  motivo: string;
   descripcion?: string;
-  orden?: number;
-  activo: boolean;
-  moneda?: 'UYU' | 'USD' | 'EUR';
-  edad_minima?: 'Todas' | '+18';
-  alcance?: 'Local' | 'Nacional' | 'Internacional';
+  estado: 'abierta' | 'en_revision' | 'resuelta' | 'cerrada';
+  resolucion?: string;
   created_at?: string;
   updated_at?: string;
-  // campos locales del dashboard (no persisten en DB por ahora)
-  categorias?: Categoria[];
 }
 
-export interface Categoria {
-  id: string;
-  departamento_id: string;
-  nombre: string;
-  icono?: string;
-  color?: string;
-  orden?: number;
-  activo: boolean;
-  created_at?: string;
-  updated_at?: string;
-  subcategorias?: Array<{
-    id: string;
-    categoria_id: string;
-    nombre: string;
-    orden?: number;
-    activo: boolean;
-    created_at?: string;
-    updated_at?: string;
-  }>;
-}
-
-export interface DepartamentoInput {
-  nombre: string;
-  icono?: string;
-  color?: string;
+export interface DisputaInput {
+  producto_id: string;
+  comprador_id?: string;
+  vendedor_id?: string;
+  motivo: string;
   descripcion?: string;
-  orden?: number;
-  activo?: boolean;
-  moneda?: 'UYU' | 'USD' | 'EUR';
-  edad_minima?: 'Todas' | '+18';
-  alcance?: 'Local' | 'Nacional' | 'Internacional';
+  estado?: 'abierta' | 'en_revision' | 'resuelta' | 'cerrada';
 }
 
 // ── CRUD ───────────────────────────────────────────────────────────────────
 
-export async function getDepartamentos(): Promise<Departamento[]> {
-  const res = await fetch(`${BASE}`, { headers: HEADERS });
+export async function getDisputas(params?: { estado?: string; producto_id?: string }): Promise<Disputa[]> {
+  const queryParams = new URLSearchParams();
+  if (params?.estado) queryParams.append('estado', params.estado);
+  if (params?.producto_id) queryParams.append('producto_id', params.producto_id);
+  const url = queryParams.toString() ? `${BASE}?${queryParams}` : BASE;
+  const res = await fetch(url, { headers: HEADERS });
   const json = await res.json();
   if (json.error) throw new Error(json.error);
   return json.data || [];
 }
 
-export async function getDepartamentoById(id: string): Promise<Departamento> {
+export async function getDisputaById(id: string): Promise<Disputa> {
   const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
   const json = await res.json();
   if (json.error) throw new Error(json.error);
   return json.data;
 }
 
-export async function createDepartamento(data: DepartamentoInput): Promise<Departamento> {
+export async function createDisputa(data: DisputaInput): Promise<Disputa> {
   const res = await fetch(`${BASE}`, {
     method: 'POST',
     headers: HEADERS,
@@ -88,7 +64,7 @@ export async function createDepartamento(data: DepartamentoInput): Promise<Depar
   return json.data;
 }
 
-export async function updateDepartamento(id: string, data: Partial<DepartamentoInput>): Promise<Departamento> {
+export async function updateDisputa(id: string, data: Partial<DisputaInput & { resolucion?: string }>): Promise<Disputa> {
   const res = await fetch(`${BASE}/${id}`, {
     method: 'PUT',
     headers: HEADERS,
@@ -99,7 +75,7 @@ export async function updateDepartamento(id: string, data: Partial<DepartamentoI
   return json.data;
 }
 
-export async function deleteDepartamento(id: string): Promise<void> {
+export async function deleteDisputa(id: string): Promise<void> {
   const res = await fetch(`${BASE}/${id}`, {
     method: 'DELETE',
     headers: HEADERS,

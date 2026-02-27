@@ -32,8 +32,10 @@ import '@xyflow/react/dist/style.css';
 import {
   Plus, ChevronDown, ChevronRight, X, Edit3, Check, LayoutGrid,
   Lightbulb, Trash2, Link2, CircleDot, PlusCircle, MoreHorizontal,
-  Save, RefreshCw, Layers,
+  Save, RefreshCw, Layers, ArrowUp,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import * as roadmapApi from '../../../services/roadmapApi';
 import { MANIFEST_BY_SECTION } from '../../../utils/moduleManifest';
 import type { MainSection } from '../../../AdminDashboard';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
@@ -160,7 +162,9 @@ export type StickerData = {
   status: 'completed-db' | 'ui-only' | 'pending' | 'idea';
   editable: boolean;
   timestamp?: string;
+  ideaId?: string; // ID de la idea en KV
   onChange?: (id: string, text: string) => void;
+  onPromote?: (ideaId: string, ideaText: string, area: string) => void;
 };
 
 export type CanvasLinkData = {
@@ -177,11 +181,37 @@ function StickerNode({ id, data, selected }: NodeProps) {
   const d = data as StickerData;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(d.text ?? '');
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [promoteArea, setPromoteArea] = useState(d.area || '');
+  const [promoteNotas, setPromoteNotas] = useState('');
   const dot = STATUS_DOT[d.status] ?? STATUS_DOT['pending'];
 
   const handleSave = () => {
     setEditing(false);
     if (d.onChange) d.onChange(id, draft);
+  };
+
+  const handlePromote = async () => {
+    if (!d.ideaId || !d.text) {
+      toast.error('Idea sin ID o texto');
+      return;
+    }
+    try {
+      await roadmapApi.promoverIdea({
+        idea_id: d.ideaId,
+        idea_texto: d.text,
+        idea_area: promoteArea || d.area || 'general',
+        notas: promoteNotas || undefined,
+      });
+      toast.success('✅ Idea enviada al Roadmap para aprobación');
+      setShowPromoteModal(false);
+      if (d.onPromote) {
+        d.onPromote(d.ideaId, d.text, promoteArea || d.area || 'general');
+      }
+    } catch (err) {
+      console.error('[IdeasBoard] Error promoviendo idea:', err);
+      toast.error('❌ Error al promover idea');
+    }
   };
 
   return (
@@ -294,28 +324,149 @@ function StickerNode({ id, data, selected }: NodeProps) {
           }}>
             {dot.label}
           </span>
-          {d.editable && !editing && (
-            <button
-              onClick={() => { setDraft(d.text ?? ''); setEditing(true); }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '2px 4px',
-                color: '#9CA3AF',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <Edit3 size={11} />
-            </button>
-          )}
-          {d.timestamp && (
-            <span style={{ fontSize: '0.58rem', color: '#D1D5DB' }}>
-              {new Date(d.timestamp).toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit' })}
-            </span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {d.status === 'idea' && d.ideaId && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowPromoteModal(true); }}
+                title="Promover a módulo"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                  color: ORANGE,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <ArrowUp size={11} />
+              </button>
+            )}
+            {d.editable && !editing && (
+              <button
+                onClick={() => { setDraft(d.text ?? ''); setEditing(true); }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                  color: '#9CA3AF',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <Edit3 size={11} />
+              </button>
+            )}
+            {d.timestamp && (
+              <span style={{ fontSize: '0.58rem', color: '#D1D5DB' }}>
+                {new Date(d.timestamp).toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit' })}
+              </span>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* Modal de promover a módulo */}
+      {showPromoteModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }} onClick={() => setShowPromoteModal(false)}>
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 12,
+            padding: 24,
+            maxWidth: 400,
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem', fontWeight: '700', color: '#111827' }}>
+              ⬆️ Promover a módulo
+            </h3>
+            <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: '#6B7280' }}>
+              {d.text}
+            </p>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 6, fontSize: '0.8rem', fontWeight: '600', color: '#374151' }}>
+                Área / Categoría
+              </label>
+              <input
+                type="text"
+                value={promoteArea}
+                onChange={(e) => setPromoteArea(e.target.value)}
+                placeholder={d.area || 'general'}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: 6,
+                  fontSize: '0.875rem',
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 6, fontSize: '0.8rem', fontWeight: '600', color: '#374151' }}>
+                Notas (opcional)
+              </label>
+              <textarea
+                value={promoteNotas}
+                onChange={(e) => setPromoteNotas(e.target.value)}
+                placeholder="Notas adicionales..."
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: 6,
+                  fontSize: '0.875rem',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setShowPromoteModal(false)}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: 6,
+                  backgroundColor: '#FFFFFF',
+                  color: '#374151',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePromote}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: 6,
+                  backgroundColor: ORANGE,
+                  color: '#FFFFFF',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Promover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
@@ -832,10 +983,12 @@ function IdeasBoardInner({
       data: {
         label: area,
         text: text,
+        area: area,
         family: `💡 Idea · ${area}`,
         familyColor: ORANGE,
         status: 'idea',
         editable: true,
+        ideaId: idea.id,
         timestamp: idea.timestamp,
         onChange: handleNodeTextChange,
       } as StickerData,

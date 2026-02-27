@@ -8,9 +8,16 @@
  */
 
 import { Hono } from "npm:hono";
+import { createClient } from "npm:@supabase/supabase-js";
 import * as kv from "./kv_store.tsx";
 
 const ideasBoard = new Hono();
+
+const getSupabase = () =>
+  createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
 
 /* ══════════════════════════════════════════════
    CANVASES
@@ -196,6 +203,41 @@ ideasBoard.put("/ideas/:id", async (c) => {
   } catch (err) {
     console.log(`[ideas-board] PUT /ideas/:id error: ${err}`);
     return c.json({ error: `Error actualizando idea: ${err}` }, 500);
+  }
+});
+
+/* ══════════════════════════════════════════════
+   PROMOCIÓN A ROADMAP (alias)
+══════════════════════════════════════════════ */
+
+/** POST /promote-to-roadmap → alias para promover idea al roadmap */
+ideasBoard.post("/promote-to-roadmap", async (c) => {
+  try {
+    const { idea_id, idea_texto, idea_area, notas } = await c.req.json();
+    
+    if (!idea_id || !idea_texto) {
+      return c.json({ error: "idea_id e idea_texto son requeridos" }, 400);
+    }
+    
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+      .from("ideas_promovidas")
+      .insert({
+        idea_id,
+        idea_texto,
+        idea_area: idea_area || null,
+        notas: notas || null,
+        estado: "pendiente",
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return c.json({ idea: data });
+  } catch (err) {
+    console.log(`[ideas-board] POST /promote-to-roadmap error: ${err}`);
+    return c.json({ error: `Error promoviendo idea: ${err}` }, 500);
   }
 });
 

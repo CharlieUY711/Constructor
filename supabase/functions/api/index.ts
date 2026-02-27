@@ -18,35 +18,74 @@ import { productos } from "./productos.tsx";
 import { carrito } from "./carrito.tsx";
 import { departamentos } from "./departamentos.tsx";
 import { ordenes } from "./ordenes.tsx";
+import { categorias } from "./categorias.tsx";
+import { subcategorias } from "./subcategorias.tsx";
+import { disputas } from "./disputas.tsx";
 
 const app = new Hono().basePath("/api");
 
-app.use("*", logger(console.log));
-app.use("/*", cors({
-  origin: "*",
-  allowHeaders: ["Content-Type", "Authorization"],
-  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  exposeHeaders: ["Content-Length"],
-  maxAge: 600,
-}));
+// Enable logger
+app.use('*', logger(console.log));
 
-app.get("/health", (c) => c.json({ status: "ok" }));
+// Enable CORS for all routes and methods
+app.use(
+  "/*",
+  cors({
+    origin: "*",
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    exposeHeaders: ["Content-Length"],
+    maxAge: 600,
+  }),
+);
 
+// Health check endpoint
+app.get("/health", (c) => {
+  return c.json({ status: "ok" });
+});
+
+// Personas, Organizaciones y Roles
 app.route("/personas", personas);
 app.route("/organizaciones", organizaciones);
 app.route("/roles", roles);
+
+// eCommerce
 app.route("/pedidos", pedidos);
 app.route("/metodos-pago", metodosPago);
 app.route("/metodos-envio", metodosEnvio);
+
+// Marketing
 app.route("/etiquetas", etiquetas);
+
+// Roadmap + archivos adjuntos
 app.route("/roadmap", roadmap);
+
+// Ideas Board
 app.route("/ideas", ideasBoard);
+
+// Carga Masiva de Archivos
 app.route("/carga-masiva", cargaMasiva);
+
+// Verificación de Edad + MetaMap
 app.route("/age-verification", ageVerification);
+
+// Redes Sociales — RRSS (Meta: Instagram + Facebook)
 app.route("/rrss", rrss);
+
+// ...después de los imports existentes:
 app.route("/productos", productos);
 app.route("/carrito", carrito);
 app.route("/departamentos", departamentos);
 app.route("/ordenes", ordenes);
+app.route("/categorias", categorias);
+app.route("/subcategorias", subcategorias);
+app.route("/disputas", disputas);
 
 Deno.serve(app.fetch);
+
+
+
+
+
+// redeploy
+

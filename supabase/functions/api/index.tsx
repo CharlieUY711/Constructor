@@ -18,6 +18,9 @@ import { productos } from "./productos.tsx";
 import { carrito } from "./carrito.tsx";
 import { departamentos } from "./departamentos.tsx";
 import { ordenes } from "./ordenes.tsx";
+import { categorias } from "./categorias.tsx";
+import { subcategorias } from "./subcategorias.tsx";
+import { disputas } from "./disputas.tsx";
 
 const app = new Hono();
 
@@ -74,6 +77,9 @@ app.route("/productos", productos);
 app.route("/carrito", carrito);
 app.route("/departamentos", departamentos);
 app.route("/ordenes", ordenes);
+app.route("/categorias", categorias);
+app.route("/subcategorias", subcategorias);
+app.route("/disputas", disputas);
 
 Deno.serve(app.fetch);
 

@@ -35,6 +35,7 @@ import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import { AuditPanel } from "./AuditPanel";
 import { ModuleFilesPanel } from "./ModuleFilesPanel";
 import { BUILT_MODULE_IDS, SUPABASE_MODULE_IDS } from "../../utils/moduleRegistry";
+import * as roadmapApi from "../../services/roadmapApi";
 
 type ModuleStatus =
   | "not-started"
@@ -373,13 +374,22 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-
-  const API_URL = projectId
-    ? `https://${projectId}.supabase.co/functions/v1/make-server-75638143`
-    : null;
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditProgress, setAuditProgress] = useState({ current: 0, total: 0 });
+  
+  // Mapa de endpoints y tablas por módulo para auditoría
+  const AUDIT_MAP: Record<string, { endpointUrl?: string; tableName?: string }> = {
+    "ecommerce-pedidos":        { endpointUrl: `/api/pedidos`,          tableName: "pedidos" },
+    "ecommerce-metodos-pago":   { endpointUrl: `/api/metodos-pago`,     tableName: "metodos_pago" },
+    "ecommerce-metodos-envio":  { endpointUrl: `/api/metodos-envio`,    tableName: "metodos_envio" },
+    "crm-contacts":             { endpointUrl: `/api/personas`,         tableName: "personas" },
+    "marketplace-productos":    { endpointUrl: `/api/productos/market`, tableName: "productos_market" },
+    "marketplace-departamentos":{ endpointUrl: `/api/departamentos`,    tableName: "departamentos" },
+    "marketplace-carrito":      { endpointUrl: `/api/carrito`,          tableName: "carrito" },
+  };
 
   useEffect(() => {
-    if (!API_URL) {
+    if (!projectId) {
       setModules(MODULES_DATA.map(applyBuiltStatus));
       setIsLoading(false);
       return;
@@ -388,81 +398,72 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   }, []);
 
   const loadModules = async () => {
-    if (!API_URL) return;
+    if (!projectId) return;
     try {
       setIsLoading(true);
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      const response = await fetch(`${API_URL}/roadmap/modules`, {
-        headers: { Authorization: `Bearer ${publicAnonKey}` },
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.modules && data.modules.length > 0) {
-          // Merge backend → MODULES_DATA → aplica cascade de BUILT_MODULE_IDS
-          const merged = MODULES_DATA.map((def) => {
-            const saved = data.modules.find((m: Module) => m.id === def.id);
-            const base = saved ? { ...def, ...saved } : def;
-            const result = applyBuiltStatus(base);
+      const savedModules = await roadmapApi.getModules();
+      
+      if (savedModules && savedModules.length > 0) {
+        // Merge backend → MODULES_DATA → aplica cascade de BUILT_MODULE_IDS
+        const merged = MODULES_DATA.map((def) => {
+          const saved = savedModules.find((m) => m.id === def.id);
+          const base = saved ? { ...def, ...saved, execOrder: saved.execOrder, notas: saved.notas } : def;
+          const result = applyBuiltStatus(base);
 
-            // ── FIX: para módulos NO en BUILT_MODULE_IDS con status hardcodeado
-            //    en MODULES_DATA (ej: logistics-hub = "completed"):
-            //    si el KV tiene "not-started" stale, preservar el status del def.
-            //    Re-aplica con status+submodules del def para honrar MODULES_DATA,
-            //    preservando otros campos del saved (execOrder, notas, etc.).
-            if (
-              !BUILT_MODULE_IDS.has(def.id) &&
-              def.status !== "not-started" &&
-              result.status === "not-started"
-            ) {
-              return applyBuiltStatus({
-                ...def,
-                ...(saved ?? {}),
-                status: def.status,
-                submodules: def.submodules,
-              });
-            }
-            return result;
-          });
-          setModules(merged);
-
-          // ── Auto-resync mejorado: detecta TRES casos de desincronización:
-          //    (a) módulos cuyo status difiere entre KV y manifest-computed
-          //    (b) módulos nuevos en MODULES_DATA que aún no están en el KV
-          //    (c) módulos no-BUILT con hardcoded status que el KV perdió (init stale)
-          const hasNewModules = MODULES_DATA.some(
-            def => !data.modules.find((s: Module) => s.id === def.id)
-          );
-          const hasDiffStatus = merged.some((m) => {
-            const saved = data.modules.find((s: Module) => s.id === m.id);
-            return saved && saved.status !== m.status;
-          });
-          const needsResync = hasNewModules || hasDiffStatus;
-
-          if (needsResync) {
-            console.log(
-              `[ChecklistRoadmap] Resync necesario → módulos nuevos: ${hasNewModules}, diff status: ${hasDiffStatus}`
-            );
-            fetch(`${API_URL}/roadmap/modules-bulk`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
-              body: JSON.stringify({ modules: merged }),
-            }).catch(() => {/* silent */});
+          // ── FIX: para módulos NO en BUILT_MODULE_IDS con status hardcodeado
+          //    en MODULES_DATA (ej: logistics-hub = "completed"):
+          //    si el SQL tiene "not-started" stale, preservar el status del def.
+          if (
+            !BUILT_MODULE_IDS.has(def.id) &&
+            def.status !== "not-started" &&
+            result.status === "not-started"
+          ) {
+            return applyBuiltStatus({
+              ...def,
+              ...(saved ?? {}),
+              status: def.status,
+              submodules: def.submodules,
+            });
           }
-        } else {
-          // KV vacío → computar desde manifest y guardar en backend
-          const fresh = MODULES_DATA.map(applyBuiltStatus);
-          setModules(fresh);
-          fetch(`${API_URL}/roadmap/modules-bulk`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
-            body: JSON.stringify({ modules: fresh }),
-          }).catch(() => {/* silent */});
+          return result;
+        });
+        setModules(merged);
+
+        // ── Auto-resync mejorado: detecta TRES casos de desincronización:
+        const hasNewModules = MODULES_DATA.some(
+          def => !savedModules.find((s) => s.id === def.id)
+        );
+        const hasDiffStatus = merged.some((m) => {
+          const saved = savedModules.find((s) => s.id === m.id);
+          return saved && saved.status !== m.status;
+        });
+        const needsResync = hasNewModules || hasDiffStatus;
+
+        if (needsResync) {
+          console.log(
+            `[ChecklistRoadmap] Resync necesario → módulos nuevos: ${hasNewModules}, diff status: ${hasDiffStatus}`
+          );
+          await roadmapApi.saveModulesBulk(merged.map(m => ({
+            id: m.id,
+            status: m.status,
+            priority: m.priority,
+            execOrder: m.execOrder,
+            estimatedHours: m.estimatedHours,
+            notas: m.notas,
+          }))).catch(() => {/* silent */});
         }
       } else {
-        setModules(MODULES_DATA.map(applyBuiltStatus));
+        // SQL vacío → computar desde manifest y guardar en backend
+        const fresh = MODULES_DATA.map(applyBuiltStatus);
+        setModules(fresh);
+        await roadmapApi.saveModulesBulk(fresh.map(m => ({
+          id: m.id,
+          status: m.status,
+          priority: m.priority,
+          execOrder: m.execOrder,
+          estimatedHours: m.estimatedHours,
+          notas: m.notas,
+        }))).catch(() => {/* silent */});
       }
     } catch {
       setModules(MODULES_DATA.map(applyBuiltStatus));
@@ -510,19 +511,18 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
 
     setModules(finalModules);
     setHasUnsavedChanges(true);
-    if (!API_URL) return;
+    if (!projectId) return;
     try {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 5000);
       const mod = finalModules.find((m) => m.id === moduleId);
       if (!mod) return;
-      const res = await fetch(`${API_URL}/roadmap/modules/${moduleId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
-        body: JSON.stringify(mod),
-        signal: controller.signal,
+      await roadmapApi.saveModule(moduleId, {
+        status: mod.status,
+        priority: mod.priority,
+        execOrder: mod.execOrder,
+        estimatedHours: mod.estimatedHours,
+        notas: mod.notas,
       });
-      if (res.ok) setHasUnsavedChanges(false);
+      setHasUnsavedChanges(false);
     } catch { /* silent */ }
   };
 
@@ -549,24 +549,20 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const saveAllProgress = async () => {
     try {
       setIsSaving(true);
-      if (!API_URL) {
+      if (!projectId) {
         toast.warning("⚠️ Guardado local (Supabase no conectado)");
         return;
       }
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), 5000);
-      const res = await fetch(`${API_URL}/roadmap/modules-bulk`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
-        body: JSON.stringify({ modules }),
-        signal: controller.signal,
-      });
-      if (res.ok) {
-        setHasUnsavedChanges(false);
-        toast.success("✅ Progreso guardado en el servidor");
-      } else {
-        toast.warning("⚠️ No se pudo conectar con el servidor");
-      }
+      await roadmapApi.saveModulesBulk(modules.map(m => ({
+        id: m.id,
+        status: m.status,
+        priority: m.priority,
+        execOrder: m.execOrder,
+        estimatedHours: m.estimatedHours,
+        notas: m.notas,
+      })));
+      setHasUnsavedChanges(false);
+      toast.success("✅ Progreso guardado en el servidor");
     } catch {
       toast.warning("⚠️ Cambios guardados localmente");
     } finally {
@@ -574,27 +570,27 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
     }
   };
 
-  // ── Resync forzado: limpia KV y recomputa desde MODULES_DATA + manifest ──
+  // ── Resync forzado: limpia SQL y recomputa desde MODULES_DATA + manifest ──
   const forceResyncFromManifest = async () => {
     setIsSyncing(true);
     try {
       const fresh = MODULES_DATA.map(applyBuiltStatus);
       setModules(fresh);
-      if (API_URL) {
-        // Primero limpiar el KV
-        await fetch(`${API_URL}/roadmap/modules/reset`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${publicAnonKey}` },
-        }).catch(() => {/* silent */});
+      if (projectId) {
+        // Primero limpiar el SQL
+        await roadmapApi.resetModules().catch(() => {/* silent */});
         // Luego guardar el estado fresco
-        const res = await fetch(`${API_URL}/roadmap/modules-bulk`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${publicAnonKey}` },
-          body: JSON.stringify({ modules: fresh }),
-        });
-        if (res.ok) {
+        try {
+          await roadmapApi.saveModulesBulk(fresh.map(m => ({
+            id: m.id,
+            status: m.status,
+            priority: m.priority,
+            execOrder: m.execOrder,
+            estimatedHours: m.estimatedHours,
+            notas: m.notas,
+          })));
           toast.success("🔄 Resincronizado — estadísticas actualizadas desde el manifest");
-        } else {
+        } catch {
           toast.warning("⚠️ Resync aplicado localmente, backend no respondió");
         }
       } else {
@@ -630,6 +626,59 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
 
   const collapseAllCategories = () =>
     setExpandedCategories(new Set());
+
+  // ── Auditoría automática ────────────────────────────────────────────────
+  const runAudit = async () => {
+    if (!projectId) {
+      toast.warning("⚠️ Supabase no conectado");
+      return;
+    }
+    
+    setIsAuditing(true);
+    setAuditProgress({ current: 0, total: modules.length });
+    
+    try {
+      const auditPromises = modules.map(async (mod, idx) => {
+        setAuditProgress({ current: idx + 1, total: modules.length });
+        
+        const auditInfo = AUDIT_MAP[mod.id] || {};
+        const tieneView = BUILT_MODULE_IDS.has(mod.id);
+        const tieneBackend = SUPABASE_MODULE_IDS.has(mod.id);
+        
+        // Actualizar tiene_view y tiene_backend en SQL
+        await roadmapApi.saveModule(mod.id, {
+          tiene_view: tieneView,
+          tiene_backend: tieneBackend,
+        });
+        
+        // Ejecutar auditoría completa si hay endpoint o tabla
+        if (auditInfo.endpointUrl || auditInfo.tableName) {
+          const endpointUrl = auditInfo.endpointUrl 
+            ? `https://${projectId}.supabase.co/functions/v1${auditInfo.endpointUrl}`
+            : undefined;
+          
+          await roadmapApi.auditModule(mod.id, {
+            moduleId: mod.id,
+            endpointUrl,
+            tableName: auditInfo.tableName,
+          });
+        }
+      });
+      
+      await Promise.all(auditPromises);
+      
+      // Recargar módulos para ver los cambios
+      await loadModules();
+      
+      toast.success(`✅ Auditoría completada — ${modules.length} módulos verificados`);
+    } catch (err) {
+      console.error("[ChecklistRoadmap] Error en auditoría:", err);
+      toast.error("❌ Error durante la auditoría");
+    } finally {
+      setIsAuditing(false);
+      setAuditProgress({ current: 0, total: 0 });
+    }
+  };
 
   // ── Stats globales (usa getEffectivePercent para honrar submódulos) ────────
   const stats = useMemo(() => {
@@ -761,7 +810,23 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
                 onClick={() => setShowAudit(true)}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-orange-50 hover:border-[#FF6835]/40 text-gray-600 hover:text-[#FF6835] transition-colors text-sm font-medium"
               >
-                <ScanSearch className="h-4 w-4" /> Auditar
+                <ScanSearch className="h-4 w-4" /> Auditoría
+              </button>
+              <button
+                onClick={runAudit}
+                disabled={isAuditing}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 transition-colors text-sm font-medium disabled:opacity-50"
+              >
+                {isAuditing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Auditando {auditProgress.current}/{auditProgress.total}...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4" /> Auditar módulos
+                  </>
+                )}
               </button>
               {hasUnsavedChanges && (
                 <button onClick={saveAllProgress} disabled={isSaving}
@@ -814,7 +879,23 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
               onClick={() => setShowAudit(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-[#FF6835]/30 bg-orange-50 hover:bg-orange-100 text-[#FF6835] font-semibold transition-colors"
             >
-              <ScanSearch className="h-3.5 w-3.5" /> Auditar módulos
+              <ScanSearch className="h-3.5 w-3.5" /> Auditoría
+            </button>
+            <button
+              onClick={runAudit}
+              disabled={isAuditing}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors disabled:opacity-50"
+            >
+              {isAuditing ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {auditProgress.current}/{auditProgress.total}
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-3.5 w-3.5" /> Auditar
+                </>
+              )}
             </button>
             <button onClick={expandAllCategories}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-card border border-border rounded-lg hover:bg-accent transition-colors text-muted-foreground">
