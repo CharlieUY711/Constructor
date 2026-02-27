@@ -6,8 +6,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import { QrCodeDisplay, downloadQrPng, generateQrDataUrl } from '../QrCodeDisplay';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { toast } from 'sonner';
+import { getEtiquetas, createEtiqueta, deleteEtiqueta, type Etiqueta } from '../../../services/etiquetasApi';
 import {
   Gift, Heart, Star, Coffee, Package, Sparkles, Sun,
   TreePine, Music, Award, Smile, Home, QrCode, Plus,
@@ -19,30 +19,7 @@ import {
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
-const API     = `https://${projectId}.supabase.co/functions/v1/make-server-75638143`;
-const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE  = '#FF6835';
-
-/* ── Tipos ── */
-interface Etiqueta {
-  token: string;
-  envio_numero: string;
-  remitente_nombre: string;
-  destinatario_nombre: string;
-  destinatario_email: string;
-  destinatario_tel: string;
-  mensaje: string;
-  icono: string;
-  ocasion: string;
-  formato: string;
-  estado: 'pendiente' | 'escaneada' | 'respondida';
-  scanned_at: string | null;
-  respuesta: string | null;
-  respuesta_nombre: string | null;
-  respondida_at: string | null;
-  optin_contacto: string | null;
-  created_at: string;
-}
 
 type Tab = 'resumen' | 'etiquetas' | 'nueva';
 type Step = 1 | 2 | 3 | 4;
@@ -147,9 +124,8 @@ export function EtiquetaEmotivaView({ onNavigate }: Props) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}/etiquetas`, { headers: HEADERS });
-      const data = await r.json();
-      setEtiquetas(Array.isArray(data) ? data : []);
+      const data = await getEtiquetas();
+      setEtiquetas(data);
     } catch (e) {
       toast.error('Error cargando etiquetas');
     } finally {
@@ -168,7 +144,8 @@ export function EtiquetaEmotivaView({ onNavigate }: Props) {
   const handleDelete = async (token: string) => {
     if (!confirm(`¿Eliminar etiqueta ${token}?`)) return;
     try {
-      await fetch(`${API}/etiquetas/${token}`, { method: 'DELETE', headers: HEADERS });
+      const ok = await deleteEtiqueta(token);
+      if (!ok) throw new Error('No se pudo eliminar');
       setEtiquetas(prev => prev.filter(e => e.token !== token));
       toast.success('Etiqueta eliminada');
     } catch (e) {
@@ -474,9 +451,8 @@ function TabNueva({ onCreated, onCancel }: { onCreated: (e: Etiqueta) => void; o
   const handleSave = async () => {
     setSaving(true);
     try {
-      const r = await fetch(`${API}/etiquetas`, { method: 'POST', headers: HEADERS, body: JSON.stringify(form) });
-      if (!r.ok) throw new Error(await r.text());
-      const data = await r.json();
+      const data = await createEtiqueta(form);
+      if (!data) throw new Error('No se pudo crear la etiqueta');
       onCreated(data);
     } catch (e) {
       toast.error(`Error al crear etiqueta: ${e}`);

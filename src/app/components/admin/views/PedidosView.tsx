@@ -4,8 +4,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { toast } from 'sonner';
+import { getPedidos, createPedido, updatePedidoEstado, updatePedidoEstadoPago, type Pedido, type PedidoItem } from '../../../services/pedidosApi';
+import { getPersonas } from '../../../services/personasApi';
+import { getOrganizaciones } from '../../../services/organizacionesApi';
+import { getMetodosPago } from '../../../services/metodosPagoApi';
+import { getMetodosEnvio } from '../../../services/metodosEnvioApi';
 import {
   Search, RefreshCw, X, Save, Plus, Trash2,
   ShoppingCart, CheckCircle, XCircle, Truck, Package,
@@ -16,42 +20,7 @@ import {
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
-const API     = `https://${projectId}.supabase.co/functions/v1/make-server-75638143`;
-const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE  = '#FF6835';
-
-// ── Types ──────────────────────────────────────────
-interface PedidoItem {
-  producto_id?: string;
-  nombre: string;
-  cantidad: number;
-  precio_unitario: number;
-  subtotal: number;
-}
-
-interface Pedido {
-  id: string;
-  numero_pedido: string;
-  estado: string;
-  estado_pago: string;
-  subtotal: number;
-  descuento: number;
-  impuestos: number;
-  total: number;
-  items: PedidoItem[];
-  notas?: string;
-  direccion_envio?: Record<string, string>;
-  created_at: string;
-  updated_at?: string;
-  cliente_persona_id?: string;
-  cliente_org_id?: string;
-  metodo_pago_id?: string;
-  metodo_envio_id?: string;
-  cliente_persona?: { id: string; nombre: string; apellido?: string; email?: string; telefono?: string };
-  cliente_org?: { id: string; nombre: string; tipo?: string };
-  metodo_pago?: { id: string; nombre: string; tipo: string; proveedor?: string };
-  metodo_envio?: { id: string; nombre: string; tipo: string; precio: number };
-}
 
 interface PersonaOpt  { id: string; nombre: string; apellido?: string; email?: string }
 interface OrgOpt      { id: string; nombre: string }
@@ -122,14 +91,12 @@ export function PedidosView({ onNavigate }: Props) {
   const fetchPedidos = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (filterEstado)    params.set('estado', filterEstado);
-      if (filterEstadoPago) params.set('estado_pago', filterEstadoPago);
-      if (search)          params.set('search', search);
-      const res  = await fetch(`${API}/pedidos?${params}`, { headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      setPedidosList(json.data ?? []);
+      const data = await getPedidos({
+        estado: filterEstado || undefined,
+        estado_pago: filterEstadoPago || undefined,
+        search: search || undefined,
+      });
+      setPedidosList(data);
     } catch (e: unknown) {
       console.error('Error cargando pedidos:', e);
       toast.error('Error al cargar pedidos');
@@ -138,17 +105,16 @@ export function PedidosView({ onNavigate }: Props) {
 
   const fetchOptions = useCallback(async () => {
     try {
-      const [pR, oR, pgR, enR] = await Promise.all([
-        fetch(`${API}/personas?activo=true`, { headers: HEADERS }),
-        fetch(`${API}/organizaciones?activo=true`, { headers: HEADERS }),
-        fetch(`${API}/metodos-pago?activo=true`, { headers: HEADERS }),
-        fetch(`${API}/metodos-envio?activo=true`, { headers: HEADERS }),
+      const [personasData, orgsData, pagosData, enviosData] = await Promise.all([
+        getPersonas({ activo: true }),
+        getOrganizaciones({ activo: true }),
+        getMetodosPago({ activo: true }),
+        getMetodosEnvio({ activo: true }),
       ]);
-      const [pJ, oJ, pgJ, enJ] = await Promise.all([pR.json(), oR.json(), pgR.json(), enR.json()]);
-      setPersonas(pJ.data ?? []);
-      setOrgs(oJ.data ?? []);
-      setPagos(pgJ.data ?? []);
-      setEnvios(enJ.data ?? []);
+      setPersonas(personasData);
+      setOrgs(orgsData);
+      setPagos(pagosData);
+      setEnvios(enviosData);
     } catch (e) { console.error('Error cargando opciones:', e); }
   }, []);
 
@@ -201,10 +167,9 @@ export function PedidosView({ onNavigate }: Props) {
         total:    totalForm,
         items:    form.items,
       };
-      const res  = await fetch(`${API}/pedidos`, { method: 'POST', headers: HEADERS, body: JSON.stringify(body) });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      toast.success(`Pedido ${json.data.numero_pedido} creado`);
+      const data = await createPedido(body);
+      if (!data) throw new Error('No se pudo crear el pedido');
+      toast.success(`Pedido ${data.numero_pedido} creado`);
       setShowNew(false);
       fetchPedidos();
     } catch (e: unknown) {
@@ -216,11 +181,8 @@ export function PedidosView({ onNavigate }: Props) {
   // ── Cambiar estado ──
   const cambiarEstado = async (pedido: Pedido, nuevo_estado: string) => {
     try {
-      const res  = await fetch(`${API}/pedidos/${pedido.id}/estado`, {
-        method: 'PUT', headers: HEADERS, body: JSON.stringify({ nuevo_estado }),
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const data = await updatePedidoEstado(pedido.id, nuevo_estado);
+      if (!data) throw new Error('No se pudo actualizar el estado');
       toast.success(`Pedido → ${ESTADO_CFG[nuevo_estado]?.label}`);
       fetchPedidos();
       if (detailPedido?.id === pedido.id) setDetailPedido({ ...detailPedido, estado: nuevo_estado });
@@ -232,11 +194,8 @@ export function PedidosView({ onNavigate }: Props) {
   // ── Cambiar estado pago ──
   const cambiarEstadoPago = async (pedido: Pedido, estado_pago: string) => {
     try {
-      const res  = await fetch(`${API}/pedidos/${pedido.id}/estado-pago`, {
-        method: 'PUT', headers: HEADERS, body: JSON.stringify({ estado_pago }),
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const data = await updatePedidoEstadoPago(pedido.id, estado_pago);
+      if (!data) throw new Error('No se pudo actualizar el estado de pago');
       toast.success(`Pago → ${PAGO_CFG[estado_pago]?.label}`);
       fetchPedidos();
       if (detailPedido?.id === pedido.id) setDetailPedido({ ...detailPedido, estado_pago });

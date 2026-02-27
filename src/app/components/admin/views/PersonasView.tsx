@@ -4,8 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { supabase } from '../../../../utils/supabase/client';
 import { toast } from 'sonner';
+import { getPersonas, createPersona, updatePersona, deletePersona, type Persona } from '../../../services/personasApi';
 import {
   Search, Plus, Edit2, Trash2, User, Building2,
   Mail, Phone, FileText, RefreshCw, X, Save, Filter,
@@ -18,24 +18,6 @@ const ORANGE = '#FF6835';
 const TIPOS = ['', 'natural', 'juridica'];
 const GENEROS = ['', 'masculino', 'femenino', 'otro', 'prefiero no decir'];
 const DOC_TIPOS = ['CI', 'RUT', 'Pasaporte', 'DNI', 'Otro'];
-
-interface Persona {
-  id: string;
-  tipo: 'natural' | 'juridica';
-  nombre: string;
-  apellido?: string;
-  email?: string;
-  telefono?: string;
-  documento_tipo?: string;
-  documento_numero?: string;
-  fecha_nacimiento?: string;
-  genero?: string;
-  nacionalidad?: string;
-  direccion?: Record<string, string>;
-  metadata?: Record<string, unknown>;
-  activo: boolean;
-  created_at: string;
-}
 
 const EMPTY: Omit<Persona, 'id' | 'created_at'> = {
   tipo: 'natural',
@@ -67,29 +49,12 @@ export function PersonasView({ onNavigate }: Props) {
   const fetchPersonas = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('personas_75638143')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (filterTipo) {
-        query = query.eq('tipo', filterTipo);
-      }
-
-      if (filterActivo !== '') {
-        query = query.eq('activo', filterActivo === 'true');
-      }
-
-      if (search) {
-        query = query.or(
-          `nombre.ilike.%${search}%,apellido.ilike.%${search}%,email.ilike.%${search}%`
-        );
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setPersonas(data ?? []);
+      const data = await getPersonas({
+        tipo: filterTipo || undefined,
+        activo: filterActivo !== '' ? filterActivo === 'true' : undefined,
+        search: search || undefined,
+      });
+      setPersonas(data);
     } catch (e: unknown) {
       console.error('Error cargando personas:', e);
       toast.error('Error al cargar personas');
@@ -129,29 +94,18 @@ export function PersonasView({ onNavigate }: Props) {
     if (!form.nombre.trim()) { toast.error('El nombre es requerido'); return; }
     setSaving(true);
     try {
-      const body: Record<string, unknown> = { ...form };
+      const body: Partial<Persona> = { ...form };
       if (!body.fecha_nacimiento || body.fecha_nacimiento === '') {
         delete body.fecha_nacimiento;
       }
 
       if (editando) {
-        const { data, error } = await supabase
-          .from('personas_75638143')
-          .update(body)
-          .eq('id', editando.id)
-          .select()
-          .single();
-
-        if (error) throw error;
+        const data = await updatePersona(editando.id, body);
+        if (!data) throw new Error('No se pudo actualizar la persona');
         toast.success('Persona actualizada');
       } else {
-        const { data, error } = await supabase
-          .from('personas_75638143')
-          .insert(body)
-          .select()
-          .single();
-
-        if (error) throw error;
+        const data = await createPersona(body);
+        if (!data) throw new Error('No se pudo crear la persona');
         toast.success('Persona creada');
       }
 
@@ -169,12 +123,8 @@ export function PersonasView({ onNavigate }: Props) {
     if (!confirm('¿Eliminar esta persona? Esta acción no se puede deshacer.')) return;
     setDeletingId(id);
     try {
-      const { error } = await supabase
-        .from('personas_75638143')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      const ok = await deletePersona(id);
+      if (!ok) throw new Error('No se pudo eliminar la persona');
       toast.success('Persona eliminada');
       fetchPersonas();
     } catch (e: unknown) {

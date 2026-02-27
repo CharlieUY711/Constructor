@@ -4,8 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { toast } from 'sonner';
+import { getOrganizaciones, createOrganizacion, updateOrganizacion, deleteOrganizacion, type Organizacion } from '../../../services/organizacionesApi';
 import {
   Search, Plus, Edit2, Trash2, Building2, Mail, Phone,
   Globe, RefreshCw, X, Save, CheckCircle, XCircle, MapPin,
@@ -13,26 +13,10 @@ import {
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
-const API = `https://${projectId}.supabase.co/functions/v1/make-server-75638143`;
-const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE = '#FF6835';
 
 const TIPOS_ORG = ['', 'empresa', 'cooperativa', 'fundacion', 'gobierno', 'otro'];
 const INDUSTRIAS = ['', 'Tecnología', 'Retail', 'Agro', 'Construcción', 'Salud', 'Educación', 'Finanzas', 'Logística', 'Manufactura', 'Servicios', 'Otro'];
-
-interface Organizacion {
-  id: string;
-  nombre: string;
-  tipo?: string;
-  industria?: string;
-  email?: string;
-  telefono?: string;
-  sitio_web?: string;
-  direccion?: Record<string, string>;
-  metadata?: Record<string, unknown>;
-  activo: boolean;
-  created_at: string;
-}
 
 const EMPTY: Omit<Organizacion, 'id' | 'created_at'> = {
   nombre: '',
@@ -60,14 +44,12 @@ export function OrganizacionesView({ onNavigate }: Props) {
   const fetchOrgs = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (search) params.set('search', search);
-      if (filterTipo) params.set('tipo', filterTipo);
-      if (filterActivo !== '') params.set('activo', filterActivo);
-      const res = await fetch(`${API}/organizaciones?${params}`, { headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      setOrgs(json.data ?? []);
+      const data = await getOrganizaciones({
+        search: search || undefined,
+        tipo: filterTipo || undefined,
+        activo: filterActivo !== '' ? filterActivo === 'true' : undefined,
+      });
+      setOrgs(data);
     } catch (e: unknown) {
       console.error('Error cargando organizaciones:', e);
       toast.error('Error al cargar organizaciones');
@@ -104,11 +86,13 @@ export function OrganizacionesView({ onNavigate }: Props) {
     setSaving(true);
     try {
       const body = { ...form };
-      const url = editando ? `${API}/organizaciones/${editando.id}` : `${API}/organizaciones`;
-      const method = editando ? 'PUT' : 'POST';
-      const res = await fetch(url, { method, headers: HEADERS, body: JSON.stringify(body) });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      if (editando) {
+        const data = await updateOrganizacion(editando.id, body);
+        if (!data) throw new Error('No se pudo actualizar la organización');
+      } else {
+        const data = await createOrganizacion(body);
+        if (!data) throw new Error('No se pudo crear la organización');
+      }
       toast.success(editando ? 'Organización actualizada' : 'Organización creada');
       setShowModal(false);
       fetchOrgs();
@@ -124,9 +108,8 @@ export function OrganizacionesView({ onNavigate }: Props) {
     if (!confirm('¿Eliminar esta organización? Esta acción no se puede deshacer.')) return;
     setDeletingId(id);
     try {
-      const res = await fetch(`${API}/organizaciones/${id}`, { method: 'DELETE', headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const ok = await deleteOrganizacion(id);
+      if (!ok) throw new Error('No se pudo eliminar la organización');
       toast.success('Organización eliminada');
       fetchOrgs();
     } catch (e: unknown) {

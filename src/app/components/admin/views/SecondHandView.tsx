@@ -39,14 +39,8 @@ interface Listing {
   image: string;
 }
 
-const MOCK_LISTINGS: Listing[] = [
-  { id: '1', title: 'iPhone 13 Pro 256GB - Muy buen estado',   price: 650, category: 'Tecnología', seller: 'Juan P.',    status: 'pending',  createdAt: '2026-02-19', image: '📱' },
-  { id: '2', title: 'Silla de escritorio ergonómica',           price: 120, category: 'Hogar',      seller: 'María G.',   status: 'pending',  createdAt: '2026-02-18', image: '🪑' },
-  { id: '3', title: 'Bicicleta montaña Trek - R26',             price: 280, category: 'Deportes',   seller: 'Carlos M.',  status: 'approved', createdAt: '2026-02-17', image: '🚲' },
-  { id: '4', title: 'Campera de cuero talle M',                 price: 85,  category: 'Moda',       seller: 'Ana L.',     status: 'rejected', createdAt: '2026-02-16', image: '🧥' },
-  { id: '5', title: 'PS5 con 3 juegos incluidos',               price: 420, category: 'Tecnología', seller: 'Pedro R.',   status: 'approved', createdAt: '2026-02-15', image: '🎮' },
-  { id: '6', title: 'Cochecito de bebé Graco - nuevo',          price: 150, category: 'Bebés',      seller: 'Laura S.',   status: 'pending',  createdAt: '2026-02-19', image: '🍼' },
-];
+// TODO: endpoint /api/productos/secondhand pendiente para cargar publicaciones
+const MOCK_LISTINGS: Listing[] = [];
 
 /* ── Disputes ── */
 type DisputeStatus = 'abierta' | 'en-mediacion' | 'resuelta' | 'cerrada';
@@ -74,113 +68,14 @@ interface Dispute {
   messages: DisputeMsg[];
 }
 
-const MOCK_DISPUTES: Dispute[] = [
-  {
-    id: 'D-001',
-    itemEmoji: '📱',
-    itemTitle: 'iPhone 13 Pro 256GB',
-    itemPrice: 650,
-    buyer: 'Sofía R.',
-    seller: 'Juan P.',
-    reason: 'El artículo no coincide con la descripción',
-    status: 'en-mediacion',
-    openedAt: '2026-02-18',
-    priority: 'alta',
-    messages: [
-      { id: 'm1', from: 'buyer',  name: 'Sofía R.',  time: '18 Feb 10:30', text: 'La pantalla tiene rayones que no aparecían en las fotos. Quiero la devolución del dinero.' },
-      { id: 'm2', from: 'seller', name: 'Juan P.',   time: '18 Feb 11:45', text: 'Las fotos muestran el estado real. Las rayitas son mínimas y propias del uso normal.' },
-      { id: 'm3', from: 'admin',  name: 'Admin',     time: '19 Feb 09:00', text: 'Iniciamos la mediación. Solicitamos al vendedor que envíe fotos adicionales del estado actual.' },
-      { id: 'm4', from: 'seller', name: 'Juan P.',   time: '19 Feb 09:55', text: 'Adjunto más fotos. El teléfono está en perfecto estado salvo esas marcas mínimas.' },
-    ],
-  },
-  {
-    id: 'D-002',
-    itemEmoji: '🚲',
-    itemTitle: 'Bicicleta montaña Trek R26',
-    itemPrice: 280,
-    buyer: 'Lucas M.',
-    seller: 'Carlos M.',
-    reason: 'El vendedor no entrega el artículo',
-    status: 'abierta',
-    openedAt: '2026-02-19',
-    priority: 'alta',
-    messages: [
-      { id: 'm1', from: 'buyer',  name: 'Lucas M.',  time: '19 Feb 14:00', text: 'Pagué hace 5 días y el vendedor no coordina la entrega. No responde mensajes.' },
-      { id: 'm2', from: 'admin',  name: 'Admin',     time: '19 Feb 15:30', text: 'Recibimos tu disputa. Notificamos al vendedor para que responda en 24 hs.' },
-    ],
-  },
-  {
-    id: 'D-003',
-    itemEmoji: '🎮',
-    itemTitle: 'PS5 con 3 juegos incluidos',
-    itemPrice: 420,
-    buyer: 'Martina V.',
-    seller: 'Pedro R.',
-    reason: 'Un juego llegó dañado',
-    status: 'resuelta',
-    openedAt: '2026-02-12',
-    priority: 'media',
-    messages: [
-      { id: 'm1', from: 'buyer',  name: 'Martina V.', time: '12 Feb 10:00', text: 'El juego FIFA llegó sin caja y con el disco rayado.' },
-      { id: 'm2', from: 'seller', name: 'Pedro R.',   time: '12 Feb 12:00', text: 'Fue un error al empacar. Le envío el juego en nuevo estado sin costo.' },
-      { id: 'm3', from: 'admin',  name: 'Admin',      time: '13 Feb 09:00', text: 'El vendedor se comprometió a reenviar el artículo. Damos 7 días para confirmar recepción.' },
-      { id: 'm4', from: 'buyer',  name: 'Martina V.', time: '17 Feb 11:00', text: 'Recibí el juego nuevo. Todo perfecto, gracias.' },
-      { id: 'm5', from: 'admin',  name: 'Admin',      time: '17 Feb 11:30', text: '✅ Disputa resuelta satisfactoriamente. Cerramos el caso.' },
-    ],
-  },
-  {
-    id: 'D-004',
-    itemEmoji: '🧥',
-    itemTitle: 'Campera de cuero talle M',
-    itemPrice: 85,
-    buyer: 'Romina C.',
-    seller: 'Ana L.',
-    reason: 'Talle incorrecto, pide reembolso',
-    status: 'cerrada',
-    openedAt: '2026-02-10',
-    priority: 'baja',
-    messages: [
-      { id: 'm1', from: 'buyer',  name: 'Romina C.', time: '10 Feb 09:00', text: 'El talle M equivale a XS. No me queda. Quiero devolución.' },
-      { id: 'm2', from: 'seller', name: 'Ana L.',    time: '10 Feb 10:30', text: 'Las medidas estaban en la descripción. No acepto devolución.' },
-      { id: 'm3', from: 'admin',  name: 'Admin',     time: '11 Feb 08:00', text: 'Revisamos la publicación. Las medidas sí estaban descriptas. Cerramos sin reembolso.' },
-    ],
-  },
-  {
-    id: 'D-005',
-    itemEmoji: '🍼',
-    itemTitle: 'Cochecito bebé Graco',
-    itemPrice: 150,
-    buyer: 'Valentina S.',
-    seller: 'Laura S.',
-    reason: 'Artículo no llega, tracking sin movimiento',
-    status: 'en-mediacion',
-    openedAt: '2026-02-17',
-    priority: 'media',
-    messages: [
-      { id: 'm1', from: 'buyer',  name: 'Valentina S.', time: '17 Feb 16:00', text: 'El tracking lleva 4 días sin actualización. No sé si el paquete se perdió.' },
-      { id: 'm2', from: 'seller', name: 'Laura S.',     time: '18 Feb 08:30', text: 'Consulté al correo y dicen que está en tránsito. Debería llegar hoy o mañana.' },
-      { id: 'm3', from: 'admin',  name: 'Admin',        time: '19 Feb 10:00', text: 'Abrimos reclamo formal con el operador logístico. Esperamos respuesta en 48 hs.' },
-    ],
-  },
-];
+// TODO: endpoint /api/disputas pendiente
+const MOCK_DISPUTES: Dispute[] = [];
 
 /* ── Chart data ── */
-const MONTHLY_DATA = [
-  { mes: 'Sep', publicaciones: 42, aprobadas: 35, rechazadas: 7 },
-  { mes: 'Oct', publicaciones: 58, aprobadas: 49, rechazadas: 9 },
-  { mes: 'Nov', publicaciones: 74, aprobadas: 62, rechazadas: 12 },
-  { mes: 'Dic', publicaciones: 91, aprobadas: 78, rechazadas: 13 },
-  { mes: 'Ene', publicaciones: 67, aprobadas: 55, rechazadas: 12 },
-  { mes: 'Feb', publicaciones: 83, aprobadas: 68, rechazadas: 15 },
-];
+// TODO: endpoint /api/estadisticas/secondhand pendiente para cargar datos de gráficos
+const MONTHLY_DATA: Array<{ mes: string; publicaciones: number; aprobadas: number; rechazadas: number }> = [];
 
-const CAT_DATA = [
-  { name: 'Tecnología', value: 38, color: '#3B82F6' },
-  { name: 'Moda',       value: 22, color: '#EC4899' },
-  { name: 'Hogar',      value: 18, color: '#10B981' },
-  { name: 'Deportes',   value: 14, color: '#F59E0B' },
-  { name: 'Otros',      value: 8,  color: '#9CA3AF' },
-];
+const CAT_DATA: Array<{ name: string; value: number; color: string }> = [];
 
 /* ═══════════════════════════════ DISPUTE STATUS CONFIG ══════════════════════ */
 const DISPUTE_STATUS: Record<DisputeStatus, { label: string; bg: string; color: string; Icon: React.ElementType }> = {
@@ -433,10 +328,10 @@ export function SecondHandView({ onNavigate }: Props) {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 {[
-                  { label: 'Total Publicaciones', value: MOCK_LISTINGS.length.toString(), Icon: Package,      color: PURPLE, sub: '+12% este mes' },
+                  { label: 'Total Publicaciones', value: MOCK_LISTINGS.length.toString(), Icon: Package,      color: PURPLE, sub: 'Cargando...' },
                   { label: 'Pendientes',           value: pending.toString(),             Icon: Clock,         color: AMBER,  sub: 'Requieren revisión' },
-                  { label: 'Aprobadas',            value: approved.toString(),            Icon: CheckCircle2,  color: GREEN,  sub: `${Math.round((approved / MOCK_LISTINGS.length) * 100)}% del total` },
-                  { label: 'Vendedores Activos',   value: '47',                           Icon: Users,         color: '#3B82F6', sub: '+5 esta semana' },
+                  { label: 'Aprobadas',            value: approved.toString(),            Icon: CheckCircle2,  color: GREEN,  sub: MOCK_LISTINGS.length > 0 ? `${Math.round((approved / MOCK_LISTINGS.length) * 100)}% del total` : '0%' },
+                  { label: 'Vendedores Activos',   value: '0',                           Icon: Users,         color: '#3B82F6', sub: 'Endpoint pendiente' },
                 ].map((s, i) => (
                   <div key={i} style={{ backgroundColor: '#FFFFFF', border: `1px solid ${s.color}22`, borderRadius: '12px', padding: '18px 20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -451,9 +346,9 @@ export function SecondHandView({ onNavigate }: Props) {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 {[
-                  { label: 'Valor Total Publicado', value: '$24,580', Icon: DollarSign, color: '#10B981', note: 'Suma de todos los precios' },
-                  { label: 'Precio Promedio',        value: '$287',    Icon: TrendingUp,  color: ORANGE,   note: 'Por publicación activa' },
-                  { label: 'Tasa de Aprobación',     value: '82%',     Icon: Star,        color: PURPLE,   note: 'Últimos 30 días' },
+                  { label: 'Valor Total Publicado', value: '$0', Icon: DollarSign, color: '#10B981', note: 'Endpoint pendiente' },
+                  { label: 'Precio Promedio',        value: '$0',    Icon: TrendingUp,  color: ORANGE,   note: 'Endpoint pendiente' },
+                  { label: 'Tasa de Aprobación',     value: '0%',     Icon: Star,        color: PURPLE,   note: 'Endpoint pendiente' },
                 ].map((s, i) => (
                   <div key={i} style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: s.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -468,32 +363,38 @@ export function SecondHandView({ onNavigate }: Props) {
                 ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
-                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px' }}>
-                  <h3 style={{ margin: '0 0 16px', fontWeight: '700', color: '#111827', fontSize: '0.9rem' }}>Publicaciones por Mes</h3>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={MONTHLY_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                      <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-                      <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '0.75rem' }} />
-                      <Bar dataKey="aprobadas"  fill="#10B981" radius={[3, 3, 0, 0]} name="Aprobadas" />
-                      <Bar dataKey="rechazadas" fill="#EF4444" radius={[3, 3, 0, 0]} name="Rechazadas" />
-                    </BarChart>
-                  </ResponsiveContainer>
+              {MONTHLY_DATA.length > 0 && CAT_DATA.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px' }}>
+                    <h3 style={{ margin: '0 0 16px', fontWeight: '700', color: '#111827', fontSize: '0.9rem' }}>Publicaciones por Mes</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={MONTHLY_DATA} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                        <XAxis dataKey="mes" tick={{ fontSize: 11, fill: '#9CA3AF' }} />
+                        <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '0.75rem' }} />
+                        <Bar dataKey="aprobadas"  fill="#10B981" radius={[3, 3, 0, 0]} name="Aprobadas" />
+                        <Bar dataKey="rechazadas" fill="#EF4444" radius={[3, 3, 0, 0]} name="Rechazadas" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px' }}>
+                    <h3 style={{ margin: '0 0 16px', fontWeight: '700', color: '#111827', fontSize: '0.9rem' }}>Por Categoría</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie data={CAT_DATA} cx="50%" cy="45%" outerRadius={70} dataKey="value" label={({ value }: { value: number }) => `${value}%`} labelLine={false} fontSize={9}>
+                          {CAT_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
+                        </Pie>
+                        <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '0.75rem' }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
-                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px' }}>
-                  <h3 style={{ margin: '0 0 16px', fontWeight: '700', color: '#111827', fontSize: '0.9rem' }}>Por Categoría</h3>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie data={CAT_DATA} cx="50%" cy="45%" outerRadius={70} dataKey="value" label={({ value }: { value: number }) => `${value}%`} labelLine={false} fontSize={9}>
-                        {CAT_DATA.map((e, i) => <Cell key={i} fill={e.color} />)}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '8px', fontSize: '0.75rem' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
+              ) : (
+                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '40px', textAlign: 'center', color: '#9CA3AF' }}>
+                  <p style={{ margin: 0, fontSize: '0.875rem' }}>📊 Gráficos disponibles cuando haya datos — endpoint /api/estadisticas/secondhand pendiente</p>
                 </div>
-              </div>
+              )}
             </>
           )}
 

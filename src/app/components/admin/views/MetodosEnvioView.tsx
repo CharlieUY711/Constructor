@@ -4,8 +4,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { toast } from 'sonner';
+import { getMetodosEnvio, createMetodoEnvio, updateMetodoEnvio, deleteMetodoEnvio, type MetodoEnvio } from '../../../services/metodosEnvioApi';
 import {
   Truck, Package, MapPin, Clock, DollarSign,
   RefreshCw, Plus, X, Save, Trash2, Edit2,
@@ -14,22 +14,7 @@ import {
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
-const API     = `https://${projectId}.supabase.co/functions/v1/make-server-75638143`;
-const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE  = '#FF6835';
-
-interface MetodoEnvio {
-  id: string;
-  nombre: string;
-  tipo: string;
-  precio: number;
-  zona?: string;
-  tiempo_estimado?: string;
-  descripcion?: string;
-  activo: boolean;
-  orden: number;
-  created_at: string;
-}
 
 const TIPOS = [
   { value: 'flat_rate',     label: 'Tarifa fija',    icon: DollarSign, color: '#2563EB' },
@@ -55,10 +40,8 @@ export function MetodosEnvioView({ onNavigate }: Props) {
   const fetchMetodos = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch(`${API}/metodos-envio`, { headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      setMetodos(json.data ?? []);
+      const data = await getMetodosEnvio();
+      setMetodos(data);
     } catch (e: unknown) {
       console.error('Error cargando métodos de envío:', e);
       toast.error('Error al cargar métodos de envío');
@@ -79,11 +62,13 @@ export function MetodosEnvioView({ onNavigate }: Props) {
     setSaving(true);
     try {
       const body = { ...form, zona: form.zona || null, tiempo_estimado: form.tiempo_estimado || null, descripcion: form.descripcion || null };
-      const url    = editId ? `${API}/metodos-envio/${editId}` : `${API}/metodos-envio`;
-      const method = editId ? 'PUT' : 'POST';
-      const res  = await fetch(url, { method, headers: HEADERS, body: JSON.stringify(body) });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      if (editId) {
+        const data = await updateMetodoEnvio(editId, body);
+        if (!data) throw new Error('No se pudo actualizar el método');
+      } else {
+        const data = await createMetodoEnvio(body);
+        if (!data) throw new Error('No se pudo crear el método');
+      }
       toast.success(editId ? 'Método actualizado' : 'Método creado');
       setShowModal(false);
       fetchMetodos();
@@ -95,11 +80,8 @@ export function MetodosEnvioView({ onNavigate }: Props) {
 
   const toggleActivo = async (m: MetodoEnvio) => {
     try {
-      const res  = await fetch(`${API}/metodos-envio/${m.id}`, {
-        method: 'PUT', headers: HEADERS, body: JSON.stringify({ activo: !m.activo }),
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const data = await updateMetodoEnvio(m.id, { activo: !m.activo });
+      if (!data) throw new Error('No se pudo actualizar');
       toast.success(m.activo ? 'Método desactivado' : 'Método activado');
       fetchMetodos();
     } catch { toast.error('Error al actualizar'); }
@@ -107,9 +89,8 @@ export function MetodosEnvioView({ onNavigate }: Props) {
 
   const handleDelete = async (m: MetodoEnvio) => {
     try {
-      const res  = await fetch(`${API}/metodos-envio/${m.id}`, { method: 'DELETE', headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const ok = await deleteMetodoEnvio(m.id);
+      if (!ok) throw new Error('No se pudo eliminar');
       toast.success('Método eliminado');
       setConfirmDelete(null);
       fetchMetodos();

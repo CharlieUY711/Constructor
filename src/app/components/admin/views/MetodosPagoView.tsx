@@ -6,8 +6,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { toast } from 'sonner';
+import { getMetodosPago, createMetodoPago, updateMetodoPago, deleteMetodoPago, type MetodoPago } from '../../../services/metodosPagoApi';
 import {
   CreditCard, Landmark, Banknote, Wallet, RefreshCw,
   Plus, X, Save, Trash2, CheckCircle, XCircle,
@@ -17,21 +17,7 @@ import {
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
-const API     = `https://${projectId}.supabase.co/functions/v1/make-server-75638143`;
-const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE  = '#FF6835';
-
-interface MetodoPago {
-  id: string;
-  nombre: string;
-  tipo: string;
-  proveedor?: string;
-  descripcion?: string;
-  instrucciones?: string;
-  activo: boolean;
-  orden: number;
-  created_at: string;
-}
 
 interface FormState {
   nombre: string;
@@ -201,10 +187,8 @@ export function MetodosPagoView({ onNavigate }: Props) {
   const fetchMetodos = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch(`${API}/metodos-pago`, { headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      setMetodos(json.data ?? []);
+      const data = await getMetodosPago();
+      setMetodos(data);
     } catch (e: unknown) {
       console.error('Error cargando métodos de pago:', e);
       toast.error('Error al cargar métodos de pago');
@@ -265,11 +249,13 @@ export function MetodosPagoView({ onNavigate }: Props) {
         instrucciones: instruccionesFull,
         activo: form.activo, orden: form.orden,
       };
-      const url    = editId ? `${API}/metodos-pago/${editId}` : `${API}/metodos-pago`;
-      const method = editId ? 'PUT' : 'POST';
-      const res    = await fetch(url, { method, headers: HEADERS, body: JSON.stringify(body) });
-      const json   = await res.json();
-      if (json.error) throw new Error(json.error);
+      if (editId) {
+        const data = await updateMetodoPago(editId, body);
+        if (!data) throw new Error('No se pudo actualizar el método');
+      } else {
+        const data = await createMetodoPago(body);
+        if (!data) throw new Error('No se pudo crear el método');
+      }
       toast.success(editId ? 'Método actualizado' : 'Método creado');
       setShowModal(false);
       fetchMetodos();
@@ -282,11 +268,8 @@ export function MetodosPagoView({ onNavigate }: Props) {
   // ── Toggle activo ──────────────────────────────────────────────────────
   const toggleActivo = async (m: MetodoPago) => {
     try {
-      const res  = await fetch(`${API}/metodos-pago/${m.id}`, {
-        method: 'PUT', headers: HEADERS, body: JSON.stringify({ activo: !m.activo }),
-      });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const data = await updateMetodoPago(m.id, { activo: !m.activo });
+      if (!data) throw new Error('No se pudo actualizar');
       toast.success(m.activo ? 'Método desactivado' : 'Método activado');
       fetchMetodos();
     } catch { toast.error('Error al actualizar'); }
@@ -295,9 +278,8 @@ export function MetodosPagoView({ onNavigate }: Props) {
   // ── Eliminar ───────────────────────────────────────────────────────────
   const handleDelete = async (m: MetodoPago) => {
     try {
-      const res  = await fetch(`${API}/metodos-pago/${m.id}`, { method: 'DELETE', headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const ok = await deleteMetodoPago(m.id);
+      if (!ok) throw new Error('No se pudo eliminar');
       toast.success('Método eliminado');
       setConfirmDelete(null);
       fetchMetodos();
@@ -317,8 +299,8 @@ export function MetodosPagoView({ onNavigate }: Props) {
     setReordering(true);
     try {
       await Promise.all([
-        fetch(`${API}/metodos-pago/${m.id}`,       { method: 'PUT', headers: HEADERS, body: JSON.stringify({ orden: sibling.orden }) }),
-        fetch(`${API}/metodos-pago/${sibling.id}`,  { method: 'PUT', headers: HEADERS, body: JSON.stringify({ orden: tmpOrden }) }),
+        updateMetodoPago(m.id, { orden: sibling.orden }),
+        updateMetodoPago(sibling.id, { orden: tmpOrden }),
       ]);
       fetchMetodos();
     } catch { toast.error('Error al reordenar'); }
