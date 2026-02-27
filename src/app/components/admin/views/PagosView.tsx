@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 import { toast } from 'sonner';
 import {
   CreditCard, CheckCircle, XCircle, Clock, RefreshCw,
@@ -15,7 +15,7 @@ import {
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
-const API     = `https://${projectId}.supabase.co/functions/v1/make-server-75638143`;
+const API     = `https://${projectId}.supabase.co/functions/v1/api`;
 const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE  = '#FF6835';
 
