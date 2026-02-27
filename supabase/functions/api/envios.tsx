@@ -22,7 +22,7 @@ const getSupabase = () =>
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-// GET /envios — lista todos los envíos (con filtros opcionales)
+// GET /envios — lista todos los envíos (con filtros opcionales) + eventos
 envios.get("/", async (c) => {
   try {
     const { pedido_madre_id, estado, carrier, tramo } = c.req.query();
@@ -38,10 +38,30 @@ envios.get("/", async (c) => {
     if (carrier) query = query.eq("carrier", carrier);
     if (tramo) query = query.eq("tramo", tramo);
     
-    const { data, error } = await query;
+    const { data: envios, error } = await query;
     if (error) throw error;
     
-    return c.json({ envios: data ?? [], count: data?.length ?? 0 });
+    // Cargar eventos para todos los envíos en una sola query
+    const envioIds = (envios ?? []).map(e => e.id);
+    let eventos: any[] = [];
+    
+    if (envioIds.length > 0) {
+      const { data: eventosData, error: eventosErr } = await supabase
+        .from("envios_eventos_75638143")
+        .select("*")
+        .in("envio_id", envioIds)
+        .order("fecha", { ascending: false });
+      
+      if (!eventosErr) {
+        eventos = eventosData ?? [];
+      }
+    }
+    
+    return c.json({ 
+      envios: envios ?? [], 
+      eventos: eventos,
+      count: envios?.length ?? 0 
+    });
   } catch (err) {
     console.log(`[envios] GET / error: ${err}`);
     return c.json({ error: `Error cargando envíos: ${err}` }, 500);

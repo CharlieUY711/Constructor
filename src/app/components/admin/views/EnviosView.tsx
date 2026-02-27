@@ -187,15 +187,22 @@ export function EnviosView({ onNavigate }: Props) {
       if (filterEstado !== 'todos') filters.estado = filterEstado;
       if (filterTramo !== 'todos') filters.tramo = filterTramo;
       
-      const enviosData = await enviosApi.getEnvios(filters);
+      const { envios: enviosData, eventos: todosEventos } = await enviosApi.getEnvios(filters);
       
-      // Cargar eventos para cada envío
-      const enviosConEventos = await Promise.all(
-        enviosData.map(async (envio) => {
-          const detalle = await enviosApi.getEnvio(envio.id);
-          return transformEnvio(envio, detalle?.eventos || []);
-        })
-      );
+      // Crear un mapa de eventos por envío para acceso rápido
+      const eventosPorEnvio = new Map<string, enviosApi.EventoTracking[]>();
+      todosEventos.forEach(ev => {
+        if (!eventosPorEnvio.has(ev.envio_id)) {
+          eventosPorEnvio.set(ev.envio_id, []);
+        }
+        eventosPorEnvio.get(ev.envio_id)!.push(ev);
+      });
+      
+      // Transformar envíos con sus eventos
+      const enviosConEventos = enviosData.map(envio => {
+        const eventos = eventosPorEnvio.get(envio.id) || [];
+        return transformEnvio(envio, eventos);
+      });
       
       // Agrupar por pedido
       const pedidosAgrupados = agruparPorPedido(enviosConEventos);

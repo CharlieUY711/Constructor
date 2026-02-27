@@ -150,7 +150,7 @@ export async function getEnvios(filters?: {
   estado?: EstadoEnvio;
   carrier?: string;
   tramo?: Tramo;
-}): Promise<Envio[]> {
+}): Promise<{ envios: Envio[]; eventos: EventoTracking[] }> {
   const params = new URLSearchParams();
   if (filters?.pedido_madre_id) params.append('pedido_madre_id', filters.pedido_madre_id);
   if (filters?.estado) params.append('estado', filters.estado);
@@ -158,9 +158,9 @@ export async function getEnvios(filters?: {
   if (filters?.tramo) params.append('tramo', filters.tramo);
   
   const query = params.toString() ? `?${params.toString()}` : '';
-  const res = await apiGet<{ envios: Envio[]; count: number }>(query);
-  if (!res.ok || !res.data) return [];
-  return res.data.envios || [];
+  const res = await apiGet<{ envios: Envio[]; eventos: EventoTracking[]; count: number }>(query);
+  if (!res.ok || !res.data) return { envios: [], eventos: [] };
+  return { envios: res.data.envios || [], eventos: res.data.eventos || [] };
 }
 
 export async function getEnvio(id: string): Promise<{ envio: Envio; eventos: EventoTracking[] } | null> {
