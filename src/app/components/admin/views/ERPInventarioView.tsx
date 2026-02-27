@@ -37,30 +37,6 @@ async function subirImagen(blobUrl: string, nombre: string): Promise<string> {
   return `${STORAGE}/object/public/productos/${filename}`;
 }
 
-// Sube un video a Supabase Storage y devuelve la URL pública permanente
-async function subirVideo(blobUrl: string, nombre: string): Promise<string> {
-  // Si ya es una URL permanente (no blob), la devolvemos tal cual
-  if (!blobUrl.startsWith('blob:')) return blobUrl;
-
-  const res = await fetch(blobUrl);
-  const blob = await res.blob();
-  const ext = blob.type.split('/')[1] ?? 'mp4';
-  const filename = `${Date.now()}-${nombre.replace(/\s+/g, '-').toLowerCase()}.${ext}`;
-
-  const uploadRes = await fetch(`${STORAGE}/object/productos/${filename}`, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'Content-Type': blob.type },
-    body: blob,
-  });
-
-  if (!uploadRes.ok) {
-    const err = await uploadRes.json();
-    throw new Error(`Error subiendo video: ${err.message ?? uploadRes.status}`);
-  }
-
-  return `${STORAGE}/object/public/productos/${filename}`;
-}
-
 type ViewTab = 'articulos' | 'stock' | 'movimientos' | 'alertas';
 
 interface Product {
@@ -122,46 +98,16 @@ export function ERPInventarioView({ onNavigate }: Props) {
         (data.images ?? []).map(img => subirImagen(img.url, data.name))
       );
 
-      // Subir videos a Storage y obtener URLs permanentes
-      const videosSubidos = await Promise.all(
-        (data.videos ?? []).map(vid => subirVideo(vid.url, data.name))
-      );
-
       const body = {
-        nombre: data.name || null,
+        nombre: data.name,
         descripcion: data.description || null,
-        descripcion_corta: data.description ? data.description.substring(0, 200) : null,
-        presentacion: null, // Campo no disponible en ProductFormData
-        envase: null, // Campo no disponible en ProductFormData
-        sku: data.sku || null,
-        codigo_barras: data.barcode || null,
-        marca: data.brand || null,
-        proveedor: data.supplier || null,
-        precio_1: parseFloat(data.price) || 0,
-        costo: parseFloat(data.cost) || null,
-        impuesto: parseFloat(data.taxRate) || null,
-        peso: parseFloat(data.weight) || null,
-        alto: parseFloat(data.dimH) || null,
-        ancho: parseFloat(data.dimW) || null,
-        largo: parseFloat(data.dimL) || null,
-        fecha_envasado: null, // Campo no disponible en ProductFormData
-        nro_lote: null, // Campo no disponible en ProductFormData
-        fecha_vencimiento: null, // Campo no disponible en ProductFormData
-        departamento: data.category || null,
-        categoria: data.category || null, // Mismo que departamento
-        subcategoria: null, // Campo no disponible en ProductFormData
-        atributos: Object.keys(data.mlAttributes || {}).length > 0 ? data.mlAttributes : null,
+        precio: parseFloat(data.price) || 0,
+        precio_original: data.discount ? parseFloat(data.price) : null,
+        departamento_nombre: data.category || null,
         imagen_principal: imagenesSubidas[0] ?? null,
-        imagenes: imagenesSubidas.length > 0 ? imagenesSubidas : null,
-        videos: videosSubidos.length > 0 ? videosSubidos : null,
-        numero_serie: data.serialNumber || null,
-        garantia: data.warranty || null,
-        observaciones: null, // Campo no disponible en ProductFormData
-        seo_titulo: data.seoTitle || null,
-        seo_descripcion: data.seoDesc || null,
+        imagenes: imagenesSubidas,
         estado: 'activo',
-        tienda_id: null, // Campo no disponible en ProductFormData
-        vendedor_id: null, // Campo no disponible en ProductFormData
+        badge: data.tags?.[0] ?? null,
       };
 
       if (selectedProduct?.id) {
