@@ -21,14 +21,50 @@ categorias.get("/", async (c) => {
   try {
     const supabase = getSupabase();
     const { departamento_id, activo } = c.req.query();
+    
+    // Intentar primero con la relación embebida
     let query = supabase
       .from("categorias")
       .select("*, subcategorias(*)")
       .order("orden", { ascending: true });
     if (departamento_id) query = query.eq("departamento_id", departamento_id);
     if (activo !== undefined) query = query.eq("activo", activo === "true");
-    const { data, error } = await query;
-    if (error) throw error;
+    
+    let { data, error } = await query;
+    
+    // Si falla por relación no encontrada, hacer consultas separadas
+    if (error && error.message?.includes("relationship")) {
+      console.log("Relación no encontrada, usando consultas separadas");
+      query = supabase
+        .from("categorias")
+        .select("*")
+        .order("orden", { ascending: true });
+      if (departamento_id) query = query.eq("departamento_id", departamento_id);
+      if (activo !== undefined) query = query.eq("activo", activo === "true");
+      
+      const result = await query;
+      if (result.error) throw result.error;
+      
+      // Obtener subcategorias por separado
+      if (result.data && result.data.length > 0) {
+        const categoriaIds = result.data.map((c: any) => c.id);
+        const { data: subcategoriasData } = await supabase
+          .from("subcategorias")
+          .select("*")
+          .in("categoria_id", categoriaIds);
+        
+        // Combinar los datos
+        data = result.data.map((cat: any) => ({
+          ...cat,
+          subcategorias: subcategoriasData?.filter((sub: any) => sub.categoria_id === cat.id) || []
+        }));
+      } else {
+        data = result.data;
+      }
+    } else if (error) {
+      throw error;
+    }
+    
     return c.json({ data });
   } catch (error) {
     console.log("Error listando categorías:", JSON.stringify(error));
@@ -40,13 +76,41 @@ categorias.get("/", async (c) => {
 categorias.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    const categoriaId = c.req.param("id");
+    
+    // Intentar primero con la relación embebida
+    let { data, error } = await supabase
       .from("categorias")
       .select("*, subcategorias(*)")
-      .eq("id", c.req.param("id"))
+      .eq("id", categoriaId)
       .single();
 
-    if (error) throw error;
+    // Si falla por relación no encontrada, hacer consultas separadas
+    if (error && error.message?.includes("relationship")) {
+      console.log("Relación no encontrada, usando consultas separadas");
+      const result = await supabase
+        .from("categorias")
+        .select("*")
+        .eq("id", categoriaId)
+        .single();
+      
+      if (result.error) throw result.error;
+      if (!result.data) return c.json({ error: "Categoría no encontrada" }, 404);
+      
+      // Obtener subcategorias por separado
+      const { data: subcategoriasData } = await supabase
+        .from("subcategorias")
+        .select("*")
+        .eq("categoria_id", categoriaId);
+      
+      data = {
+        ...result.data,
+        subcategorias: subcategoriasData || []
+      };
+    } else if (error) {
+      throw error;
+    }
+    
     if (!data) return c.json({ error: "Categoría no encontrada" }, 404);
     return c.json({ data });
   } catch (error) {
@@ -68,9 +132,21 @@ categorias.post("/", async (c) => {
       return c.json({ error: "departamento_id es requerido" }, 400);
     }
 
+    // Preparar el objeto de inserción, excluyendo campos que no existen si es necesario
+    const insertData: any = {
+      nombre: body.nombre,
+      departamento_id: body.departamento_id,
+      activo: body.activo ?? true,
+    };
+    
+    // Agregar campos opcionales solo si existen en el body
+    if (body.icono !== undefined) insertData.icono = body.icono;
+    if (body.color !== undefined) insertData.color = body.color;
+    if (body.orden !== undefined) insertData.orden = body.orden;
+
     const { data, error } = await supabase
       .from("categorias")
-      .insert({ ...body, activo: body.activo ?? true })
+      .insert(insertData)
       .select()
       .single();
 

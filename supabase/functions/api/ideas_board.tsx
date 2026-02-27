@@ -1,6 +1,5 @@
 /**
  * Ideas Board — Canvases de ideas y módulos
- * ═══════════════════════════════════════════
  * KV keys:
  *   ideas-board:canvases-index   → CanvasMeta[]
  *   ideas-board:canvas-{id}      → CanvasData (nodes + edges)
@@ -19,9 +18,9 @@ const getSupabase = () =>
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-/* ══════════════════════════════════════════════
+/* =============================================
    CANVASES
-══════════════════════════════════════════════ */
+============================================= */
 
 /** GET /canvases → lista todos los canvases */
 ideasBoard.get("/canvases", async (c) => {
@@ -118,9 +117,9 @@ ideasBoard.delete("/canvases/:id", async (c) => {
   }
 });
 
-/* ══════════════════════════════════════════════
+/* =============================================
    IDEAS
-══════════════════════════════════════════════ */
+============================================= */
 
 /** GET /ideas → lista ideas (opcional ?area=xxx) */
 ideasBoard.get("/ideas", async (c) => {
@@ -206,9 +205,9 @@ ideasBoard.put("/ideas/:id", async (c) => {
   }
 });
 
-/* ══════════════════════════════════════════════
+/* =============================================
    PROMOCIÓN A ROADMAP (alias)
-══════════════════════════════════════════════ */
+============================================= */
 
 /** POST /promote-to-roadmap → alias para promover idea al roadmap */
 ideasBoard.post("/promote-to-roadmap", async (c) => {

@@ -7,18 +7,10 @@
  */
 
 import { Hono } from "npm:hono";
-import { cors } from "npm:hono/cors";
 import { createClient } from "npm:@supabase/supabase-js";
 import * as kv from "./kv_store.tsx";
 
 const roadmap = new Hono();
-
-roadmap.use('/*', cors({
-  origin: ['https://app.oddy.com.uy', 'https://web.oddy.com.uy'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'apikey', 'x-client-info'],
-  maxAge: 86400,
-}));
 
 const BUCKET = "module-files";
 
@@ -66,6 +58,7 @@ roadmap.get("/modules", async (c) => {
       execOrder: row.exec_order,
       estimatedHours: row.estimated_hours,
       notas: row.notas,
+      // Campos de auditoría (no se envían al frontend por defecto, pero están disponibles)
       tiene_view: row.tiene_view,
       tiene_backend: row.tiene_backend,
       endpoint_ok: row.endpoint_ok,
@@ -90,6 +83,7 @@ roadmap.post("/modules-bulk", async (c) => {
 
     const supabase = getSupabase();
     
+    // Para cada módulo: upsert y registrar historial si cambió el status
     let updated = 0;
     for (const mod of modules) {
       const { data: existing } = await supabase
@@ -121,6 +115,7 @@ roadmap.post("/modules-bulk", async (c) => {
         continue;
       }
       
+      // Registrar en historial si cambió el status
       if (statusAnterior && statusAnterior !== statusNuevo) {
         await supabase.from("roadmap_historial").insert({
           module_id: mod.id,
@@ -149,6 +144,7 @@ roadmap.post("/modules/:moduleId", async (c) => {
 
     const supabase = getSupabase();
     
+    // Obtener status anterior
     const { data: existing } = await supabase
       .from("roadmap_modules")
       .select("status")
@@ -173,8 +169,11 @@ roadmap.post("/modules/:moduleId", async (c) => {
       .from("roadmap_modules")
       .upsert(row, { onConflict: "id" });
     
-    if (upsertErr) throw upsertErr;
+    if (upsertErr) {
+      throw upsertErr;
+    }
     
+    // Registrar en historial si cambió el status
     if (statusAnterior && statusAnterior !== statusNuevo) {
       await supabase.from("roadmap_historial").insert({
         module_id: moduleId,
@@ -193,18 +192,18 @@ roadmap.post("/modules/:moduleId", async (c) => {
   }
 });
 
-/** DELETE /modules/reset — limpia todos los estados guardados */
+/** DELETE /modules/reset — limpia todos los estados guardados (fuerza resync desde manifest) */
 roadmap.delete("/modules/reset", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
       .from("roadmap_modules")
       .delete()
-      .neq("id", "");
+      .neq("id", ""); // Delete all
     
     if (error) throw error;
     
-    console.log("[roadmap] DELETE /modules/reset — SQL borrado");
+    console.log("[roadmap] DELETE /modules/reset — SQL borrado, próximo load recomputa desde manifest");
     return c.json({ ok: true, message: "Estado del roadmap reseteado. El próximo load aplicará el manifest." });
   } catch (err) {
     console.log(`[roadmap] DELETE /modules/reset error: ${err}`);
@@ -246,7 +245,7 @@ roadmap.post("/files/upload", async (c) => {
     const formData = await c.req.formData();
     const file     = formData.get("file")     as File   | null;
     const moduleId = formData.get("moduleId") as string | null;
-    const fileType = formData.get("fileType") as string | null;
+    const fileType = formData.get("fileType") as string | null; // definicion | variables | otros
 
     if (!file || !moduleId || !fileType) {
       return c.json({ error: "Faltan campos requeridos: file, moduleId, fileType" }, 400);
@@ -481,7 +480,7 @@ roadmap.get("/historial", async (c) => {
 /** POST /audit — ejecuta auditoría de un módulo */
 roadmap.post("/audit", async (c) => {
   try {
-    const { moduleId, endpointUrl, tableName, tiene_view, tiene_backend } = await c.req.json();
+    const { moduleId, endpointUrl, tableName } = await c.req.json();
     
     if (!moduleId) {
       return c.json({ error: "moduleId es requerido" }, 400);
@@ -489,17 +488,14 @@ roadmap.post("/audit", async (c) => {
     
     const supabase = getSupabase();
     
-    // tiene_view y tiene_backend vienen del frontend (BUILT_MODULE_IDS, SUPABASE_MODULE_IDS)
-    const tieneView = tiene_view ?? false;
-    const tieneBackend = tiene_backend ?? false;
+    // 1. tiene_view y tiene_backend se actualizan desde el frontend
+    //    (el frontend sabe qué archivos existen via BUILT_MODULE_IDS)
     
+    // 2. endpoint_ok: hacer fetch real al endpoint
     let endpointOk = false;
     if (endpointUrl) {
       try {
-        const fullUrl = endpointUrl.startsWith('http') 
-          ? endpointUrl 
-          : `https://${Deno.env.get("SUPABASE_URL")?.replace('https://', '')}${endpointUrl}`;
-        const response = await fetch(fullUrl, {
+        const response = await fetch(endpointUrl, {
           method: "GET",
           headers: { "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}` },
           signal: AbortSignal.timeout(5000),
@@ -510,6 +506,7 @@ roadmap.post("/audit", async (c) => {
       }
     }
     
+    // 3. tiene_datos: consultar la tabla en Supabase
     let tieneDatos = false;
     if (tableName) {
       try {
@@ -522,6 +519,7 @@ roadmap.post("/audit", async (c) => {
       }
     }
     
+    // Actualizar en roadmap_modules
     const { data: existing } = await supabase
       .from("roadmap_modules")
       .select("status, tiene_view, tiene_backend, endpoint_ok, tiene_datos")
@@ -533,8 +531,6 @@ roadmap.post("/audit", async (c) => {
     const { error: updateErr } = await supabase
       .from("roadmap_modules")
       .update({
-        tiene_view: tieneView,
-        tiene_backend: tieneBackend,
         endpoint_ok: endpointOk,
         tiene_datos: tieneDatos,
         auditado_at: new Date().toISOString(),
@@ -543,7 +539,11 @@ roadmap.post("/audit", async (c) => {
     
     if (updateErr) throw updateErr;
     
-    // Calcular status automático según auditoría
+    // Determinar status automático según auditoría
+    // (tiene_view y tiene_backend vienen del frontend, no se actualizan aquí)
+    const tieneView = existing?.tiene_view ?? false;
+    const tieneBackend = existing?.tiene_backend ?? false;
+    
     let statusNuevo = statusAnterior;
     if (tieneView && tieneBackend && endpointOk && tieneDatos) {
       statusNuevo = "completed";
@@ -554,9 +554,9 @@ roadmap.post("/audit", async (c) => {
     } else if (tieneView) {
       statusNuevo = "progress-50";
     }
-    // Si no tiene view, mantener status manual (no forzar a not-started)
+    // Si ninguno, mantiene status manual
     
-    if (statusNuevo !== statusAnterior && statusAnterior) {
+    if (statusNuevo !== statusAnterior) {
       await supabase.from("roadmap_modules").update({ status: statusNuevo }).eq("id", moduleId);
       await supabase.from("roadmap_historial").insert({
         module_id: moduleId,
@@ -584,7 +584,7 @@ roadmap.post("/audit", async (c) => {
 /** POST /audit/all — ejecuta auditoría de todos los módulos */
 roadmap.post("/audit/all", async (c) => {
   try {
-    const { modules } = await c.req.json();
+    const { modules } = await c.req.json(); // Array de { moduleId, endpointUrl?, tableName? }
     
     if (!Array.isArray(modules)) {
       return c.json({ error: "modules must be an array" }, 400);
@@ -688,6 +688,7 @@ roadmap.put("/ideas-promovidas/:id", async (c) => {
     
     if (error) throw error;
     
+    // Si se convirtió a módulo, crear entrada en roadmap_modules
     if (estado === "convertida" && module_id) {
       await supabase.from("roadmap_modules").upsert({
         id: module_id,
@@ -713,3 +714,5 @@ roadmap.put("/ideas-promovidas/:id", async (c) => {
 });
 
 export { roadmap };
+
+
