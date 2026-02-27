@@ -10,7 +10,14 @@ import { createClient } from "npm:@supabase/supabase-js";
 const envios = new Hono();
 
 envios.use('/*', cors({
-  origin: ['https://app.oddy.com.uy', 'https://web.oddy.com.uy'],
+  origin: [
+    'https://app.oddy.com.uy', 
+    'https://web.oddy.com.uy',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+  ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'apikey', 'x-client-info'],
   maxAge: 86400,

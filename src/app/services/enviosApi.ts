@@ -95,15 +95,29 @@ export interface EnvioInput {
 
 async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
   try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    const json = await res.json();
+    const url = `${BASE}${path}`;
+    console.log(`[enviosApi] GET ${url}`);
+    const res = await fetch(url, { headers: HEADERS });
+    
+    // Si la respuesta no es JSON (ej: 404, 500 sin JSON)
+    let json: any;
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      json = await res.json();
+    } else {
+      const text = await res.text();
+      console.error(`[enviosApi] Respuesta no JSON: ${res.status} ${text}`);
+      return { ok: false, error: `Error ${res.status}: ${text || 'Respuesta inválida'}` };
+    }
+    
     if (!res.ok) {
-      return { ok: false, error: json.error || 'Error en la petición' };
+      console.error(`[enviosApi] Error ${res.status}:`, json);
+      return { ok: false, error: json.error || `Error ${res.status}: ${JSON.stringify(json)}` };
     }
     return { ok: true, data: json };
   } catch (err) {
-    console.error(`Envios API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
+    console.error(`[enviosApi] Error en GET ${path}:`, err);
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 
@@ -159,7 +173,11 @@ export async function getEnvios(filters?: {
   
   const query = params.toString() ? `?${params.toString()}` : '';
   const res = await apiGet<{ envios: Envio[]; eventos: EventoTracking[]; count: number }>(query);
-  if (!res.ok || !res.data) return { envios: [], eventos: [] };
+  if (!res.ok) {
+    console.error('[enviosApi] Error en getEnvios:', res.error);
+    throw new Error(res.error || 'Error cargando envíos');
+  }
+  if (!res.data) return { envios: [], eventos: [] };
   return { envios: res.data.envios || [], eventos: res.data.eventos || [] };
 }
 

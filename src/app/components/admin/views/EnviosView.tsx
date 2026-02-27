@@ -217,7 +217,10 @@ export function EnviosView({ onNavigate }: Props) {
       });
     } catch (err) {
       console.error('[EnviosView] Error cargando envíos:', err);
-      toast.error('Error al cargar envíos');
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al cargar envíos: ${errorMsg}`);
+      // Mostrar envíos vacíos en caso de error
+      setPedidos([]);
     } finally {
       setLoading(false);
     }
