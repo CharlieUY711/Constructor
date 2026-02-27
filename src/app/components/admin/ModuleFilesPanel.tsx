@@ -1,6 +1,6 @@
-/**
- * ModuleFilesPanel — Panel de archivos adjuntos por módulo
- * 3 tipos: Definición · Variables · Otros
+﻿/**
+ * ModuleFilesPanel â€” Panel de archivos adjuntos por mÃ³dulo
+ * 3 tipos: DefiniciÃ³n Â· Variables Â· Otros
  */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -9,9 +9,9 @@ import {
   CheckCircle2, AlertCircle, X, FilePlus,
 } from "lucide-react";
 import { toast } from "sonner";
-import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { projectId, publicAnonKey } from "../../../../utils/supabase/info";
 
-/* ── tipos ──────────────────────────────────────────── */
+/* â”€â”€ tipos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 type FileType = "definicion" | "variables" | "otros";
 
 interface ModuleFile {
@@ -30,15 +30,15 @@ interface Props {
   moduleName: string;
 }
 
-/* ── config de pestañas ─────────────────────────────── */
+/* â”€â”€ config de pestaÃ±as â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const TABS: { id: FileType; label: string; icon: React.ElementType; color: string; bg: string; desc: string }[] = [
   {
     id:    "definicion",
-    label: "Definición",
+    label: "DefiniciÃ³n",
     icon:  FileText,
     color: "#2563EB",
     bg:    "#EFF6FF",
-    desc:  "Documento de especificación funcional, wireframes, requerimientos",
+    desc:  "Documento de especificaciÃ³n funcional, wireframes, requerimientos",
   },
   {
     id:    "variables",
@@ -46,7 +46,7 @@ const TABS: { id: FileType; label: string; icon: React.ElementType; color: strin
     icon:  Settings2,
     color: "#7C3AED",
     bg:    "#F5F3FF",
-    desc:  "Variables de entorno, configuración, constantes y parámetros",
+    desc:  "Variables de entorno, configuraciÃ³n, constantes y parÃ¡metros",
   },
   {
     id:    "otros",
@@ -72,7 +72,7 @@ function fmtDate(iso: string): string {
   } catch { return iso; }
 }
 
-/* ── componente principal ───────────────────────────── */
+/* â”€â”€ componente principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
   const [activeTab, setActiveTab]   = useState<FileType>("definicion");
   const [files, setFiles]           = useState<ModuleFile[]>([]);
@@ -83,10 +83,10 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const API = projectId
-    ? `https://${projectId}.supabase.co/functions/v1/make-server-75638143`
+    ? `https://${projectId}.supabase.co/functions/v1/api`
     : null;
 
-  /* ── cargar archivos ─────────────────────────────── */
+  /* â”€â”€ cargar archivos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const loadFiles = useCallback(async () => {
     if (!API) { setLoading(false); return; }
     try {
@@ -107,7 +107,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
 
   useEffect(() => { loadFiles(); }, [loadFiles]);
 
-  /* ── subir archivo ───────────────────────────────── */
+  /* â”€â”€ subir archivo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const uploadFile = async (file: File) => {
     if (!API) { toast.error("Servidor no disponible"); return; }
     if (file.size > 20 * 1024 * 1024) {
@@ -127,7 +127,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
         body:    fd,
       });
       if (!res.ok) throw new Error(await res.text());
-      toast.success(`✅ "${file.name}" subido correctamente`);
+      toast.success(`âœ… "${file.name}" subido correctamente`);
       await loadFiles();
     } catch (err) {
       console.error("[ModuleFilesPanel] uploadFile:", err);
@@ -137,7 +137,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
     }
   };
 
-  /* ── eliminar archivo ────────────────────────────── */
+  /* â”€â”€ eliminar archivo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const deleteFile = async (fileId: string, fileName: string) => {
     if (!API) return;
     setDeleting(fileId);
@@ -157,7 +157,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
     }
   };
 
-  /* ── drag & drop ─────────────────────────────────── */
+  /* â”€â”€ drag & drop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
@@ -165,7 +165,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
     if (dropped) uploadFile(dropped);
   };
 
-  /* ── archivos del tab activo ─────────────────────── */
+  /* â”€â”€ archivos del tab activo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   const tabFiles    = files.filter(f => f.type === activeTab);
   const activeCfg   = TABS.find(t => t.id === activeTab)!;
   const TabIcon     = activeCfg.icon;
@@ -175,14 +175,14 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
       style={{
         borderTop: "1px dashed #E5E7EB",
         backgroundColor: "#FAFAFA",
-        padding: "16px 20px 16px 64px", // indent para alinear con el contenido del módulo
+        padding: "16px 20px 16px 64px", // indent para alinear con el contenido del mÃ³dulo
       }}
     >
-      {/* ── Header del panel ── */}
+      {/* â”€â”€ Header del panel â”€â”€ */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
         <FilePlus size={14} color="#6B7280" />
         <span style={{ fontSize: "12px", fontWeight: 700, color: "#374151" }}>
-          Archivos adjuntos — {moduleName}
+          Archivos adjuntos â€” {moduleName}
         </span>
         {files.length > 0 && (
           <span style={{
@@ -196,7 +196,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
         )}
       </div>
 
-      {/* ── Tabs ── */}
+      {/* â”€â”€ Tabs â”€â”€ */}
       <div style={{ display: "flex", gap: "0", marginBottom: "14px", borderBottom: "1px solid #E5E7EB" }}>
         {TABS.map(tab => {
           const cnt    = files.filter(f => f.type === tab.id).length;
@@ -240,7 +240,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
         })}
       </div>
 
-      {/* ── Contenido del tab ── */}
+      {/* â”€â”€ Contenido del tab â”€â”€ */}
       <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
 
         {/* Zona de upload */}
@@ -285,7 +285,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
             {activeCfg.desc}
           </p>
           <p style={{ margin: "8px 0 0", fontSize: "10px", color: "#D1D5DB" }}>
-            Máx. 20 MB
+            MÃ¡x. 20 MB
           </p>
         </div>
 
@@ -306,7 +306,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
             }}>
               <TabIcon size={22} color="#D1D5DB" style={{ margin: "0 auto 8px", display: "block" }} />
               <p style={{ margin: 0, fontSize: "12px", color: "#9CA3AF" }}>
-                Sin archivos de <strong>{activeCfg.label}</strong> todavía
+                Sin archivos de <strong>{activeCfg.label}</strong> todavÃ­a
               </p>
             </div>
           ) : (
@@ -343,7 +343,7 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
                       {file.name}
                     </p>
                     <p style={{ margin: "2px 0 0", fontSize: "10px", color: "#9CA3AF" }}>
-                      {fmtSize(file.size)} · {fmtDate(file.uploadedAt)}
+                      {fmtSize(file.size)} Â· {fmtDate(file.uploadedAt)}
                     </p>
                   </div>
 
