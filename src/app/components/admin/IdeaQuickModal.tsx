@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Lightbulb, ExternalLink, Link2, Check } from 'lucide-react';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 
-const API = `https://${projectId}.supabase.co/functions/v1/make-server-75638143/ideas`;
+const API = `https://${projectId}.supabase.co/functions/v1/api/ideas`;
 const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE = '#FF6835';
 
@@ -382,3 +382,4 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
     </div>
   );
 }
+

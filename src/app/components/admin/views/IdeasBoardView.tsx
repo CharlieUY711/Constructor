@@ -39,7 +39,7 @@ import type { MainSection } from '../../../AdminDashboard';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { OrangeHeader } from '../OrangeHeader';
 
-const API = `https://${projectId}.supabase.co/functions/v1/make-server-75638143/ideas`;
+const API = `https://${projectId}.supabase.co/functions/v1/api/ideas`;
 const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 
 const ORANGE = '#FF6835';

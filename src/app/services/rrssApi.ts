@@ -4,7 +4,7 @@
    ===================================================== */
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-75638143/rrss`;
+const BASE = `https://${projectId}.supabase.co/functions/v1/api/rrss`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,
@@ -130,3 +130,4 @@ export async function verifyCreds(platform: Platform): Promise<{ ok: boolean; da
   const res = await apiPost<VerifyResult>(`/verify/${platform}`);
   return { ok: res.ok, data: res.data, error: res.error };
 }
+

@@ -411,7 +411,7 @@ Authorization: Bearer {access_token}
 
 ### Carga Masiva
 \`\`\`
-POST /make-server-75638143/carga-masiva/upload
+POST /api/carga-masiva/upload
 Content-Type: multipart/form-data
 
 Body: { file: File, tipo: 'productos' | 'clientes' | 'precios' }
@@ -420,17 +420,17 @@ Response: { jobId, total, procesados, errores }
 
 ### KV Store (interno)
 \`\`\`
-GET    /make-server-75638143/kv/{key}
-POST   /make-server-75638143/kv/{key}
-DELETE /make-server-75638143/kv/{key}
+GET    /api/kv/{key}
+POST   /api/kv/{key}
+DELETE /api/kv/{key}
 \`\`\`
 
 ### Auth
 \`\`\`
-POST /make-server-75638143/signup
+POST /api/signup
 Body: { email, password, name, role }
 
-POST /make-server-75638143/auth/verify
+POST /api/auth/verify
 Headers: { Authorization: Bearer token }
 \`\`\`
 
@@ -475,7 +475,7 @@ Charlie usa Supabase Auth con JWT para la autenticación de usuarios.
 ### Flujo de registro
 \`\`\`typescript
 // Llamar al endpoint del servidor (usa service role key)
-POST /make-server-75638143/signup
+POST /api/signup
 {
   email: "user@example.com",
   password: "secure-password",
@@ -948,3 +948,4 @@ export function DocumentacionView({ onNavigate: _ }: Props) {
     </div>
   );
 }
+

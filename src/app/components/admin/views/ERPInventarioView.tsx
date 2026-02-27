@@ -1,48 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { Plus, Search, Edit2, Trash2, AlertTriangle, Package, TrendingDown, BarChart2, Upload, Download } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, AlertTriangle, Package, TrendingDown, BarChart2, Upload, Download, RefreshCw } from 'lucide-react';
 import { ProductModal } from '../ProductModal';
 import type { ProductFormData } from '../ProductModal';
+import { projectId, publicAnonKey } from '../../../../../utils/supabase/info';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
 const ORANGE = '#FF6835';
+const BASE = `https://${projectId}.supabase.co/functions/v1/api`;
+const STORAGE = `https://${projectId}.supabase.co/storage/v1`;
+const HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}` };
+
+// Sube una imagen a Supabase Storage y devuelve la URL pública permanente
+async function subirImagen(blobUrl: string, nombre: string): Promise<string> {
+  // Si ya es una URL permanente (no blob), la devolvemos tal cual
+  if (!blobUrl.startsWith('blob:')) return blobUrl;
+
+  const res = await fetch(blobUrl);
+  const blob = await res.blob();
+  const ext = blob.type.split('/')[1] ?? 'jpg';
+  const filename = `${Date.now()}-${nombre.replace(/\s+/g, '-').toLowerCase()}.${ext}`;
+
+  const uploadRes = await fetch(`${STORAGE}/object/productos/${filename}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'Content-Type': blob.type },
+    body: blob,
+  });
+
+  if (!uploadRes.ok) {
+    const err = await uploadRes.json();
+    throw new Error(`Error subiendo imagen: ${err.message ?? uploadRes.status}`);
+  }
+
+  return `${STORAGE}/object/public/productos/${filename}`;
+}
+
+// Sube un video a Supabase Storage y devuelve la URL pública permanente
+async function subirVideo(blobUrl: string, nombre: string): Promise<string> {
+  // Si ya es una URL permanente (no blob), la devolvemos tal cual
+  if (!blobUrl.startsWith('blob:')) return blobUrl;
+
+  const res = await fetch(blobUrl);
+  const blob = await res.blob();
+  const ext = blob.type.split('/')[1] ?? 'mp4';
+  const filename = `${Date.now()}-${nombre.replace(/\s+/g, '-').toLowerCase()}.${ext}`;
+
+  const uploadRes = await fetch(`${STORAGE}/object/productos/${filename}`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'Content-Type': blob.type },
+    body: blob,
+  });
+
+  if (!uploadRes.ok) {
+    const err = await uploadRes.json();
+    throw new Error(`Error subiendo video: ${err.message ?? uploadRes.status}`);
+  }
+
+  return `${STORAGE}/object/public/productos/${filename}`;
+}
 
 type ViewTab = 'articulos' | 'stock' | 'movimientos' | 'alertas';
 
 interface Product {
   id: string;
-  sku: string;
-  name: string;
-  category: string;
-  price: number;
-  cost: number;
-  stock: number;
-  minStock: number;
-  unit: string;
-  barcode?: string;
-  status: 'active' | 'inactive';
+  nombre: string;
+  descripcion?: string;
+  precio: number;
+  precio_original?: number;
+  departamento_id?: string;
+  departamento_nombre?: string;
+  imagen_principal?: string;
+  imagenes?: string[];
+  vendedor_id?: string;
+  estado: string;
+  badge?: string;
+  created_at?: string;
 }
-
-const PRODUCTS: Product[] = [
-  { id: '1', sku: 'ELE-001', name: 'iPhone 14 128GB Midnight',   category: 'Tecnología',    price: 899.99, cost: 650.00, stock: 12,  minStock: 5,  unit: 'unidad', barcode: '7501234567890', status: 'active' },
-  { id: '2', sku: 'ELE-002', name: 'AirPods Pro 2da Gen',        category: 'Tecnología',    price: 249.99, cost: 180.00, stock: 8,   minStock: 3,  unit: 'unidad', barcode: '7501234567891', status: 'active' },
-  { id: '3', sku: 'MOD-001', name: 'Campera Patagonia Fleece M', category: 'Moda',          price: 189.00, cost: 90.00,  stock: 3,   minStock: 5,  unit: 'unidad', status: 'active' },
-  { id: '4', sku: 'HOG-001', name: 'Silla Ergonómica Mesh',      category: 'Hogar',         price: 349.00, cost: 200.00, stock: 6,   minStock: 2,  unit: 'unidad', status: 'active' },
-  { id: '5', sku: 'ALI-001', name: 'Café Molido 500g',           category: 'Alimentos',     price: 8.50,   cost: 4.20,   stock: 48,  minStock: 20, unit: 'kg',     barcode: '7501234567892', status: 'active' },
-  { id: '6', sku: 'DEP-001', name: 'Pelota de Fútbol Nike',      category: 'Deportes',      price: 45.00,  cost: 22.00,  stock: 0,   minStock: 5,  unit: 'unidad', status: 'active' },
-  { id: '7', sku: 'ELE-003', name: 'Cargador USB-C 65W',         category: 'Tecnología',    price: 35.00,  cost: 15.00,  stock: 24,  minStock: 10, unit: 'unidad', barcode: '7501234567893', status: 'active' },
-  { id: '8', sku: 'HOG-002', name: 'Juego de Sábanas 2 Plazas',  category: 'Hogar',         price: 55.00,  cost: 28.00,  stock: 15,  minStock: 5,  unit: 'juego',  status: 'active' },
-];
-
-const MOVEMENTS = [
-  { id: '1', date: '2026-02-19', product: 'iPhone 14 128GB Midnight', type: 'entrada', qty: 5,  note: 'Compra #OC-2024-45', user: 'Carlos V.' },
-  { id: '2', date: '2026-02-18', product: 'AirPods Pro 2da Gen',      type: 'salida',  qty: 2,  note: 'Venta #V-1290',       user: 'Sistema' },
-  { id: '3', date: '2026-02-17', product: 'Café Molido 500g',         type: 'entrada', qty: 100, note: 'Compra #OC-2024-44', user: 'María G.' },
-  { id: '4', date: '2026-02-16', product: 'Pelota de Fútbol Nike',    type: 'salida',  qty: 3,  note: 'Venta #V-1288',       user: 'Sistema' },
-  { id: '5', date: '2026-02-15', product: 'Campera Patagonia',        type: 'ajuste',  qty: -2, note: 'Merma física',        user: 'Carlos V.' },
-];
 
 export function ERPInventarioView({ onNavigate }: Props) {
   const [tab, setTab] = useState<ViewTab>('articulos');
@@ -50,50 +85,180 @@ export function ERPInventarioView({ onNavigate }: Props) {
   const [catFilter, setCatFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const categories = ['all', ...Array.from(new Set(PRODUCTS.map(p => p.category)))];
-  const lowStock = PRODUCTS.filter(p => p.stock <= p.minStock);
-  const outOfStock = PRODUCTS.filter(p => p.stock === 0);
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${BASE}/productos/market`, { headers: HEADERS });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setProducts(json.data ?? []);
+    } catch (e: any) {
+      setError(e.message ?? 'Error al cargar productos');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const filtered = PRODUCTS.filter(p => {
-    if (catFilter !== 'all' && p.category !== catFilter) return false;
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.sku.toLowerCase().includes(search.toLowerCase())) return false;
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const showSuccess = (msg: string) => {
+    setSuccessMsg(msg);
+    setTimeout(() => setSuccessMsg(null), 3000);
+  };
+
+  const handleSave = async (data: ProductFormData) => {
+    setSaving(true);
+    setError(null);
+    try {
+      // Subir imágenes a Storage y obtener URLs permanentes
+      const imagenesSubidas = await Promise.all(
+        (data.images ?? []).map(img => subirImagen(img.url, data.name))
+      );
+
+      // Subir videos a Storage y obtener URLs permanentes
+      const videosSubidos = await Promise.all(
+        (data.videos ?? []).map(vid => subirVideo(vid.url, data.name))
+      );
+
+      const body = {
+        nombre: data.name || null,
+        descripcion: data.description || null,
+        descripcion_corta: data.description ? data.description.substring(0, 200) : null,
+        presentacion: null, // Campo no disponible en ProductFormData
+        envase: null, // Campo no disponible en ProductFormData
+        sku: data.sku || null,
+        codigo_barras: data.barcode || null,
+        marca: data.brand || null,
+        proveedor: data.supplier || null,
+        precio_1: parseFloat(data.price) || 0,
+        costo: parseFloat(data.cost) || null,
+        impuesto: parseFloat(data.taxRate) || null,
+        peso: parseFloat(data.weight) || null,
+        alto: parseFloat(data.dimH) || null,
+        ancho: parseFloat(data.dimW) || null,
+        largo: parseFloat(data.dimL) || null,
+        fecha_envasado: null, // Campo no disponible en ProductFormData
+        nro_lote: null, // Campo no disponible en ProductFormData
+        fecha_vencimiento: null, // Campo no disponible en ProductFormData
+        departamento: data.category || null,
+        categoria: data.category || null, // Mismo que departamento
+        subcategoria: null, // Campo no disponible en ProductFormData
+        atributos: Object.keys(data.mlAttributes || {}).length > 0 ? data.mlAttributes : null,
+        imagen_principal: imagenesSubidas[0] ?? null,
+        imagenes: imagenesSubidas.length > 0 ? imagenesSubidas : null,
+        videos: videosSubidos.length > 0 ? videosSubidos : null,
+        numero_serie: data.serialNumber || null,
+        garantia: data.warranty || null,
+        observaciones: null, // Campo no disponible en ProductFormData
+        seo_titulo: data.seoTitle || null,
+        seo_descripcion: data.seoDesc || null,
+        estado: 'activo',
+        tienda_id: null, // Campo no disponible en ProductFormData
+        vendedor_id: null, // Campo no disponible en ProductFormData
+      };
+
+      if (selectedProduct?.id) {
+        // Editar
+        const res = await fetch(`${BASE}/productos/market/${selectedProduct.id}`, {
+          method: 'PUT',
+          headers: HEADERS,
+          body: JSON.stringify(body),
+        });
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+        showSuccess('Producto actualizado correctamente');
+      } else {
+        // Crear
+        const res = await fetch(`${BASE}/productos/market`, {
+          method: 'POST',
+          headers: HEADERS,
+          body: JSON.stringify(body),
+        });
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+        showSuccess('Producto creado correctamente');
+      }
+
+      setShowModal(false);
+      setSelectedProduct(null);
+      await fetchProducts();
+    } catch (e: any) {
+      setError(e.message ?? 'Error al guardar producto');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string, nombre: string) => {
+    if (!window.confirm(`¿Eliminar "${nombre}"?`)) return;
+    try {
+      const res = await fetch(`${BASE}/productos/market/${id}`, { method: 'DELETE', headers: HEADERS });
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      showSuccess('Producto eliminado');
+      await fetchProducts();
+    } catch (e: any) {
+      setError(e.message ?? 'Error al eliminar');
+    }
+  };
+
+  const categories = ['all', ...Array.from(new Set(products.map(p => p.departamento_nombre).filter(Boolean)))];
+
+  const filtered = products.filter(p => {
+    if (catFilter !== 'all' && p.departamento_nombre !== catFilter) return false;
+    if (search && !p.nombre.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const totalValue = PRODUCTS.reduce((s, p) => s + p.stock * p.cost, 0);
-
-  const handleSave = (data: ProductFormData) => {
-    console.log('Guardando artículo:', data);
-    setShowModal(false);
-  };
+  const inactivos = products.filter(p => p.estado !== 'activo');
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <OrangeHeader
         icon={Package}
         title="Catálogo de Artículos"
-        subtitle="Gestión de productos, stock y movimientos — ERP"
+        subtitle="Gestión de productos del marketplace"
         actions={[
           { label: 'Volver', onClick: () => onNavigate('gestion') },
           { label: '+ Nuevo Artículo', primary: true, onClick: () => { setSelectedProduct(null); setShowModal(true); } },
         ]}
       />
 
+      {/* Mensajes */}
+      {error && (
+        <div style={{ backgroundColor: '#FEE2E2', color: '#DC2626', padding: '10px 24px', fontSize: '0.85rem', fontWeight: '600', borderBottom: '1px solid #FECACA' }}>
+          ⚠ {error}
+        </div>
+      )}
+      {successMsg && (
+        <div style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '10px 24px', fontSize: '0.85rem', fontWeight: '600', borderBottom: '1px solid #BBF7D0' }}>
+          ✓ {successMsg}
+        </div>
+      )}
+
       {/* Tabs */}
       <div style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-        <div style={{ display: 'flex', padding: '0 28px' }}>
+        <div style={{ display: 'flex', padding: '0 28px', alignItems: 'center' }}>
           {[
-            { id: 'articulos' as ViewTab,    label: '📦 Artículos' },
-            { id: 'stock' as ViewTab,        label: '📊 Stock' },
-            { id: 'movimientos' as ViewTab,  label: '🔄 Movimientos' },
-            { id: 'alertas' as ViewTab,      label: `⚠️ Alertas (${lowStock.length})` },
+            { id: 'articulos' as ViewTab,   label: '📦 Artículos' },
+            { id: 'alertas' as ViewTab,     label: `⚠️ Inactivos (${inactivos.length})` },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               style={{ padding: '14px 18px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', color: tab === t.id ? ORANGE : '#6B7280', fontWeight: tab === t.id ? '700' : '500', fontSize: '0.875rem', borderBottom: tab === t.id ? `2px solid ${ORANGE}` : '2px solid transparent' }}>
               {t.label}
             </button>
           ))}
+          <div style={{ flex: 1 }} />
+          <button onClick={fetchProducts} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '8px' }} title="Recargar">
+            <RefreshCw size={15} />
+          </button>
         </div>
       </div>
 
@@ -101,12 +266,11 @@ export function ERPInventarioView({ onNavigate }: Props) {
         <div style={{ padding: '24px 28px', maxWidth: '1300px' }}>
 
           {/* KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
             {[
-              { label: 'Total Artículos',    value: PRODUCTS.length.toString(),           Icon: Package,     color: '#111827' },
-              { label: 'Valor en Stock',     value: `$${totalValue.toLocaleString('es', { maximumFractionDigits: 0 })}`, Icon: BarChart2, color: '#16A34A' },
-              { label: 'Bajo Mínimo',        value: lowStock.length.toString(),           Icon: TrendingDown, color: '#D97706' },
-              { label: 'Sin Stock',          value: outOfStock.length.toString(),         Icon: AlertTriangle, color: '#DC2626' },
+              { label: 'Total Artículos', value: products.length.toString(), Icon: Package, color: '#111827' },
+              { label: 'Activos',         value: products.filter(p => p.estado === 'activo').length.toString(), Icon: BarChart2, color: '#16A34A' },
+              { label: 'Inactivos',       value: inactivos.length.toString(), Icon: AlertTriangle, color: '#DC2626' },
             ].map((s, i) => (
               <div key={i} style={{ backgroundColor: '#FFFFFF', border: `1px solid ${s.color}22`, borderRadius: '10px', padding: '16px 20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -121,176 +285,103 @@ export function ERPInventarioView({ onNavigate }: Props) {
           {/* ── ARTÍCULOS ── */}
           {tab === 'articulos' && (
             <>
-              {/* Toolbar */}
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
                 <div style={{ position: 'relative', flex: 1, maxWidth: '300px' }}>
                   <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} size={14} color="#9CA3AF" />
-                  <input type="text" placeholder="Buscar por nombre o SKU..." value={search} onChange={e => setSearch(e.target.value)}
+                  <input type="text" placeholder="Buscar por nombre..." value={search} onChange={e => setSearch(e.target.value)}
                     style={{ width: '100%', padding: '9px 12px 9px 32px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
                 <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
                   style={{ padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.82rem', outline: 'none', backgroundColor: '#FFF' }}>
                   {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'Todas las categorías' : c}</option>)}
                 </select>
-                <div style={{ flex: 1 }} />
-                <button style={{ padding: '9px 14px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF', color: '#374151', fontSize: '0.78rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Upload size={13} /> Importar
-                </button>
-                <button style={{ padding: '9px 14px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF', color: '#374151', fontSize: '0.78rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Download size={13} /> Exportar
-                </button>
               </div>
 
-              <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#F9FAFB' }}>
-                      {['SKU', 'Nombre', 'Categoría', 'Precio', 'Costo', 'Stock', 'Margen', 'Estado', ''].map(h => (
-                        <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '0.72rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((p, i) => {
-                      const margin = ((p.price - p.cost) / p.price * 100).toFixed(0);
-                      const stockOk = p.stock > p.minStock;
-                      const outStock = p.stock === 0;
-                      return (
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '60px', color: '#9CA3AF' }}>
+                  <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite' }} />
+                  <p style={{ marginTop: '12px' }}>Cargando productos...</p>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '60px', textAlign: 'center', color: '#9CA3AF' }}>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>📦</p>
+                  <p style={{ margin: '0 0 16px', fontWeight: '600', color: '#374151' }}>No hay productos todavía</p>
+                  <button onClick={() => { setSelectedProduct(null); setShowModal(true); }}
+                    style={{ padding: '10px 20px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
+                    + Cargar primer producto
+                  </button>
+                </div>
+              ) : (
+                <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#F9FAFB' }}>
+                        {['Imagen', 'Nombre', 'Categoría', 'Precio', 'Estado', ''].map(h => (
+                          <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '0.72rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((p, i) => (
                         <tr key={p.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#FFF' : '#FAFAFA' }}>
-                          <td style={{ padding: '12px 14px', fontFamily: 'monospace', fontSize: '0.78rem', color: '#6B7280' }}>{p.sku}</td>
-                          <td style={{ padding: '12px 14px' }}>
-                            <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{p.name}</span>
-                            {p.barcode && <p style={{ margin: '1px 0 0', fontSize: '0.68rem', color: '#9CA3AF', fontFamily: 'monospace' }}>{p.barcode}</p>}
-                          </td>
-                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>{p.category}</td>
-                          <td style={{ padding: '12px 14px', fontWeight: '700', color: '#111827', fontSize: '0.875rem' }}>${p.price.toFixed(2)}</td>
-                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>${p.cost.toFixed(2)}</td>
-                          <td style={{ padding: '12px 14px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontWeight: '700', color: outStock ? '#DC2626' : (!stockOk ? '#D97706' : '#111827'), fontSize: '0.875rem' }}>
-                                {p.stock}
-                              </span>
-                              <span style={{ fontSize: '0.68rem', color: '#9CA3AF' }}>{p.unit}</span>
-                              {!stockOk && <AlertTriangle size={12} color={outStock ? '#DC2626' : '#D97706'} />}
-                            </div>
-                            <p style={{ margin: '1px 0 0', fontSize: '0.68rem', color: '#9CA3AF' }}>min: {p.minStock}</p>
+                          <td style={{ padding: '10px 14px' }}>
+                            {p.imagen_principal
+                              ? <img src={p.imagen_principal} alt={p.nombre} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: '6px', border: '1px solid #E5E7EB' }} />
+                              : <div style={{ width: 40, height: 40, borderRadius: '6px', backgroundColor: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <Package size={16} color="#D1D5DB" />
+                                </div>
+                            }
                           </td>
                           <td style={{ padding: '12px 14px' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: '700', color: parseInt(margin) > 35 ? '#16A34A' : '#D97706' }}>{margin}%</span>
+                            <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{p.nombre}</span>
+                            {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#9CA3AF', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descripcion}</p>}
                           </td>
+                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>{p.departamento_nombre ?? '—'}</td>
+                          <td style={{ padding: '12px 14px', fontWeight: '700', color: '#111827', fontSize: '0.875rem' }}>${p.precio?.toFixed(2)}</td>
                           <td style={{ padding: '12px 14px' }}>
-                            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', backgroundColor: p.status === 'active' ? '#DCFCE7' : '#F3F4F6', color: p.status === 'active' ? '#15803D' : '#6B7280' }}>
-                              {p.status === 'active' ? 'Activo' : 'Inactivo'}
+                            <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', backgroundColor: p.estado === 'activo' ? '#DCFCE7' : '#F3F4F6', color: p.estado === 'activo' ? '#15803D' : '#6B7280' }}>
+                              {p.estado === 'activo' ? 'Activo' : 'Inactivo'}
                             </span>
                           </td>
                           <td style={{ padding: '12px 14px' }}>
                             <div style={{ display: 'flex', gap: '5px' }}>
-                              <button onClick={() => { setSelectedProduct(p); setShowModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}><Edit2 size={13} /></button>
-                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }}><Trash2 size={13} /></button>
+                              <button onClick={() => { setSelectedProduct(p); setShowModal(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }} title="Editar"><Edit2 size={13} /></button>
+                              <button onClick={() => handleDelete(p.id, p.nombre)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }} title="Eliminar"><Trash2 size={13} /></button>
                             </div>
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </>
           )}
 
-          {/* ── STOCK ── */}
-          {tab === 'stock' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {PRODUCTS.map(p => {
-                const pct = Math.min((p.stock / Math.max(p.stock, p.minStock * 3)) * 100, 100);
-                const color = p.stock === 0 ? '#DC2626' : p.stock <= p.minStock ? '#D97706' : '#16A34A';
-                return (
-                  <div key={p.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '10px', padding: '14px 18px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <div>
-                        <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{p.name}</span>
-                        <span style={{ marginLeft: '8px', fontFamily: 'monospace', fontSize: '0.72rem', color: '#9CA3AF' }}>{p.sku}</span>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontWeight: '800', color, fontSize: '1rem' }}>{p.stock}</span>
-                        <span style={{ fontSize: '0.72rem', color: '#9CA3AF', marginLeft: '3px' }}>{p.unit}</span>
-                        {p.stock <= p.minStock && <span style={{ marginLeft: '6px', fontSize: '0.68rem', color, fontWeight: '700' }}>⚠️ bajo mínimo ({p.minStock})</span>}
-                      </div>
-                    </div>
-                    <div style={{ width: '100%', backgroundColor: '#F3F4F6', borderRadius: '4px', height: '6px' }}>
-                      <div style={{ height: '6px', borderRadius: '4px', backgroundColor: color, width: `${pct}%`, transition: 'width 0.5s' }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── MOVIMIENTOS ── */}
-          {tab === 'movimientos' && (
-            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#F9FAFB' }}>
-                    {['Fecha', 'Producto', 'Tipo', 'Cantidad', 'Nota', 'Usuario'].map(h => (
-                      <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: '0.72rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {MOVEMENTS.map((m, i) => {
-                    const TYPE_CONF = {
-                      entrada: { label: '↑ Entrada', color: '#15803D', bg: '#DCFCE7' },
-                      salida:  { label: '↓ Salida',  color: '#DC2626', bg: '#FEE2E2' },
-                      ajuste:  { label: '≈ Ajuste',  color: '#7C3AED', bg: '#EDE9FE' },
-                    };
-                    const tc = TYPE_CONF[m.type as keyof typeof TYPE_CONF];
-                    return (
-                      <tr key={m.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#FFF' : '#FAFAFA' }}>
-                        <td style={{ padding: '12px 16px', color: '#6B7280', fontSize: '0.8rem' }}>{m.date}</td>
-                        <td style={{ padding: '12px 16px', fontWeight: '600', color: '#111827', fontSize: '0.82rem' }}>{m.product}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <span style={{ padding: '2px 8px', borderRadius: '12px', backgroundColor: tc.bg, color: tc.color, fontSize: '0.72rem', fontWeight: '700' }}>{tc.label}</span>
-                        </td>
-                        <td style={{ padding: '12px 16px', fontWeight: '700', color: m.qty > 0 ? '#15803D' : '#DC2626', fontSize: '0.875rem' }}>
-                          {m.qty > 0 ? '+' : ''}{m.qty}
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#6B7280', fontSize: '0.8rem' }}>{m.note}</td>
-                        <td style={{ padding: '12px 16px', color: '#374151', fontSize: '0.8rem' }}>{m.user}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* ── ALERTAS ── */}
+          {/* ── INACTIVOS ── */}
           {tab === 'alertas' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {lowStock.length === 0 ? (
+              {inactivos.length === 0 ? (
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '50px', textAlign: 'center', color: '#9CA3AF' }}>
                   <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>✅</p>
-                  <p style={{ margin: 0, fontWeight: '600' }}>Todo el stock está en orden</p>
+                  <p style={{ margin: 0, fontWeight: '600' }}>Todos los productos están activos</p>
                 </div>
-              ) : (
-                lowStock.map(p => (
-                  <div key={p.id} style={{ backgroundColor: p.stock === 0 ? '#FEF2F2' : '#FFFBEB', border: `1px solid ${p.stock === 0 ? '#FECACA' : '#FDE68A'}`, borderRadius: '10px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <AlertTriangle size={20} color={p.stock === 0 ? '#DC2626' : '#D97706'} />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: '0 0 2px', fontWeight: '700', color: '#111827', fontSize: '0.9rem' }}>{p.name}</p>
-                      <p style={{ margin: 0, color: '#6B7280', fontSize: '0.78rem' }}>
-                        SKU: {p.sku} · Stock actual: <strong style={{ color: p.stock === 0 ? '#DC2626' : '#D97706' }}>{p.stock}</strong> / Mínimo: {p.minStock}
-                      </p>
-                    </div>
-                    <button style={{ padding: '8px 16px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.78rem' }}>
-                      Crear Orden de Compra
-                    </button>
+              ) : inactivos.map(p => (
+                <div key={p.id} style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <AlertTriangle size={20} color="#D97706" />
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: '0 0 2px', fontWeight: '700', color: '#111827', fontSize: '0.9rem' }}>{p.nombre}</p>
+                    <p style={{ margin: 0, color: '#6B7280', fontSize: '0.78rem' }}>Estado: <strong style={{ color: '#D97706' }}>{p.estado}</strong></p>
                   </div>
-                ))
-              )}
+                  <button onClick={() => { setSelectedProduct(p); setShowModal(true); }}
+                    style={{ padding: '8px 16px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.78rem' }}>
+                    Editar
+                  </button>
+                </div>
+              ))}
             </div>
           )}
+
         </div>
       </div>
 
@@ -298,19 +389,30 @@ export function ERPInventarioView({ onNavigate }: Props) {
       {showModal && (
         <ProductModal
           product={selectedProduct ? {
-            name: selectedProduct.name,
-            price: String(selectedProduct.price),
-            category: selectedProduct.category,
-            sku: selectedProduct.sku,
-            barcode: selectedProduct.barcode,
-            stock: String(selectedProduct.stock),
-            minStock: String(selectedProduct.minStock),
-            cost: String(selectedProduct.cost),
+            name: selectedProduct.nombre,
+            description: selectedProduct.descripcion ?? '',
+            price: String(selectedProduct.precio),
+            category: selectedProduct.departamento_nombre ?? '',
+            images: selectedProduct.imagen_principal
+              ? [{ id: '1', name: 'imagen', url: selectedProduct.imagen_principal, type: 'image', size: '' }]
+              : [],
+            videos: [],
+            sku: '', barcode: '', brand: '', stock: '', minStock: '',
+            weight: '', dimH: '', dimW: '', dimL: '',
+            tags: selectedProduct.badge ? [selectedProduct.badge] : [],
+            discount: '', serialNumber: '', cost: '', supplier: '',
+            taxRate: '', warranty: '', origin: '', material: '',
+            color: '', size: '', seoTitle: '', seoDesc: '',
+            sync: { store: true, ml: false, instagram: false, whatsapp: false },
+            syncStatus: { store: 'pending', ml: 'disabled', instagram: 'disabled', whatsapp: 'disabled' },
+            mlAttributes: {},
           } : null}
-          onClose={() => setShowModal(false)}
+          onClose={() => { setShowModal(false); setSelectedProduct(null); }}
           onSave={handleSave}
         />
       )}
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

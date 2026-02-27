@@ -14,7 +14,7 @@ import { projectId, publicAnonKey } from '/utils/supabase/info';
 interface Props { onNavigate: (s: MainSection) => void; }
 
 const ORANGE = '#FF6835';
-const API = `https://${projectId}.supabase.co/functions/v1/make-server-75638143/carga-masiva`;
+const API = `https://${projectId}.supabase.co/functions/v1/api/carga-masiva`;
 const HEADERS = { Authorization: `Bearer ${publicAnonKey}` };
 
 interface QueueFile {
@@ -347,3 +347,4 @@ export function CargaMasivaView({ onNavigate }: Props) {
     </div>
   );
 }
+

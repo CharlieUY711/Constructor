@@ -66,7 +66,7 @@ export function AuthRegistroView({ onNavigate }: Props) {
         setTestResult({ ok: true, msg: '✅ Login exitoso con Supabase Auth' });
       } else {
         const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/make-server-75638143/auth/signup`,
+          `https://${projectId}.supabase.co/functions/v1/api/auth/signup`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` },
@@ -468,3 +468,4 @@ export function AuthRegistroView({ onNavigate }: Props) {
     </div>
   );
 }
+

@@ -14,6 +14,10 @@ import { ideasBoard } from "./ideas_board.tsx";
 import { cargaMasiva } from "./carga_masiva.tsx";
 import { ageVerification } from "./age_verification.tsx";
 import { rrss } from "./rrss.tsx";
+import { productos } from "./productos.tsx";
+import { carrito } from "./carrito.tsx";
+import { departamentos } from "./departamentos.tsx";
+import { ordenes } from "./ordenes.tsx";
 
 const app = new Hono();
 
@@ -33,36 +37,48 @@ app.use(
 );
 
 // Health check endpoint
-app.get("/make-server-75638143/health", (c) => {
+app.get("/health", (c) => {
   return c.json({ status: "ok" });
 });
 
 // Personas, Organizaciones y Roles
-app.route("/make-server-75638143/personas", personas);
-app.route("/make-server-75638143/organizaciones", organizaciones);
-app.route("/make-server-75638143/roles", roles);
+app.route("/personas", personas);
+app.route("/organizaciones", organizaciones);
+app.route("/roles", roles);
 
 // eCommerce
-app.route("/make-server-75638143/pedidos", pedidos);
-app.route("/make-server-75638143/metodos-pago", metodosPago);
-app.route("/make-server-75638143/metodos-envio", metodosEnvio);
+app.route("/pedidos", pedidos);
+app.route("/metodos-pago", metodosPago);
+app.route("/metodos-envio", metodosEnvio);
 
 // Marketing
-app.route("/make-server-75638143/etiquetas", etiquetas);
+app.route("/etiquetas", etiquetas);
 
 // Roadmap + archivos adjuntos
-app.route("/make-server-75638143/roadmap", roadmap);
+app.route("/roadmap", roadmap);
 
 // Ideas Board
-app.route("/make-server-75638143/ideas", ideasBoard);
+app.route("/ideas", ideasBoard);
 
 // Carga Masiva de Archivos
-app.route("/make-server-75638143/carga-masiva", cargaMasiva);
+app.route("/carga-masiva", cargaMasiva);
 
 // Verificación de Edad + MetaMap
-app.route("/make-server-75638143/age-verification", ageVerification);
+app.route("/age-verification", ageVerification);
 
 // Redes Sociales — RRSS (Meta: Instagram + Facebook)
-app.route("/make-server-75638143/rrss", rrss);
+app.route("/rrss", rrss);
+
+// ...después de los imports existentes:
+app.route("/productos", productos);
+app.route("/carrito", carrito);
+app.route("/departamentos", departamentos);
+app.route("/ordenes", ordenes);
 
 Deno.serve(app.fetch);
+
+
+
+
+
+// redeploy

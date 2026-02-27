@@ -395,3 +395,4 @@ export function ModuleFilesPanel({ moduleId, moduleName }: Props) {
     </div>
   );
 }
+

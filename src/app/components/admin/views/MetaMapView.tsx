@@ -18,7 +18,7 @@ interface Props { onNavigate: (s: MainSection) => void; }
 
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 
-const WEBHOOK_URL = `https://${projectId}.supabase.co/functions/v1/make-server-75638143/age-verification/metamap-webhook`;
+const WEBHOOK_URL = `https://${projectId}.supabase.co/functions/v1/api/age-verification/metamap-webhook`;
 
 /* ── Data mock de verificaciones recientes ── */
 const RECENT_VERIFICATIONS = [
@@ -371,3 +371,4 @@ export function MetaMapView({ onNavigate: _ }: Props) {
     </div>
   );
 }
+

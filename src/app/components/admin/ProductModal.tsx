@@ -7,7 +7,16 @@ import {
 
 const ORANGE = '#FF6835';
 
-/* ─────────────────────────── Types ─────────────────────────── */
+/* ─────────────────────────────── Types ─────────────────────────────── */
+export interface UploadedFile {
+  id: string;
+  name: string;
+  url: string;        // blob URL para preview
+  type: 'image' | 'video';
+  size: string;
+  file?: File;        // archivo real para subir a Storage
+}
+
 export interface ProductFormData {
   name: string; description: string; price: string; category: string;
   images: UploadedFile[]; videos: UploadedFile[];
@@ -25,21 +34,20 @@ export interface ProductFormData {
 
 type SyncState = 'synced' | 'pending' | 'error' | 'disabled';
 type Step = 0 | 1 | 2;
-interface UploadedFile { id: string; name: string; url: string; type: 'image' | 'video'; size: string; }
 interface Props { product?: Partial<ProductFormData> | null; onClose: () => void; onSave: (data: ProductFormData) => void; }
 
-/* ─────────────── Mock product database ─────────────── */
+/* ─────────────────── Mock product database ─────────────────── */
 const ML_PRODUCTS = [
   { title: 'Nike Air Max 270 React', description: 'El Nike Air Max 270 React combina la unidad Air más grande de Nike hasta la fecha con la espuma React para una experiencia de amortiguación sin igual. Ideal para uso diario y actividades deportivas.', category: 'Moda y Accesorios', brand: 'Nike', emoji: '👟', attrs: { Modelo: 'Air Max 270 React', Material: 'Cuero sintético / mesh', Suela: 'Caucho', Cierre: 'Cordones', Temporada: 'Todo el año', Género: 'Unisex', 'País de origen': 'Vietnam' } },
   { title: 'Nike Air Force 1 Blancas', description: 'Las icónicas zapatillas Nike Air Force 1 en color blanco puro. Diseño atemporal con suela de goma y forro de tela.', category: 'Moda y Accesorios', brand: 'Nike', emoji: '👟', attrs: { Modelo: 'Air Force 1 Low', Material: 'Cuero genuino', Suela: 'Goma', Cierre: 'Cordones', Género: 'Unisex' } },
   { title: 'iPhone 14 Pro 128GB Deep Purple', description: 'iPhone 14 Pro con chip A16 Bionic, Dynamic Island, cámara principal de 48 MP y pantalla Super Retina XDR ProMotion 120Hz.', category: 'Tecnología', brand: 'Apple', emoji: '📱', attrs: { Almacenamiento: '128 GB', Color: 'Deep Purple', SO: 'iOS 16', Conectividad: '5G', Cámara: '48 MP triple', Batería: '3200 mAh', Pantalla: '6.1" OLED' } },
   { title: 'iPhone 14 128GB Midnight', description: 'iPhone 14 con chip A15 Bionic, cámara dual de 12 MP y pantalla Super Retina XDR.', category: 'Tecnología', brand: 'Apple', emoji: '📱', attrs: { Almacenamiento: '128 GB', Color: 'Midnight', SO: 'iOS 16', Conectividad: '5G', Cámara: '12 MP dual', Batería: '3279 mAh' } },
   { title: 'Samsung Galaxy S23 Ultra 256GB', description: 'Galaxy S23 Ultra con S Pen integrado, cámara de 200 MP y batería de 5000 mAh.', category: 'Tecnología', brand: 'Samsung', emoji: '📱', attrs: { Almacenamiento: '256 GB', Color: 'Phantom Black', SO: 'Android 13', Cámara: '200 MP', Batería: '5000 mAh', Pantalla: '6.8" Dynamic AMOLED' } },
-  { title: 'Aceite de Oliva Extravirgen 5lt Colinas de Garzón', description: 'Aceite de oliva extravirgen premium, primera prensada en frío. Notas frutales y bajo nivel de acidez. Ideal para ensaladas y marinados.', category: 'Alimentos y Bebidas', brand: 'Colinas de Garzón', emoji: '🫙', attrs: { 'Formato de venta': 'Unidad', 'Peso': '5 kg', 'Tipo de aceite': 'Extra virgen Blend', 'Envase': 'Botella vidrio', 'Volumen': '5 L', 'Vencimiento': 'Sí', 'Sin gluten': 'Sí', 'Orgánico': 'No' } },
-  { title: 'Silla Ergonómica Mesh XT Pro', description: 'Silla de oficina ergonómica con respaldo de malla transpirable, soporte lumbar ajustable y reposabrazos 4D.', category: 'Hogar y Decoración', brand: 'OfficePro', emoji: '🪑', attrs: { 'Material tapizado': 'Mesh / Tela', 'Peso máximo': '120 kg', 'Altura ajustable': 'Sí', Color: 'Negro', 'Inclinación': 'Hasta 135°', Ruedas: '5 ruedas PU' } },
-  { title: 'Cafetera Nespresso Essenza Mini', description: 'La cafetera Nespresso más compacta. Compatible con cápsulas OriginalLine, calienta en 25 segundos.', category: 'Electrodomésticos', brand: 'Nespresso', emoji: '☕', attrs: { Presión: '19 bares', 'Depósito': '0.6 L', Potencia: '1310 W', Colores: 'Negro, Blanco, Rojo', Compatibilidad: 'Cápsulas OriginalLine' } },
-  { title: 'Pelota de Fútbol Nike Premier League', description: 'Balón oficial Nike Premier League con tecnología de vuelo consistente y cubierta texturizada.', category: 'Deportes y Fitness', brand: 'Nike', emoji: '⚽', attrs: { Talla: '5', Material: 'PU sintético', 'Cámaras': 'Butilo', Uso: 'Partido oficial', 'Tecnología': 'Nike AerowTrac' } },
-  { title: 'Cafetera De Longhi Dedica Style', description: 'Cafetera espresso De Longhi con bomba de 15 bares, vaporizador de leche y diseño compacto.', category: 'Electrodomésticos', brand: 'De Longhi', emoji: '☕', attrs: { Presión: '15 bares', Depósito: '1.3 L', Potencia: '1300 W', Colores: 'Plata, Negro', 'Capuccino': 'Sí, vaporizador' } },
+  { title: 'Aceite de Oliva Extravirgen 5lt Colinas de Garzón', description: 'Aceite de oliva extravirgen premium, primera prensada en frío. Notas frutales y bajo nivel de acidez.', category: 'Alimentos y Bebidas', brand: 'Colinas de Garzón', emoji: '🫙', attrs: { 'Formato de venta': 'Unidad', Peso: '5 kg', 'Tipo de aceite': 'Extra virgen Blend', Envase: 'Botella vidrio', Volumen: '5 L' } },
+  { title: 'Silla Ergonómica Mesh XT Pro', description: 'Silla de oficina ergonómica con respaldo de malla transpirable, soporte lumbar ajustable y reposabrazos 4D.', category: 'Hogar y Decoración', brand: 'OfficePro', emoji: '🪑', attrs: { 'Material tapizado': 'Mesh / Tela', 'Peso máximo': '120 kg', 'Altura ajustable': 'Sí', Color: 'Negro' } },
+  { title: 'Cafetera Nespresso Essenza Mini', description: 'La cafetera Nespresso más compacta. Compatible con cápsulas OriginalLine, calienta en 25 segundos.', category: 'Electrodomésticos', brand: 'Nespresso', emoji: '☕', attrs: { Presión: '19 bares', Depósito: '0.6 L', Potencia: '1310 W' } },
+  { title: 'Pelota de Fútbol Nike Premier League', description: 'Balón oficial Nike Premier League con tecnología de vuelo consistente y cubierta texturizada.', category: 'Deportes y Fitness', brand: 'Nike', emoji: '⚽', attrs: { Talla: '5', Material: 'PU sintético', Uso: 'Partido oficial' } },
+  { title: 'Cafetera De Longhi Dedica Style', description: 'Cafetera espresso De Longhi con bomba de 15 bares, vaporizador de leche y diseño compacto.', category: 'Electrodomésticos', brand: 'De Longhi', emoji: '☕', attrs: { Presión: '15 bares', Depósito: '1.3 L', Potencia: '1300 W' } },
 ];
 
 const SYNC_CFG: Record<SyncState, { label: string; color: string; bg: string; Icon: any }> = {
@@ -51,29 +59,26 @@ const SYNC_CFG: Record<SyncState, { label: string; color: string; bg: string; Ic
 
 const CATEGORIES = ['Alimentos y Bebidas','Higiene y Cuidado Personal','Tecnología','Moda y Accesorios','Hogar y Decoración','Herramientas y Mejoras','Electrodomésticos','Indumentaria','Bebés y Niños','Deportes y Fitness','Automotriz','Oficina y Librería','Mascotas','Juguetería','Salud y Bienestar','Limpieza del Hogar','Música e Instrumentos','Películas, Series y Entretenimiento','Contenido Adulto'];
 
-/* ════════════════════════ COMPONENT ════════════════════════ */
+/* ══════════════════════════ COMPONENT ══════════════════════════ */
 export function ProductModal({ product, onClose, onSave }: Props) {
   const isNew = !product?.name;
-  const [step, setStep]         = useState<Step>(0);
-  const [stepDone, setStepDone] = useState([false, false, false]);
+  const [step, setStep]           = useState<Step>(0);
+  const [stepDone, setStepDone]   = useState([false, false, false]);
   const [mlResults, setMlResults] = useState<typeof ML_PRODUCTS>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [mlImported, setMlImported] = useState<string | null>(null);
-  const [tagInput, setTagInput] = useState('');
-  const fileImgRef  = useRef<HTMLInputElement>(null);
-  const fileVidRef  = useRef<HTMLInputElement>(null);
-  const nameRef     = useRef<HTMLDivElement>(null);
+  const [mlImported, setMlImported]     = useState<string | null>(null);
+  const [tagInput, setTagInput]         = useState('');
+  const fileImgRef = useRef<HTMLInputElement>(null);
+  const fileVidRef = useRef<HTMLInputElement>(null);
+  const nameRef    = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState<ProductFormData>({
-    name: product?.name || '', description: product?.description || '',
-    price: product?.price || '', category: product?.category || '',
-    images: product?.images || [], videos: product?.videos || [],
-    sku: product?.sku || '', barcode: product?.barcode || '',
-    brand: product?.brand || '', stock: product?.stock || '0',
-    minStock: product?.minStock || '0', weight: product?.weight || '',
-    dimH: '', dimW: '', dimL: '',
-    tags: product?.tags || [], discount: '', serialNumber: '',
-    cost: product?.cost || '', supplier: '', taxRate: '22', warranty: '12 meses',
+    name: '', description: '', price: '', category: '',
+    images: [], videos: [],
+    sku: '', barcode: '', brand: '', stock: '0', minStock: '0',
+    weight: '', dimH: '', dimW: '', dimL: '',
+    tags: [], discount: '', serialNumber: '',
+    cost: '', supplier: '', taxRate: '22', warranty: '12 meses',
     origin: '', material: '', color: '', size: '',
     seoTitle: '', seoDesc: '',
     sync: { store: true, ml: false, instagram: false, whatsapp: false },
@@ -84,7 +89,6 @@ export function ProductModal({ product, onClose, onSave }: Props) {
 
   const set = (k: keyof ProductFormData, v: any) => setForm(p => ({ ...p, [k]: v }));
 
-  /* Close dropdown on outside click */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (nameRef.current && !nameRef.current.contains(e.target as Node)) setShowDropdown(false);
@@ -93,7 +97,6 @@ export function ProductModal({ product, onClose, onSave }: Props) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  /* Search-as-you-type in the name field */
   const handleNameChange = (v: string) => {
     set('name', v);
     if (v.length < 2) { setMlResults([]); setShowDropdown(false); return; }
@@ -107,21 +110,21 @@ export function ProductModal({ product, onClose, onSave }: Props) {
   };
 
   const applyML = (p: typeof ML_PRODUCTS[0]) => {
-    setForm(prev => ({
-      ...prev, name: p.title, description: p.description,
-      category: p.category, brand: p.brand, mlAttributes: p.attrs,
-    }));
+    setForm(prev => ({ ...prev, name: p.title, description: p.description, category: p.category, brand: p.brand, mlAttributes: p.attrs }));
     setMlImported(p.title);
     setShowDropdown(false);
     setMlResults([]);
   };
 
-  /* File handlers */
+  /* ── File handlers — guardamos el File real junto al blob URL ── */
   const onFiles = (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const newFiles: UploadedFile[] = Array.from(e.target.files || []).map(f => ({
-      id: Math.random().toString(36).slice(2), name: f.name,
-      url: URL.createObjectURL(f), type,
+      id: Math.random().toString(36).slice(2),
+      name: f.name,
+      url: URL.createObjectURL(f),
+      type,
       size: `${(f.size / 1024).toFixed(0)} KB`,
+      file: f,   // ← guardamos el File real
     }));
     const key = type === 'image' ? 'images' : 'videos';
     set(key, [...(form[key] as UploadedFile[]), ...newFiles]);
@@ -149,16 +152,16 @@ export function ProductModal({ product, onClose, onSave }: Props) {
   };
 
   const STEPS = [
-    { label: 'Básica',     sub: 'Información esencial',   icon: '📦' },
-    { label: 'Intermedia', sub: 'Inventario y logística',  icon: '📊' },
-    { label: 'Avanzada',   sub: 'SEO y sincronización',    icon: '⚙️' },
+    { label: 'Básica',     sub: 'Información esencial',  icon: '📦' },
+    { label: 'Intermedia', sub: 'Inventario y logística', icon: '📊' },
+    { label: 'Avanzada',   sub: 'SEO y sincronización',   icon: '⚙️' },
   ];
 
   return (
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }} onClick={onClose}>
       <div style={{ backgroundColor: '#FFF', borderRadius: '16px', width: '100%', maxWidth: '840px', maxHeight: '92vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 60px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
 
-        {/* ── Header + Step tabs ── */}
+        {/* Header + Step tabs */}
         <div style={{ padding: '22px 28px 0', borderBottom: '1px solid #F3F4F6', flexShrink: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
             <div>
@@ -189,35 +192,26 @@ export function ProductModal({ product, onClose, onSave }: Props) {
           </div>
         </div>
 
-        {/* ── Scrollable body ── */}
+        {/* Scrollable body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '22px 28px' }}>
 
-          {/* ════ PASO 1 — BÁSICA ════ */}
+          {/* ══ PASO 1 – BÁSICA ══ */}
           {step === 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-              {/* NAME with autocomplete */}
               <Field label="Nombre del Artículo *">
                 <div ref={nameRef} style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    placeholder="Escribí el nombre para buscar y autocompletar datos…"
-                    value={form.name}
+                  <input type="text" placeholder="Escribí el nombre para buscar y autocompletar datos…" value={form.name}
                     onChange={e => handleNameChange(e.target.value)}
                     onFocus={() => mlResults.length > 0 && setShowDropdown(true)}
-                    style={{ ...inp, paddingRight: '90px' }}
-                  />
-                  {/* inline hint */}
+                    style={{ ...inp, paddingRight: '90px' }} />
                   <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '0.65rem', color: '#9CA3AF', pointerEvents: 'none' }}>
                     <Sparkles size={10} color={ORANGE} /> ML autocomplete
                   </span>
-
-                  {/* ── Dropdown ── */}
                   {showDropdown && mlResults.length > 0 && (
                     <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, backgroundColor: '#FFF', border: '1px solid #E5E7EB', borderRadius: '10px', boxShadow: '0 12px 32px rgba(0,0,0,0.14)', zIndex: 200, maxHeight: '260px', overflowY: 'auto' }}>
                       <div style={{ padding: '8px 12px 4px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <Sparkles size={11} color={ORANGE} />
-                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#374151' }}>Resultados — seleccioná para autocompletar nombre, descripción, categoría y atributos</span>
+                        <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#374151' }}>Resultados — seleccioná para autocompletar</span>
                       </div>
                       {mlResults.map((p, i) => (
                         <button key={i} onClick={() => applyML(p)}
@@ -227,20 +221,14 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                           <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{p.emoji}</span>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <p style={{ margin: '0 0 1px', fontWeight: '700', color: '#111827', fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</p>
-                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#9CA3AF' }}>
-                              {p.brand} · {p.category} · <span style={{ color: '#10B981' }}>{Object.keys(p.attrs).length} atributos ML disponibles</span>
-                            </p>
+                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#9CA3AF' }}>{p.brand} · {p.category} · <span style={{ color: '#10B981' }}>{Object.keys(p.attrs).length} atributos ML</span></p>
                           </div>
-                          <span style={{ padding: '2px 8px', backgroundColor: `${ORANGE}18`, color: ORANGE, borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800', flexShrink: 0 }}>
-                            Usar
-                          </span>
+                          <span style={{ padding: '2px 8px', backgroundColor: `${ORANGE}18`, color: ORANGE, borderRadius: '5px', fontSize: '0.65rem', fontWeight: '800', flexShrink: 0 }}>Usar</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
-
-                {/* Imported badge */}
                 {mlImported && (
                   <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 10px', backgroundColor: '#F0FFF4', border: '1px solid #BBF7D0', borderRadius: '6px', fontSize: '0.72rem', color: '#15803D' }}>
                     <CheckCircle2 size={12} /> Datos importados: <strong>{mlImported}</strong>
@@ -249,14 +237,11 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                 )}
               </Field>
 
-              {/* Description */}
               <Field label="Descripción *">
-                <textarea rows={5} placeholder="Descripción detallada del artículo (se completa automáticamente al elegir un producto)…"
-                  value={form.description} onChange={e => set('description', e.target.value)}
-                  style={{ ...inp, resize: 'vertical' }} />
+                <textarea rows={5} placeholder="Descripción detallada del artículo…" value={form.description}
+                  onChange={e => set('description', e.target.value)} style={{ ...inp, resize: 'vertical' }} />
               </Field>
 
-              {/* Price + Category */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <Field label="Precio *">
                   <div style={{ position: 'relative' }}>
@@ -272,8 +257,8 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                 </Field>
               </div>
 
-              {/* Images */}
-              <Field label="Imágenes * — mín. 1200×1200 px (se redimensionan automáticamente)">
+              {/* Imágenes */}
+              <Field label="Imágenes * — mín. 1 foto">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {form.images.map((img, idx) => (
                     <div key={img.id} style={{ position: 'relative', width: '88px', height: '88px', borderRadius: '8px', overflow: 'hidden', border: idx === 0 ? `2px solid ${ORANGE}` : '1px solid #E5E7EB' }}>
@@ -291,7 +276,7 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                   </button>
                   <input ref={fileImgRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={e => onFiles(e, 'image')} />
                 </div>
-                <p style={{ margin: '5px 0 0', fontSize: '0.7rem', color: '#9CA3AF' }}>La primera imagen es la foto principal. Podés reordenarlas arrastrando.</p>
+                <p style={{ margin: '5px 0 0', fontSize: '0.7rem', color: '#9CA3AF' }}>La primera imagen es la foto principal.</p>
               </Field>
 
               {/* Videos */}
@@ -315,7 +300,6 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                 </div>
               </Field>
 
-              {/* ML attributes table */}
               {Object.keys(form.mlAttributes).length > 0 && (
                 <div>
                   <p style={{ margin: '0 0 8px', fontWeight: '700', color: '#374151', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -334,7 +318,7 @@ export function ProductModal({ product, onClose, onSave }: Props) {
             </div>
           )}
 
-          {/* ════ PASO 2 — INTERMEDIA ════ */}
+          {/* ══ PASO 2 – INTERMEDIA ══ */}
           {step === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
@@ -376,7 +360,7 @@ export function ProductModal({ product, onClose, onSave }: Props) {
             </div>
           )}
 
-          {/* ════ PASO 3 — AVANZADA ════ */}
+          {/* ══ PASO 3 – AVANZADA ══ */}
           {step === 2 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -390,7 +374,6 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                 <Field label="Talle / Tamaño"><input type="text" placeholder="S, M, L, XL" value={form.size} onChange={e => set('size', e.target.value)} style={inp} /></Field>
               </div>
 
-              {/* SEO */}
               <div style={{ borderRadius: '10px', border: '1px solid #E5E7EB', padding: '16px', backgroundColor: '#FAFAFA' }}>
                 <p style={{ margin: '0 0 12px', fontWeight: '700', fontSize: '0.85rem', color: '#374151', display: 'flex', alignItems: 'center', gap: '5px' }}><Globe size={14} /> SEO</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -405,15 +388,14 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                 </div>
               </div>
 
-              {/* Sincronización */}
               <div style={{ borderRadius: '10px', border: '1px solid #E5E7EB', padding: '16px', backgroundColor: '#FAFAFA' }}>
                 <p style={{ margin: '0 0 12px', fontWeight: '700', fontSize: '0.85rem', color: '#374151', display: 'flex', alignItems: 'center', gap: '5px' }}><RefreshCw size={14} /> Sincronización por artículo</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {[
-                    { k: 'store'     as const, label: 'Tienda propia',     sub: 'Charlie Marketplace', Icon: ShoppingBag,    color: ORANGE    },
-                    { k: 'ml'        as const, label: 'Mercado Libre',      sub: 'Publicación en ML',   Icon: Zap,            color: '#E8A600' },
-                    { k: 'instagram' as const, label: 'Instagram Shopping', sub: 'Catálogo IG',         Icon: ImageIcon,      color: '#E1306C' },
-                    { k: 'whatsapp'  as const, label: 'WhatsApp Catalog',   sub: 'Catálogo WA Biz',     Icon: MessageCircle,  color: '#25D366' },
+                    { k: 'store'     as const, label: 'Tienda propia',     sub: 'Charlie Marketplace', Icon: ShoppingBag,   color: ORANGE    },
+                    { k: 'ml'        as const, label: 'Mercado Libre',      sub: 'Publicación en ML',   Icon: Zap,           color: '#E8A600' },
+                    { k: 'instagram' as const, label: 'Instagram Shopping', sub: 'Catálogo IG',         Icon: ImageIcon,     color: '#E1306C' },
+                    { k: 'whatsapp'  as const, label: 'WhatsApp Catalog',   sub: 'Catálogo WA Biz',     Icon: MessageCircle, color: '#25D366' },
                   ].map(({ k, label, sub, Icon, color }) => {
                     const on = form.sync[k];
                     const st = SYNC_CFG[on ? form.syncStatus[k] : 'disabled'];
@@ -436,7 +418,6 @@ export function ProductModal({ product, onClose, onSave }: Props) {
                             <RefreshCw size={9} /> Sync
                           </button>
                         )}
-                        {/* Toggle */}
                         <div onClick={() => {
                           const ns = { ...form.sync, [k]: !on };
                           const nst = { ...form.syncStatus, [k]: !on ? 'pending' : 'disabled' } as typeof form.syncStatus;
@@ -453,7 +434,7 @@ export function ProductModal({ product, onClose, onSave }: Props) {
           )}
         </div>
 
-        {/* ── Footer ── */}
+        {/* Footer */}
         <div style={{ padding: '14px 28px', borderTop: '1px solid #F3F4F6', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, backgroundColor: '#FAFAFA', borderRadius: '0 0 16px 16px' }}>
           <button onClick={() => step > 0 ? setStep(s => (s - 1) as Step) : onClose()}
             style={{ padding: '9px 18px', border: '1px solid #E5E7EB', borderRadius: '9px', backgroundColor: '#FFF', color: '#374151', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
