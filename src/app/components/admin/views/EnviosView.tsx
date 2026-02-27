@@ -2,15 +2,17 @@
    EnviosView — Módulo de Envíos Operativo
    Árbol Pedido Madre → Envíos Hijos · Multi-tramo
    ===================================================== */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Truck, Package, MapPin, CheckCircle2, Clock, XCircle,
   ChevronRight, ChevronDown, Search, Filter, Eye,
   AlertCircle, RotateCcw, Navigation, Users, Calendar,
-  ArrowLeft, TrendingUp, Layers, Inbox,
+  ArrowLeft, TrendingUp, Layers, Inbox, Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import * as enviosApi from '../../../services/enviosApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 
@@ -44,6 +46,9 @@ interface Envio {
   fechaEstimada: string;
   tracking?: string;
   eventos: EventoTracking[];
+  // Campos adicionales de Supabase
+  envioData?: enviosApi.Envio;
+  eventosData?: enviosApi.EventoTracking[];
 }
 
 interface PedidoMadre {
@@ -54,106 +59,71 @@ interface PedidoMadre {
   total: number;
 }
 
-/* ── Mock Data ─────────────────────────────────────── */
-const PEDIDOS: PedidoMadre[] = [
-  {
-    id: 'pm1', numero: 'PED-15000', cliente: 'Martín García', total: 47800,
-    envios: [
-      {
-        id: 'e1', numero: 'ENV-15000-001', pedidoMadre: 'PED-15000',
-        estado: 'en_reparto', origen: 'Depósito Central — CABA', destino: 'Av. Corrientes 2145, CABA',
-        destinatario: 'Martín García', carrier: 'Correo Argentino', tramo: 'local',
-        peso: 1.2, bultos: 2, fechaCreacion: '2024-01-15', fechaEstimada: '2024-01-17', tracking: 'CA123456789AR',
-        eventos: [
-          { fecha: '17/01', hora: '09:15', estado: 'en_reparto', descripcion: 'Salió para entrega', ubicacion: 'CABA Sur' },
-          { fecha: '16/01', hora: '18:30', estado: 'en_deposito', descripcion: 'Llegó al centro de distribución', ubicacion: 'CABA Centro' },
-          { fecha: '15/01', hora: '14:00', estado: 'despachado', descripcion: 'Despachado desde depósito', ubicacion: 'Depósito Central' },
-          { fecha: '15/01', hora: '10:30', estado: 'creado', descripcion: 'Envío creado', ubicacion: 'Sistema' },
-        ],
-      },
-      {
-        id: 'e2', numero: 'ENV-15000-002', pedidoMadre: 'PED-15000',
-        estado: 'despachado', origen: 'Depósito Central — CABA', destino: 'Rivadavia 890, Córdoba',
-        destinatario: 'Martín García (Cba)', carrier: 'Andreani', tramo: 'intercity',
-        peso: 3.5, bultos: 1, fechaCreacion: '2024-01-15', fechaEstimada: '2024-01-19', tracking: 'AND789012',
-        eventos: [
-          { fecha: '15/01', hora: '15:00', estado: 'despachado', descripcion: 'En camino a Córdoba', ubicacion: 'CABA' },
-          { fecha: '15/01', hora: '10:30', estado: 'creado', descripcion: 'Envío creado', ubicacion: 'Sistema' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'pm2', numero: 'PED-15001', cliente: 'Sofía Rodríguez', total: 28500,
-    envios: [
-      {
-        id: 'e3', numero: 'ENV-15001-001', pedidoMadre: 'PED-15001',
-        estado: 'entregado', origen: 'Depósito Norte — GBA', destino: 'Mitre 340, San Isidro',
-        destinatario: 'Sofía Rodríguez', carrier: 'OCA', tramo: 'local',
-        peso: 0.8, bultos: 1, fechaCreacion: '2024-01-12', fechaEstimada: '2024-01-14', tracking: 'OCA456789',
-        eventos: [
-          { fecha: '14/01', hora: '11:22', estado: 'entregado', descripcion: 'Entregado al destinatario', ubicacion: 'San Isidro' },
-          { fecha: '14/01', hora: '08:00', estado: 'en_reparto', descripcion: 'En reparto local', ubicacion: 'GBA Norte' },
-          { fecha: '13/01', hora: '20:00', estado: 'en_deposito', descripcion: 'En sucursal San Isidro', ubicacion: 'San Isidro' },
-          { fecha: '12/01', hora: '14:00', estado: 'despachado', descripcion: 'Despachado', ubicacion: 'Depósito Norte' },
-          { fecha: '12/01', hora: '09:00', estado: 'creado', descripcion: 'Envío creado', ubicacion: 'Sistema' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'pm3', numero: 'PED-15002', cliente: 'Empresa Textil S.A.', total: 185000,
-    envios: [
-      {
-        id: 'e4', numero: 'ENV-15002-001', pedidoMadre: 'PED-15002',
-        estado: 'en_transito', origen: 'Depósito Central — CABA', destino: 'Las Heras 1200, Mendoza',
-        destinatario: 'Empresa Textil S.A.', carrier: 'Fedex', tramo: 'intercity',
-        peso: 12.5, bultos: 4, fechaCreacion: '2024-01-14', fechaEstimada: '2024-01-20', tracking: 'FDX334455',
-        eventos: [
-          { fecha: '16/01', hora: '06:30', estado: 'en_transito', descripcion: 'En ruta Mendoza', ubicacion: 'San Luis' },
-          { fecha: '15/01', hora: '22:00', estado: 'despachado', descripcion: 'Salió hacia Mendoza', ubicacion: 'CABA' },
-          { fecha: '14/01', hora: '16:00', estado: 'creado', descripcion: 'Envío creado', ubicacion: 'Sistema' },
-        ],
-      },
-      {
-        id: 'e5', numero: 'ENV-15002-002', pedidoMadre: 'PED-15002',
-        estado: 'creado', origen: 'Depósito Central — CABA', destino: 'Av. San Martín 500, Rosario',
-        destinatario: 'Empresa Textil S.A. — Suc. Rosario', carrier: 'Andreani', tramo: 'intercity',
-        peso: 8.0, bultos: 3, fechaCreacion: '2024-01-16', fechaEstimada: '2024-01-19',
-        eventos: [
-          { fecha: '16/01', hora: '17:00', estado: 'creado', descripcion: 'Envío creado', ubicacion: 'Sistema' },
-        ],
-      },
-      {
-        id: 'e6', numero: 'ENV-15002-003', pedidoMadre: 'PED-15002',
-        estado: 'fallido', origen: 'Depósito Norte — GBA', destino: 'Urquiza 88, Tucumán',
-        destinatario: 'Punto de entrega Tucumán', carrier: 'DHL', tramo: 'intercity',
-        peso: 5.0, bultos: 2, fechaCreacion: '2024-01-10', fechaEstimada: '2024-01-15', tracking: 'DHL889900',
-        eventos: [
-          { fecha: '15/01', hora: '14:00', estado: 'fallido', descripcion: 'Dirección incorrecta — devolver', ubicacion: 'Tucumán' },
-          { fecha: '13/01', hora: '09:00', estado: 'en_reparto', descripcion: 'Intentando entrega', ubicacion: 'Tucumán' },
-          { fecha: '12/01', hora: '20:00', estado: 'en_transito', descripcion: 'En tránsito', ubicacion: 'Santiago del Estero' },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'pm4', numero: 'PED-15003', cliente: 'Lucas Fernández', total: 9800,
-    envios: [
-      {
-        id: 'e7', numero: 'ENV-15003-001', pedidoMadre: 'PED-15003',
-        estado: 'en_deposito', origen: 'Depósito Sur — CABA', destino: 'Remedios de Escalada 234, Lomas de Zamora',
-        destinatario: 'Lucas Fernández', carrier: 'Correo Argentino', tramo: 'local',
-        peso: 0.5, bultos: 1, fechaCreacion: '2024-01-16', fechaEstimada: '2024-01-18', tracking: 'CA987654321AR',
-        eventos: [
-          { fecha: '17/01', hora: '08:00', estado: 'en_deposito', descripcion: 'En sucursal Lomas', ubicacion: 'Lomas de Zamora' },
-          { fecha: '16/01', hora: '16:00', estado: 'despachado', descripcion: 'Despachado', ubicacion: 'Depósito Sur' },
-          { fecha: '16/01', hora: '12:00', estado: 'creado', descripcion: 'Envío creado', ubicacion: 'Sistema' },
-        ],
-      },
-    ],
-  },
-];
+/* ── Helpers para transformar datos ─────────────────────────────────────── */
+
+// Transforma un Envio de Supabase al formato de la UI
+function transformEnvio(envio: enviosApi.Envio, eventos: enviosApi.EventoTracking[] = []): Envio {
+  const fechaCreacion = new Date(envio.fecha_creacion);
+  const fechaEstimada = envio.fecha_estimada || '';
+  
+  // Transformar eventos de Supabase al formato de la UI
+  const eventosUI: EventoTracking[] = eventos.map(ev => {
+    const fechaEv = new Date(ev.fecha);
+    return {
+      fecha: fechaEv.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }),
+      hora: fechaEv.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      estado: ev.estado,
+      descripcion: ev.descripcion,
+      ubicacion: ev.ubicacion || 'Sistema',
+    };
+  });
+  
+  return {
+    id: envio.id,
+    numero: envio.numero,
+    pedidoMadre: envio.numero_pedido || envio.pedido_madre_id || '',
+    estado: envio.estado,
+    origen: envio.origen,
+    destino: envio.destino,
+    destinatario: envio.destinatario,
+    carrier: envio.carrier,
+    tramo: envio.tramo,
+    peso: Number(envio.peso) || 0,
+    bultos: envio.bultos || 1,
+    fechaCreacion: fechaCreacion.toISOString().split('T')[0],
+    fechaEstimada,
+    tracking: envio.tracking,
+    eventos: eventosUI,
+    envioData: envio,
+    eventosData: eventos,
+  };
+}
+
+// Agrupa envíos por pedido madre
+function agruparPorPedido(envios: Envio[]): PedidoMadre[] {
+  const grupos = new Map<string, { numero: string; cliente: string; envios: Envio[]; total: number }>();
+  
+  envios.forEach(envio => {
+    const pedidoKey = envio.pedidoMadre || 'sin-pedido';
+    if (!grupos.has(pedidoKey)) {
+      grupos.set(pedidoKey, {
+        numero: envio.pedidoMadre || 'Sin pedido',
+        cliente: envio.destinatario, // Por ahora usamos el destinatario como cliente
+        envios: [],
+        total: 0,
+      });
+    }
+    const grupo = grupos.get(pedidoKey)!;
+    grupo.envios.push(envio);
+    // TODO: calcular total desde pedidos reales
+    grupo.total += 0;
+  });
+  
+  return Array.from(grupos.entries()).map(([id, data]) => ({
+    id,
+    ...data,
+  }));
+}
 
 /* ── Estado config ─────────────────────────────────── */
 const ESTADO_CFG: Record<EstadoEnvio, { label: string; color: string; bg: string; icon: React.ElementType }> = {
@@ -200,11 +170,80 @@ function EstadoBadge({ estado }: { estado: EstadoEnvio }) {
 }
 
 export function EnviosView({ onNavigate }: Props) {
-  const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set(['pm1', 'pm3']));
+  const [pedidos, setPedidos] = useState<PedidoMadre[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedPedidos, setExpandedPedidos] = useState<Set<string>>(new Set());
   const [selectedEnvio, setSelectedEnvio] = useState<Envio | null>(null);
   const [search, setSearch] = useState('');
   const [filterEstado, setFilterEstado] = useState<EstadoEnvio | 'todos'>('todos');
   const [filterTramo, setFilterTramo] = useState<string>('todos');
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Cargar envíos desde Supabase
+  const loadEnvios = useCallback(async () => {
+    try {
+      setLoading(true);
+      const filters: any = {};
+      if (filterEstado !== 'todos') filters.estado = filterEstado;
+      if (filterTramo !== 'todos') filters.tramo = filterTramo;
+      
+      const enviosData = await enviosApi.getEnvios(filters);
+      
+      // Cargar eventos para cada envío
+      const enviosConEventos = await Promise.all(
+        enviosData.map(async (envio) => {
+          const detalle = await enviosApi.getEnvio(envio.id);
+          return transformEnvio(envio, detalle?.eventos || []);
+        })
+      );
+      
+      // Agrupar por pedido
+      const pedidosAgrupados = agruparPorPedido(enviosConEventos);
+      setPedidos(pedidosAgrupados);
+      
+      // Expandir el primer pedido solo la primera vez
+      setExpandedPedidos(prev => {
+        if (prev.size === 0 && pedidosAgrupados.length > 0) {
+          return new Set([pedidosAgrupados[0].id]);
+        }
+        return prev;
+      });
+    } catch (err) {
+      console.error('[EnviosView] Error cargando envíos:', err);
+      toast.error('Error al cargar envíos');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterEstado, filterTramo]);
+
+  useEffect(() => {
+    loadEnvios();
+  }, [loadEnvios]);
+
+  // Cargar detalles del envío seleccionado
+  useEffect(() => {
+    if (!selectedEnvio?.id) return;
+    
+    const loadDetalle = async () => {
+      try {
+        const detalle = await enviosApi.getEnvio(selectedEnvio.id);
+        if (detalle) {
+          const envioActualizado = transformEnvio(detalle.envio, detalle.eventos);
+          setSelectedEnvio(envioActualizado);
+          
+          // Actualizar en la lista también
+          setPedidos(prev => prev.map(p => ({
+            ...p,
+            envios: p.envios.map(e => e.id === envioActualizado.id ? envioActualizado : e),
+          })));
+        }
+      } catch (err) {
+        console.error('[EnviosView] Error cargando detalle:', err);
+      }
+    };
+    
+    loadDetalle();
+  }, [selectedEnvio?.id]);
 
   const togglePedido = (id: string) => {
     setExpandedPedidos(prev => {
@@ -214,8 +253,27 @@ export function EnviosView({ onNavigate }: Props) {
     });
   };
 
+  // Actualizar estado de envío
+  const handleUpdateEstado = async (envioId: string, nuevoEstado: EstadoEnvio, descripcion?: string) => {
+    try {
+      setRefreshing(true);
+      await enviosApi.updateEnvio(envioId, {
+        estado: nuevoEstado,
+        descripcion_evento: descripcion || `Estado cambiado a ${nuevoEstado}`,
+        ubicacion: 'Sistema',
+        origen_evento: 'manual',
+      });
+      toast.success('Estado actualizado');
+      await loadEnvios();
+    } catch (err) {
+      toast.error('Error actualizando estado');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Estadísticas globales
-  const allEnvios = PEDIDOS.flatMap(p => p.envios);
+  const allEnvios = pedidos.flatMap(p => p.envios);
   const stats = {
     total:       allEnvios.length,
     entregados:  allEnvios.filter(e => e.estado === 'entregado').length,
@@ -226,7 +284,7 @@ export function EnviosView({ onNavigate }: Props) {
 
   // Filtro de pedidos
   const pedidosFiltrados = useMemo(() => {
-    return PEDIDOS.filter(p => {
+    return pedidos.filter(p => {
       const matchSearch = !search ||
         p.numero.toLowerCase().includes(search.toLowerCase()) ||
         p.cliente.toLowerCase().includes(search.toLowerCase()) ||
@@ -236,7 +294,18 @@ export function EnviosView({ onNavigate }: Props) {
       if (filterTramo !== 'todos' && !p.envios.some(e => e.tramo === filterTramo)) return false;
       return true;
     });
-  }, [search, filterEstado, filterTramo]);
+  }, [pedidos, search, filterEstado, filterTramo]);
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8F9FA' }}>
+        <div style={{ textAlign: 'center' }}>
+          <Loader2 size={32} color={ORANGE} style={{ animation: 'spin 1s linear infinite' }} />
+          <p style={{ color: '#6B7280', marginTop: 12, fontSize: '0.875rem' }}>Cargando envíos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -246,6 +315,7 @@ export function EnviosView({ onNavigate }: Props) {
         subtitle={`${stats.total} envíos totales · ${stats.en_transito} en tránsito · ${stats.entregados} entregados`}
         actions={[
           { label: '← Logística', onClick: () => onNavigate('logistica') },
+          { label: refreshing ? 'Actualizando...' : '🔄 Actualizar', onClick: () => loadEnvios() },
           { label: '+ Nuevo Envío', primary: true, onClick: () => {} },
         ]}
       />
@@ -436,12 +506,18 @@ export function EnviosView({ onNavigate }: Props) {
                 Ver tracking externo
               </button>
               {selectedEnvio.estado === 'fallido' && (
-                <button style={{ flex: 1, padding: '9px', border: 'none', borderRadius: '8px', backgroundColor: ORANGE, color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                <button 
+                  onClick={() => handleUpdateEstado(selectedEnvio.id, 'creado', 'Re-despachado después de fallo')}
+                  style={{ flex: 1, padding: '9px', border: 'none', borderRadius: '8px', backgroundColor: ORANGE, color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
                   Re-despachar
                 </button>
               )}
               {selectedEnvio.estado === 'creado' && (
-                <button style={{ flex: 1, padding: '9px', border: 'none', borderRadius: '8px', backgroundColor: '#2563EB', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                <button 
+                  onClick={() => handleUpdateEstado(selectedEnvio.id, 'despachado', 'Envío despachado')}
+                  style={{ flex: 1, padding: '9px', border: 'none', borderRadius: '8px', backgroundColor: '#2563EB', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                >
                   Despachar
                 </button>
               )}

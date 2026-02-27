@@ -156,7 +156,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     section: 'envios',
     viewFile: 'EnviosView.tsx',
     isReal: true,
-    hasSupabase: false,
+    hasSupabase: true,
     notes: 'Vista árbol PedidoMadre→EnvíosHijos · estados · multi-tramo · panel detalle + timeline',
   },
   {

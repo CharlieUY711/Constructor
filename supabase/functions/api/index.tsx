@@ -21,6 +21,7 @@ import { ordenes } from "./ordenes.tsx";
 import { categorias } from "./categorias.tsx";
 import { subcategorias } from "./subcategorias.tsx";
 import { disputas } from "./disputas.tsx";
+import { envios } from "./envios.tsx";
 
 const app = new Hono();
 
@@ -53,6 +54,7 @@ app.route("/roles", roles);
 app.route("/pedidos", pedidos);
 app.route("/metodos-pago", metodosPago);
 app.route("/metodos-envio", metodosEnvio);
+app.route("/envios", envios);
 
 // Marketing
 app.route("/etiquetas", etiquetas);

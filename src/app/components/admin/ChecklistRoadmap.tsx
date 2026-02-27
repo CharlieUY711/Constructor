@@ -28,6 +28,7 @@ import {
   Inbox,
   Paperclip,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -368,6 +369,10 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+  const [tasksByModule, setTasksByModule] = useState<Record<string, roadmapApi.RoadmapTask[]>>({});
+  const [ideasPromovidas, setIdeasPromovidas] = useState<roadmapApi.IdeaPromovida[]>([]);
+  const [showIdeasTab, setShowIdeasTab] = useState(false);
   const [modules, setModules] = useState<Module[]>(() => MODULES_DATA.map(applyBuiltStatus));
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -386,6 +391,7 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
     "marketplace-productos":    { endpointUrl: `/api/productos/market`, tableName: "productos_market" },
     "marketplace-departamentos":{ endpointUrl: `/api/departamentos`,    tableName: "departamentos" },
     "marketplace-carrito":      { endpointUrl: `/api/carrito`,          tableName: "carrito" },
+    "logistics-shipping":       { endpointUrl: `/api/envios`,           tableName: "envios_75638143" },
   };
 
   useEffect(() => {
@@ -395,7 +401,31 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
       return;
     }
     loadModules();
+    loadIdeasPromovidas();
   }, []);
+
+  const loadIdeasPromovidas = async () => {
+    if (!projectId) return;
+    try {
+      const ideas = await roadmapApi.getIdeasPromovidas();
+      setIdeasPromovidas(ideas.filter(i => i.estado === 'pendiente'));
+    } catch (err) {
+      console.error('[ChecklistRoadmap] Error cargando ideas:', err);
+    }
+  };
+
+  const handleResolverIdea = async (id: string, estado: 'aprobada' | 'rechazada' | 'convertida', moduleId?: string) => {
+    try {
+      await roadmapApi.resolverIdea(id, estado, moduleId);
+      await loadIdeasPromovidas();
+      if (estado === 'convertida') {
+        await loadModules();
+      }
+      toast.success(`Idea ${estado === 'aprobada' ? 'aprobada' : estado === 'rechazada' ? 'rechazada' : 'convertida a módulo'}`);
+    } catch (err) {
+      toast.error('Error resolviendo idea');
+    }
+  };
 
   const loadModules = async () => {
     if (!projectId) return;
@@ -627,6 +657,60 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const collapseAllCategories = () =>
     setExpandedCategories(new Set());
 
+  // ── Tasks ────────────────────────────────────────────────────────────────────
+  const loadTasks = async (moduleId: string) => {
+    if (tasksByModule[moduleId]) return;
+    try {
+      const tasks = await roadmapApi.getTasks(moduleId);
+      setTasksByModule(prev => ({ ...prev, [moduleId]: tasks }));
+    } catch (err) {
+      console.error(`[ChecklistRoadmap] Error cargando tasks:`, err);
+    }
+  };
+
+  const handleToggleTasks = (moduleId: string) => {
+    setExpandedTasks(prev => {
+      const ne = new Set(prev);
+      if (ne.has(moduleId)) {
+        ne.delete(moduleId);
+      } else {
+        ne.add(moduleId);
+        loadTasks(moduleId);
+      }
+      return ne;
+    });
+  };
+
+  const handleCreateTask = async (moduleId: string, submoduleId: string | undefined, nombre: string) => {
+    try {
+      const task = await roadmapApi.createTask({ module_id: moduleId, submodule_id: submoduleId, nombre, status: 'todo' });
+      setTasksByModule(prev => ({ ...prev, [moduleId]: [...(prev[moduleId] || []), task] }));
+      toast.success('Task creada');
+    } catch (err) {
+      toast.error('Error creando task');
+    }
+  };
+
+  const handleUpdateTask = async (taskId: string, moduleId: string, updates: Partial<roadmapApi.TaskInput>) => {
+    try {
+      const updated = await roadmapApi.updateTask(taskId, updates);
+      setTasksByModule(prev => ({ ...prev, [moduleId]: (prev[moduleId] || []).map(t => t.id === taskId ? updated : t) }));
+      toast.success('Task actualizada');
+    } catch (err) {
+      toast.error('Error actualizando task');
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string, moduleId: string) => {
+    try {
+      await roadmapApi.deleteTask(taskId);
+      setTasksByModule(prev => ({ ...prev, [moduleId]: (prev[moduleId] || []).filter(t => t.id !== taskId) }));
+      toast.success('Task eliminada');
+    } catch (err) {
+      toast.error('Error eliminando task');
+    }
+  };
+
   // â”€â”€ AuditorÃ­a automÃ¡tica â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const runAudit = async () => {
     if (!projectId) {
@@ -645,24 +729,18 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
         const tieneView = BUILT_MODULE_IDS.has(mod.id);
         const tieneBackend = SUPABASE_MODULE_IDS.has(mod.id);
         
-        // Actualizar tiene_view y tiene_backend en SQL
-        await roadmapApi.saveModule(mod.id, {
+        // Ejecutar auditorÃ­a completa (incluye tiene_view y tiene_backend)
+        const endpointUrl = auditInfo.endpointUrl 
+          ? `https://${projectId}.supabase.co/functions/v1${auditInfo.endpointUrl}`
+          : undefined;
+        
+        await roadmapApi.auditModule(mod.id, {
+          moduleId: mod.id,
+          endpointUrl,
+          tableName: auditInfo.tableName,
           tiene_view: tieneView,
           tiene_backend: tieneBackend,
         });
-        
-        // Ejecutar auditorÃ­a completa si hay endpoint o tabla
-        if (auditInfo.endpointUrl || auditInfo.tableName) {
-          const endpointUrl = auditInfo.endpointUrl 
-            ? `https://${projectId}.supabase.co/functions/v1${auditInfo.endpointUrl}`
-            : undefined;
-          
-          await roadmapApi.auditModule(mod.id, {
-            moduleId: mod.id,
-            endpointUrl,
-            tableName: auditInfo.tableName,
-          });
-        }
       });
       
       await Promise.all(auditPromises);
@@ -793,6 +871,15 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
                 >
                   <ListOrdered className="h-3.5 w-3.5" />
                   {modules.filter(m => m.status === "spec-ready").length} en cola
+                </button>
+              )}
+              {ideasPromovidas.length > 0 && (
+                <button
+                  onClick={() => setShowIdeasTab(!showIdeasTab)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-300 text-sm font-bold hover:bg-orange-200 transition-colors"
+                >
+                  <Inbox className="h-3.5 w-3.5" />
+                  {ideasPromovidas.length} idea{ideasPromovidas.length !== 1 ? 's' : ''} pendiente{ideasPromovidas.length !== 1 ? 's' : ''}
                 </button>
               )}
             </div>
@@ -1194,6 +1281,18 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
                                 </button>
                               </div>
 
+                              {/* Chevron tasks */}
+                              <div className="w-7 flex-shrink-0 flex justify-center">
+                                <button
+                                  onClick={() => handleToggleTasks(module.id)}
+                                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title={expandedTasks.has(module.id) ? "Ocultar tasks" : "Ver tasks"}
+                                >
+                                  {expandedTasks.has(module.id)
+                                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                    : <ListOrdered className="h-4 w-4 text-muted-foreground" />}
+                                </button>
+                              </div>
                               {/* Chevron submÃ³dulos */}
                               <div className="w-7 flex-shrink-0 flex justify-center">
                                 {module.submodules ? (
@@ -1259,6 +1358,80 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
                                         </div>
                                       );
                                     })}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            {/* â”€â”€ Tasks expandibles â”€â”€ */}
+                            <AnimatePresence initial={false}>
+                              {expandedTasks.has(module.id) && (
+                                <motion.div
+                                  key={`tasks-${module.id}`}
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.15 }}
+                                  style={{ overflow: "hidden" }}
+                                >
+                                  <div className="bg-background/40 border-t border-dashed border-border/30 pl-8 py-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-semibold text-muted-foreground">Tasks</span>
+                                      <button
+                                        onClick={() => {
+                                          const nombre = prompt('Nombre de la task:');
+                                          if (nombre) handleCreateTask(module.id, undefined, nombre);
+                                        }}
+                                        className="text-xs px-2 py-1 bg-[#FF6835]/10 text-[#FF6835] rounded hover:bg-[#FF6835]/20 transition-colors"
+                                      >
+                                        + Agregar
+                                      </button>
+                                    </div>
+                                    {tasksByModule[module.id]?.length ? (
+                                      <div className="space-y-1">
+                                        {module.submodules?.map(sub => {
+                                          const subTasks = (tasksByModule[module.id] || []).filter(t => t.submodule_id === sub.id);
+                                          if (subTasks.length === 0) return null;
+                                          return (
+                                            <div key={sub.id} className="ml-4 mb-2">
+                                              <div className="text-xs font-medium text-muted-foreground mb-1">{sub.name}</div>
+                                              {subTasks.map(task => (
+                                                <div key={task.id} className="flex items-center gap-2 py-1 px-2 hover:bg-accent/10 rounded text-xs">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={task.status === 'done'}
+                                                    onChange={() => handleUpdateTask(task.id, module.id, { status: task.status === 'done' ? 'todo' : 'done' })}
+                                                    className="h-3 w-3"
+                                                  />
+                                                  <span className={`flex-1 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                                                    {task.nombre}
+                                                  </span>
+                                                  {task.blocker && <span className="text-red-500 text-xs">🚫</span>}
+                                                  <button onClick={() => handleDeleteTask(task.id, module.id)} className="text-red-500 hover:text-red-700">×</button>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          );
+                                        })}
+                                        {(tasksByModule[module.id] || []).filter(t => !t.submodule_id).map(task => (
+                                          <div key={task.id} className="flex items-center gap-2 py-1 px-2 hover:bg-accent/10 rounded text-xs">
+                                            <input
+                                              type="checkbox"
+                                              checked={task.status === 'done'}
+                                              onChange={() => handleUpdateTask(task.id, module.id, { status: task.status === 'done' ? 'todo' : 'done' })}
+                                              className="h-3 w-3"
+                                            />
+                                            <span className={`flex-1 ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                                              {task.nombre}
+                                            </span>
+                                            {task.blocker && <span className="text-red-500 text-xs">🚫</span>}
+                                            <button onClick={() => handleDeleteTask(task.id, module.id)} className="text-red-500 hover:text-red-700">×</button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-xs text-muted-foreground italic">No hay tasks aún</div>
+                                    )}
                                   </div>
                                 </motion.div>
                               )}

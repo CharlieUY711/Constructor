@@ -72,10 +72,18 @@ ALTER TABLE roadmap_tasks     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE roadmap_historial ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ideas_promovidas  ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "service_role_roadmap_modules"   ON roadmap_modules   FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_roadmap_tasks"     ON roadmap_tasks     FOR ALL TO service_role USING (true) WITH CHECK (true);
+-- Políticas RLS (DROP IF EXISTS para hacer la migración idempotente)
+DROP POLICY IF EXISTS "service_role_roadmap_modules" ON roadmap_modules;
+CREATE POLICY "service_role_roadmap_modules" ON roadmap_modules FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "service_role_roadmap_tasks" ON roadmap_tasks;
+CREATE POLICY "service_role_roadmap_tasks" ON roadmap_tasks FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "service_role_roadmap_historial" ON roadmap_historial;
 CREATE POLICY "service_role_roadmap_historial" ON roadmap_historial FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY "service_role_ideas_promovidas"  ON ideas_promovidas  FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "service_role_ideas_promovidas" ON ideas_promovidas;
+CREATE POLICY "service_role_ideas_promovidas" ON ideas_promovidas FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Índices para performance
 CREATE INDEX IF NOT EXISTS idx_roadmap_modules_status ON roadmap_modules(status);

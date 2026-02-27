@@ -88,6 +88,8 @@ export interface AuditOpts {
   moduleId: string;
   endpointUrl?: string;
   tableName?: string;
+  tiene_view?: boolean;
+  tiene_backend?: boolean;
 }
 
 export interface AuditResult {
