@@ -252,5 +252,81 @@ productos.delete("/market/variantes/:id", async (c) => {
   }
 });
 
+
+// --------------------------------------------------------------
+// SECONDHAND
+// --------------------------------------------------------------
+
+// GET /productos/secondhand
+productos.get("/secondhand", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const { departamento, estado, search, limit: lim, offset: off, order_by, order_dir } = c.req.query();
+    let query = supabase.from("productos_secondhand").select("*").order(order_by ?? "created_at", { ascending: order_dir === "asc" });
+    if (departamento) query = query.eq("departamento", departamento);
+    if (estado)       query = query.eq("estado", estado);
+    if (search)       query = query.ilike("nombre", `%${search}%`);
+    if (lim)          query = query.limit(parseInt(lim));
+    if (off)          query = query.range(parseInt(off), parseInt(off) + parseInt(lim ?? "50") - 1);
+    const { data, error } = await query;
+    if (error) throw error;
+    return c.json({ data: (data ?? []).map((p: any) => ({ ...p, precio: p.precio_1 })) });
+  } catch (error) {
+    return c.json({ error: `Error listando productos secondhand: ${errMsg(error)}` }, 500);
+  }
+});
+
+// GET /productos/secondhand/:id
+productos.get("/secondhand/:id", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const { data, error } = await supabase.from("productos_secondhand").select("*").eq("id", c.req.param("id")).single();
+    if (error) throw error;
+    if (!data) return c.json({ error: "Producto no encontrado" }, 404);
+    return c.json({ data: { ...data, precio: data.precio_1 } });
+  } catch (error) {
+    return c.json({ error: `Error obteniendo producto secondhand: ${errMsg(error)}` }, 500);
+  }
+});
+
+// POST /productos/secondhand
+productos.post("/secondhand", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const body = await c.req.json();
+    if (!body.nombre) return c.json({ error: "nombre es requerido" }, 400);
+    const { data, error } = await supabase.from("productos_secondhand").insert({ ...body, estado: body.estado ?? "activo" }).select().single();
+    if (error) throw error;
+    return c.json({ data }, 201);
+  } catch (error) {
+    return c.json({ error: `Error creando producto secondhand: ${errMsg(error)}` }, 500);
+  }
+});
+
+// PUT /productos/secondhand/:id
+productos.put("/secondhand/:id", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const body = await c.req.json();
+    const { data, error } = await supabase.from("productos_secondhand").update(body).eq("id", c.req.param("id")).select().single();
+    if (error) throw error;
+    return c.json({ data });
+  } catch (error) {
+    return c.json({ error: `Error actualizando producto secondhand: ${errMsg(error)}` }, 500);
+  }
+});
+
+// DELETE /productos/secondhand/:id
+productos.delete("/secondhand/:id", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const { error } = await supabase.from("productos_secondhand").delete().eq("id", c.req.param("id"));
+    if (error) throw error;
+    return c.json({ success: true });
+  } catch (error) {
+    return c.json({ error: `Error eliminando producto secondhand: ${errMsg(error)}` }, 500);
+  }
+});
 export { productos };
+
 
