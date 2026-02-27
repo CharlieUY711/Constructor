@@ -1,19 +1,19 @@
-/**
- * IdeaQuickModal — Modal compacto de la lamparita 💡
- * Acceso rápido desde Mi Vista (Dashboard).
- * Área + texto libre · Recientes del área · Relacionar · Guardar
+﻿/**
+ * IdeaQuickModal â€” Modal compacto de la lamparita ðŸ’¡
+ * Acceso rÃ¡pido desde Mi Vista (Dashboard).
+ * Ãrea + texto libre Â· Recientes del Ã¡rea Â· Relacionar Â· Guardar
  */
 
 import React, { useState, useEffect } from 'react';
 import { X, Lightbulb, ExternalLink, Link2, Check } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 
 const API = `https://${projectId}.supabase.co/functions/v1/api/ideas`;
 const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };
 const ORANGE = '#FF6835';
 
 const AREAS = [
-  'General', 'Logística', 'Pagos', 'Tiendas', 'Redes Sociales',
+  'General', 'LogÃ­stica', 'Pagos', 'Tiendas', 'Redes Sociales',
   'Servicios', 'eCommerce', 'Marketing', 'ERP', 'Sistema', 'Herramientas',
 ];
 
@@ -38,7 +38,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Cargar ideas cuando cambia el área
+  // Cargar ideas cuando cambia el Ã¡rea
   useEffect(() => {
     setSelectedRelated([]);
     (async () => {
@@ -169,7 +169,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
         </div>
 
         <div style={{ padding: '14px 16px' }}>
-          {/* Área selector */}
+          {/* Ãrea selector */}
           <div style={{ marginBottom: 11 }}>
             <label style={{
               fontSize: '0.68rem',
@@ -180,7 +180,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
               display: 'block',
               marginBottom: 5,
             }}>
-              Área
+              Ãrea
             </label>
             <select
               value={area}
@@ -217,7 +217,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
             <textarea
               value={text}
               onChange={e => setText(e.target.value)}
-              placeholder="¿Qué se te ocurrió?"
+              placeholder="Â¿QuÃ© se te ocurriÃ³?"
               rows={3}
               style={{
                 width: '100%',
@@ -239,7 +239,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
             />
           </div>
 
-          {/* Ideas recientes del área con opción de relacionar */}
+          {/* Ideas recientes del Ã¡rea con opciÃ³n de relacionar */}
           {recent.length > 0 && (
             <div style={{ marginBottom: 12 }}>
               <div style={{
@@ -254,7 +254,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
                 gap: 5,
               }}>
                 <Link2 size={10} />
-                Recientes en {area} — click para relacionar
+                Recientes en {area} â€” click para relacionar
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {recent.map(idea => {
@@ -312,7 +312,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
                           })}
                           {idea.relatedIds?.length > 0 && (
                             <span style={{ marginLeft: 6, color: ORANGE }}>
-                              · {idea.relatedIds.length} relacionada{idea.relatedIds.length > 1 ? 's' : ''}
+                              Â· {idea.relatedIds.length} relacionada{idea.relatedIds.length > 1 ? 's' : ''}
                             </span>
                           )}
                         </p>
@@ -340,7 +340,7 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
             </div>
           )}
 
-          {/* Botón guardar */}
+          {/* BotÃ³n guardar */}
           <button
             disabled={!text.trim() || saving}
             onClick={handleSave}
@@ -362,9 +362,9 @@ export function IdeaQuickModal({ onClose, onOpenBoard }: Props) {
             }}
           >
             {saved ? (
-              <><Check size={15} strokeWidth={3} /> Guardada ✓</>
+              <><Check size={15} strokeWidth={3} /> Guardada âœ“</>
             ) : saving ? (
-              'Guardando…'
+              'Guardandoâ€¦'
             ) : (
               <><Lightbulb size={14} /> Guardar idea</>
             )}
