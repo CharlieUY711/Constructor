@@ -13,25 +13,31 @@ const BASE = `https://${projectId}.supabase.co/functions/v1/api`;
 const STORAGE = `https://${projectId}.supabase.co/storage/v1`;
 const HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}` };
 
-// Sube una imagen a Supabase Storage y devuelve la URL pública permanente
-async function subirImagen(blobUrl: string, nombre: string): Promise<string> {
-  // Si ya es una URL permanente (no blob), la devolvemos tal cual
-  if (!blobUrl.startsWith('blob:')) return blobUrl;
+// Sanitiza un string para usarlo como nombre de archivo seguro
+function sanitizarNombre(s: string): string {
+  return s
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\-_]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase()
+    .slice(0, 60);
+}
 
-  const res = await fetch(blobUrl);
-  const blob = await res.blob();
-  const ext = blob.type.split('/')[1] ?? 'jpg';
-  const filename = `${Date.now()}-${nombre.replace(/\s+/g, '-').toLowerCase()}.${ext}`;
+// Sube un archivo a Supabase Storage y devuelve la URL pública permanente
+async function subirArchivo(file: File, nombre: string): Promise<string> {
+  const ext = (file.name.split('.').pop() ?? 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const filename = `${Date.now()}-${sanitizarNombre(nombre)}.${ext}`;
 
   const uploadRes = await fetch(`${STORAGE}/object/productos/${filename}`, {
     method: 'POST',
-    headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'Content-Type': blob.type },
-    body: blob,
+    headers: { 'Authorization': `Bearer ${publicAnonKey}`, 'Content-Type': file.type },
+    body: file,
   });
 
   if (!uploadRes.ok) {
     const err = await uploadRes.json();
-    throw new Error(`Error subiendo imagen: ${err.message ?? uploadRes.status}`);
+    throw new Error(`Error subiendo archivo: ${err.message ?? uploadRes.status}`);
   }
 
   return `${STORAGE}/object/public/productos/${filename}`;
@@ -46,7 +52,7 @@ interface Product {
   precio: number;
   precio_original?: number;
   departamento_id?: string;
-  departamento_nombre?: string;
+  departamento?: string;
   imagen_principal?: string;
   imagenes?: string[];
   vendedor_id?: string;
@@ -93,21 +99,48 @@ export function ERPInventarioView({ onNavigate }: Props) {
     setSaving(true);
     setError(null);
     try {
-      // Subir imágenes a Storage y obtener URLs permanentes
+      // Subir archivos a Storage usando el File real
       const imagenesSubidas = await Promise.all(
-        (data.images ?? []).map(img => subirImagen(img.url, data.name))
+        (data.images ?? []).map(img =>
+          img.file
+            ? subirArchivo(img.file, data.name)
+            : img.url.startsWith('blob:') ? Promise.reject(new Error('Imagen sin archivo')) : Promise.resolve(img.url)
+        )
+      );
+      const videosSubidos = await Promise.all(
+        (data.videos ?? []).map(vid =>
+          vid.file
+            ? subirArchivo(vid.file, data.name)
+            : vid.url.startsWith('blob:') ? Promise.reject(new Error('Video sin archivo')) : Promise.resolve(vid.url)
+        )
       );
 
       const body = {
         nombre: data.name,
         descripcion: data.description || null,
-        precio: parseFloat(data.price) || 0,
+        precio_1: parseFloat(data.price) || 0,
         precio_original: data.discount ? parseFloat(data.price) : null,
-        departamento_nombre: data.category || null,
+        departamento: data.category || null,
         imagen_principal: imagenesSubidas[0] ?? null,
-        imagenes: imagenesSubidas,
+        imagenes: imagenesSubidas.length > 0 ? imagenesSubidas : null,
+        videos: videosSubidos.length > 0 ? videosSubidos.map((url: string) => ({ url })) : null,
         estado: 'activo',
         badge: data.tags?.[0] ?? null,
+        sku: data.sku || null,
+        codigo_barras: data.barcode || null,
+        marca: data.brand || null,
+        costo: parseFloat(data.cost) || null,
+        proveedor: data.supplier || null,
+        impuesto: parseFloat(data.taxRate) || null,
+        garantia: data.warranty || null,
+        peso: parseFloat(data.weight) || null,
+        alto: parseFloat(data.dimH) || null,
+        ancho: parseFloat(data.dimW) || null,
+        largo: parseFloat(data.dimL) || null,
+        numero_serie: data.serialNumber || null,
+        seo_titulo: data.seoTitle || null,
+        seo_descripcion: data.seoDesc || null,
+        atributos: Object.keys(data.mlAttributes || {}).length > 0 ? data.mlAttributes : null,
       };
 
       if (selectedProduct?.id) {
@@ -155,10 +188,10 @@ export function ERPInventarioView({ onNavigate }: Props) {
     }
   };
 
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.departamento_nombre).filter(Boolean)))];
+  const categories = ['all', ...Array.from(new Set(products.map(p => p.departamento).filter(Boolean)))];
 
   const filtered = products.filter(p => {
-    if (catFilter !== 'all' && p.departamento_nombre !== catFilter) return false;
+    if (catFilter !== 'all' && p.departamento !== catFilter) return false;
     if (search && !p.nombre.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -282,7 +315,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
                             <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{p.nombre}</span>
                             {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#9CA3AF', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descripcion}</p>}
                           </td>
-                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>{p.departamento_nombre ?? '—'}</td>
+                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>{p.departamento ?? '—'}</td>
                           <td style={{ padding: '12px 14px', fontWeight: '700', color: '#111827', fontSize: '0.875rem' }}>${p.precio?.toFixed(2)}</td>
                           <td style={{ padding: '12px 14px' }}>
                             <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', backgroundColor: p.estado === 'activo' ? '#DCFCE7' : '#F3F4F6', color: p.estado === 'activo' ? '#15803D' : '#6B7280' }}>
@@ -338,7 +371,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
             name: selectedProduct.nombre,
             description: selectedProduct.descripcion ?? '',
             price: String(selectedProduct.precio),
-            category: selectedProduct.departamento_nombre ?? '',
+            category: selectedProduct.departamento ?? '',
             images: selectedProduct.imagen_principal
               ? [{ id: '1', name: 'imagen', url: selectedProduct.imagen_principal, type: 'image', size: '' }]
               : [],
