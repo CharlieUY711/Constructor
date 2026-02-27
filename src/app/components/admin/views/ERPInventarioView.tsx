@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import { Plus, Search, Edit2, Trash2, AlertTriangle, Package, TrendingDown, BarChart2, Upload, Download, RefreshCw } from 'lucide-react';
 import { ProductModal } from '../ProductModal';
 import type { ProductFormData } from '../ProductModal';
-import { projectId, publicAnonKey } from '../../../../../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
@@ -24,7 +24,7 @@ function sanitizarNombre(s: string): string {
     .slice(0, 60);
 }
 
-// Sube un archivo a Supabase Storage y devuelve la URL pública permanente
+// Sube un archivo a Supabase Storage y devuelve la URL pÃºblica permanente
 async function subirArchivo(file: File, nombre: string): Promise<string> {
   const ext = (file.name.split('.').pop() ?? 'jpg').replace(/[^a-z0-9]/gi, '').toLowerCase();
   const filename = `${Date.now()}-${sanitizarNombre(nombre)}.${ext}`;
@@ -176,7 +176,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    if (!window.confirm(`¿Eliminar "${nombre}"?`)) return;
+    if (!window.confirm(`Â¿Eliminar "${nombre}"?`)) return;
     try {
       const res = await fetch(`${BASE}/productos/market/${id}`, { method: 'DELETE', headers: HEADERS });
       const json = await res.json();
@@ -202,23 +202,23 @@ export function ERPInventarioView({ onNavigate }: Props) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <OrangeHeader
         icon={Package}
-        title="Catálogo de Artículos"
-        subtitle="Gestión de productos del marketplace"
+        title="CatÃ¡logo de ArtÃ­culos"
+        subtitle="GestiÃ³n de productos del marketplace"
         actions={[
           { label: 'Volver', onClick: () => onNavigate('gestion') },
-          { label: '+ Nuevo Artículo', primary: true, onClick: () => { setSelectedProduct(null); setShowModal(true); } },
+          { label: '+ Nuevo ArtÃ­culo', primary: true, onClick: () => { setSelectedProduct(null); setShowModal(true); } },
         ]}
       />
 
       {/* Mensajes */}
       {error && (
         <div style={{ backgroundColor: '#FEE2E2', color: '#DC2626', padding: '10px 24px', fontSize: '0.85rem', fontWeight: '600', borderBottom: '1px solid #FECACA' }}>
-          ⚠ {error}
+          âš  {error}
         </div>
       )}
       {successMsg && (
         <div style={{ backgroundColor: '#DCFCE7', color: '#15803D', padding: '10px 24px', fontSize: '0.85rem', fontWeight: '600', borderBottom: '1px solid #BBF7D0' }}>
-          ✓ {successMsg}
+          âœ“ {successMsg}
         </div>
       )}
 
@@ -226,8 +226,8 @@ export function ERPInventarioView({ onNavigate }: Props) {
       <div style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
         <div style={{ display: 'flex', padding: '0 28px', alignItems: 'center' }}>
           {[
-            { id: 'articulos' as ViewTab,   label: '📦 Artículos' },
-            { id: 'alertas' as ViewTab,     label: `⚠️ Inactivos (${inactivos.length})` },
+            { id: 'articulos' as ViewTab,   label: 'ðŸ“¦ ArtÃ­culos' },
+            { id: 'alertas' as ViewTab,     label: `âš ï¸ Inactivos (${inactivos.length})` },
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               style={{ padding: '14px 18px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', color: tab === t.id ? ORANGE : '#6B7280', fontWeight: tab === t.id ? '700' : '500', fontSize: '0.875rem', borderBottom: tab === t.id ? `2px solid ${ORANGE}` : '2px solid transparent' }}>
@@ -247,7 +247,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
           {/* KPIs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
             {[
-              { label: 'Total Artículos', value: products.length.toString(), Icon: Package, color: '#111827' },
+              { label: 'Total ArtÃ­culos', value: products.length.toString(), Icon: Package, color: '#111827' },
               { label: 'Activos',         value: products.filter(p => p.estado === 'activo').length.toString(), Icon: BarChart2, color: '#16A34A' },
               { label: 'Inactivos',       value: inactivos.length.toString(), Icon: AlertTriangle, color: '#DC2626' },
             ].map((s, i) => (
@@ -261,7 +261,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
             ))}
           </div>
 
-          {/* ── ARTÍCULOS ── */}
+          {/* â”€â”€ ARTÃCULOS â”€â”€ */}
           {tab === 'articulos' && (
             <>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
@@ -272,7 +272,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
                 </div>
                 <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
                   style={{ padding: '9px 12px', border: '1px solid #E5E7EB', borderRadius: '8px', fontSize: '0.82rem', outline: 'none', backgroundColor: '#FFF' }}>
-                  {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'Todas las categorías' : c}</option>)}
+                  {categories.map(c => <option key={c} value={c}>{c === 'all' ? 'Todas las categorÃ­as' : c}</option>)}
                 </select>
               </div>
 
@@ -283,8 +283,8 @@ export function ERPInventarioView({ onNavigate }: Props) {
                 </div>
               ) : filtered.length === 0 ? (
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '60px', textAlign: 'center', color: '#9CA3AF' }}>
-                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>📦</p>
-                  <p style={{ margin: '0 0 16px', fontWeight: '600', color: '#374151' }}>No hay productos todavía</p>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>ðŸ“¦</p>
+                  <p style={{ margin: '0 0 16px', fontWeight: '600', color: '#374151' }}>No hay productos todavÃ­a</p>
                   <button onClick={() => { setSelectedProduct(null); setShowModal(true); }}
                     style={{ padding: '10px 20px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
                     + Cargar primer producto
@@ -295,7 +295,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#F9FAFB' }}>
-                        {['Imagen', 'Nombre', 'Categoría', 'Precio', 'Estado', ''].map(h => (
+                        {['Imagen', 'Nombre', 'CategorÃ­a', 'Precio', 'Estado', ''].map(h => (
                           <th key={h} style={{ padding: '11px 14px', textAlign: 'left', fontSize: '0.72rem', fontWeight: '700', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                       </tr>
@@ -315,7 +315,7 @@ export function ERPInventarioView({ onNavigate }: Props) {
                             <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{p.nombre}</span>
                             {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#9CA3AF', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descripcion}</p>}
                           </td>
-                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>{p.departamento ?? '—'}</td>
+                          <td style={{ padding: '12px 14px', color: '#6B7280', fontSize: '0.8rem' }}>{p.departamento ?? 'â€”'}</td>
                           <td style={{ padding: '12px 14px', fontWeight: '700', color: '#111827', fontSize: '0.875rem' }}>${p.precio?.toFixed(2)}</td>
                           <td style={{ padding: '12px 14px' }}>
                             <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: '700', backgroundColor: p.estado === 'activo' ? '#DCFCE7' : '#F3F4F6', color: p.estado === 'activo' ? '#15803D' : '#6B7280' }}>
@@ -337,13 +337,13 @@ export function ERPInventarioView({ onNavigate }: Props) {
             </>
           )}
 
-          {/* ── INACTIVOS ── */}
+          {/* â”€â”€ INACTIVOS â”€â”€ */}
           {tab === 'alertas' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {inactivos.length === 0 ? (
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '50px', textAlign: 'center', color: '#9CA3AF' }}>
-                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>✅</p>
-                  <p style={{ margin: 0, fontWeight: '600' }}>Todos los productos están activos</p>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>âœ…</p>
+                  <p style={{ margin: 0, fontWeight: '600' }}>Todos los productos estÃ¡n activos</p>
                 </div>
               ) : inactivos.map(p => (
                 <div key={p.id} style={{ backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '14px 18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
