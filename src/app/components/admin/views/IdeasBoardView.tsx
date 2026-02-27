@@ -4,7 +4,7 @@
  * Modulo independiente en Herramientas.
  * Stickers = modulos del sistema + ideas libres.
  * Conectores con 5 colores. Multiples canvases vinculables.
- * Navegacion jerarquica con (o) (padre) y (+) (hijo).
+ * Navegacion jerarquica con circulo padre y cruz hijo.
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
@@ -38,7 +38,7 @@ import { toast } from 'sonner';
 import * as roadmapApi from '../../../services/roadmapApi';
 import { MANIFEST_BY_SECTION } from '../../../utils/moduleManifest';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 import { OrangeHeader } from '../OrangeHeader';
 
 const API = `https://${projectId}.supabase.co/functions/v1/api/ideas`;
@@ -176,7 +176,7 @@ export type CanvasLinkData = {
 
 /* ==============================================
    CUSTOM NODE: STICKER
-============================================== */
+   ============================================== */
 function StickerNode({ id, data, selected }: NodeProps) {
   const d = data as StickerData;
   const [editing, setEditing] = useState(false);
@@ -467,14 +467,13 @@ function StickerNode({ id, data, selected }: NodeProps) {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 }
 
 /* ==============================================
    CUSTOM NODE: CANVAS LINK - circulo padre / cruz hijo
-============================================== */
+   ============================================== */
 function CanvasLinkNode({ data }: NodeProps) {
   const d = data as CanvasLinkData;
   const [hovered, setHovered] = useState(false);
@@ -506,7 +505,7 @@ function CanvasLinkNode({ data }: NodeProps) {
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 4, height: 4 }} />
 
       {isParent ? (
-        /* (o) circulo con punto */
+        // circulo con punto
         <div style={{
           width: 10,
           height: 10,
@@ -514,7 +513,7 @@ function CanvasLinkNode({ data }: NodeProps) {
           backgroundColor: ORANGE,
         }} />
       ) : (
-        /* (+) circulo con cruz */
+        // circulo con cruz
         <svg width="14" height="14" viewBox="0 0 14 14">
           <line x1="7" y1="1" x2="7" y2="13" stroke={ORANGE} strokeWidth="2.2" strokeLinecap="round" />
           <line x1="1" y1="7" x2="13" y2="7" stroke={ORANGE} strokeWidth="2.2" strokeLinecap="round" />
@@ -549,7 +548,7 @@ const NODE_TYPES = { sticker: StickerNode, canvasLink: CanvasLinkNode };
 
 /* ==============================================
    PANEL IZQUIERDO: FAMILIAS DE MÓDULOS
-============================================== */
+   ============================================== */
 interface ModulePanelProps {
   canvasNodes: Node[];
   onDragStart: (e: React.DragEvent, family: typeof FAMILIES[0], mod: { id: string; label: string }) => void;
@@ -692,7 +691,7 @@ function ModulePanel({ canvasNodes, onDragStart, onAddIdea }: ModulePanelProps) 
 
 /* ==============================================
    MODAL: NUEVA IDEA
-============================================== */
+   ============================================== */
 const AREAS = ['General', 'Logística', 'Pagos', 'Tiendas', 'Redes Sociales', 'Servicios', 'eCommerce', 'Marketing', 'ERP', 'Sistema', 'Herramientas'];
 
 interface IdeaModalProps {
@@ -841,7 +840,7 @@ function IdeaModal({ onClose, onSave, ideas }: IdeaModalProps) {
 
 /* ==============================================
    COMPONENTE INTERNO (necesita useReactFlow)
-============================================== */
+   ============================================== */
 interface InnerProps {
   canvases: any[];
   activeCanvas: any;
@@ -1375,7 +1374,7 @@ function IdeasBoardInner({
 
 /* ==============================================
    MAIN VIEW (con ReactFlowProvider + data layer)
-============================================== */
+   ============================================== */
 interface Props {
   onNavigate: (section: MainSection) => void;
 }
