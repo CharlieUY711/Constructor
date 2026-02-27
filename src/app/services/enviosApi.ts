@@ -7,6 +7,7 @@ const BASE = `https://${projectId}.supabase.co/functions/v1/api/envios`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,
+  'apikey': publicAnonKey,
 };
 
 export type EstadoEnvio =
