@@ -27,7 +27,7 @@ carrito.get("/", async (c) => {
     }
 
     let query = supabase
-      .from("carrito_75638143")
+      .from("carrito")
       .select("*")
       .order("created_at", { ascending: true });
 
@@ -59,7 +59,7 @@ carrito.post("/", async (c) => {
 
     // Si ya existe el producto en el carrito, sumar cantidad
     let existingQuery = supabase
-      .from("carrito_75638143")
+      .from("carrito")
       .select("*")
       .eq("producto_id", body.producto_id)
       .eq("producto_tipo", body.producto_tipo);
@@ -71,7 +71,7 @@ carrito.post("/", async (c) => {
 
     if (existing) {
       const { data, error } = await supabase
-        .from("carrito_75638143")
+        .from("carrito")
         .update({
           cantidad: existing.cantidad + (body.cantidad ?? 1),
           precio_unitario: body.precio_unitario,
@@ -96,7 +96,7 @@ carrito.post("/", async (c) => {
     };
 
     const { data, error } = await supabase
-      .from("carrito_75638143")
+      .from("carrito")
       .insert(payload)
       .select()
       .single();
@@ -121,7 +121,7 @@ carrito.put("/:id", async (c) => {
     }
 
     let query = supabase
-      .from("carrito_75638143")
+      .from("carrito")
       .update({ cantidad, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"));
 
@@ -144,7 +144,7 @@ carrito.delete("/:id", async (c) => {
     const { sesion_id, usuario_id } = c.req.query();
 
     let query = supabase
-      .from("carrito_75638143")
+      .from("carrito")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -170,7 +170,7 @@ carrito.delete("/", async (c) => {
       return c.json({ error: "Se requiere sesion_id o usuario_id" }, 400);
     }
 
-    let query = supabase.from("carrito_75638143").delete();
+    let query = supabase.from("carrito").delete();
     if (usuario_id) query = query.eq("usuario_id", usuario_id);
     else            query = query.eq("sesion_id", sesion_id);
 
@@ -184,3 +184,4 @@ carrito.delete("/", async (c) => {
 });
 
 export { carrito };
+

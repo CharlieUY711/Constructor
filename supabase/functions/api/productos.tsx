@@ -1,4 +1,4 @@
-﻿import { Hono } from "npm:hono";
+import { Hono } from "npm:hono";
 import { createClient } from "npm:@supabase/supabase-js";
 
 const productos = new Hono();
@@ -15,9 +15,9 @@ const errMsg = (e: unknown): string =>
   ? String((e as { message: unknown }).message)
   : JSON.stringify(e);
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
 // PRODUCTOS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
 
 // GET /productos/market
 productos.get("/market", async (c) => {
@@ -30,7 +30,7 @@ productos.get("/market", async (c) => {
     } = c.req.query();
 
     let query = supabase
-      .from("productos_market_75638143")
+      .from("productos_market")
       .select("*")
       .order(order_by ?? "created_at", { ascending: order_dir === "asc" });
 
@@ -61,10 +61,10 @@ productos.get("/market/:id", async (c) => {
     const id = c.req.param("id");
 
     const [productoRes, variantesRes, sustitutosRes, comentariosRes] = await Promise.all([
-      supabase.from("productos_market_75638143").select("*").eq("id", id).single(),
-      supabase.from("variantes_75638143").select("*").eq("producto_id", id).order("created_at"),
-      supabase.from("sustitutos_75638143").select("*, sustituto:producto_sustituto_id(id, nombre, imagen_principal, precio_1, estado)").eq("producto_id", id).order("orden"),
-      supabase.from("producto_comentarios_75638143").select("*").eq("producto_id", id).order("created_at", { ascending: false }),
+      supabase.from("productos_market").select("*").eq("id", id).single(),
+      supabase.from("variantes").select("*").eq("producto_id", id).order("created_at"),
+      supabase.from("sustitutos").select("*, sustituto:producto_sustituto_id(id, nombre, imagen_principal, precio_1, estado)").eq("producto_id", id).order("orden"),
+      supabase.from("producto_comentarios").select("*").eq("producto_id", id).order("created_at", { ascending: false }),
     ]);
 
     if (productoRes.error) throw productoRes.error;
@@ -72,7 +72,7 @@ productos.get("/market/:id", async (c) => {
 
     // Incrementar visitas
     await supabase
-      .from("productos_market_75638143")
+      .from("productos_market")
       .update({ visitas: (productoRes.data.visitas ?? 0) + 1 })
       .eq("id", id);
 
@@ -101,7 +101,7 @@ productos.post("/market", async (c) => {
     const { variantes, sustitutos, ...productoData } = body;
 
     const { data, error } = await supabase
-      .from("productos_market_75638143")
+      .from("productos_market")
       .insert({ ...productoData, estado: productoData.estado ?? "activo" })
       .select()
       .single();
@@ -110,14 +110,14 @@ productos.post("/market", async (c) => {
 
     // Insertar variantes si vienen
     if (variantes?.length) {
-      await supabase.from("variantes_75638143").insert(
+      await supabase.from("variantes").insert(
         variantes.map((v: any) => ({ ...v, producto_id: data.id }))
       );
     }
 
     // Insertar sustitutos si vienen
     if (sustitutos?.length) {
-      await supabase.from("sustitutos_75638143").insert(
+      await supabase.from("sustitutos").insert(
         sustitutos.map((s: any) => ({ ...s, producto_id: data.id }))
       );
     }
@@ -137,7 +137,7 @@ productos.put("/market/:id", async (c) => {
     const { variantes, sustitutos, comentarios, ...productoData } = body;
 
     const { data, error } = await supabase
-      .from("productos_market_75638143")
+      .from("productos_market")
       .update(productoData)
       .eq("id", id)
       .select()
@@ -147,9 +147,9 @@ productos.put("/market/:id", async (c) => {
 
     // Reemplazar variantes si vienen
     if (variantes !== undefined) {
-      await supabase.from("variantes_75638143").delete().eq("producto_id", id);
+      await supabase.from("variantes").delete().eq("producto_id", id);
       if (variantes.length) {
-        await supabase.from("variantes_75638143").insert(
+        await supabase.from("variantes").insert(
           variantes.map((v: any) => ({ ...v, producto_id: id }))
         );
       }
@@ -157,9 +157,9 @@ productos.put("/market/:id", async (c) => {
 
     // Reemplazar sustitutos si vienen
     if (sustitutos !== undefined) {
-      await supabase.from("sustitutos_75638143").delete().eq("producto_id", id);
+      await supabase.from("sustitutos").delete().eq("producto_id", id);
       if (sustitutos.length) {
-        await supabase.from("sustitutos_75638143").insert(
+        await supabase.from("sustitutos").insert(
           sustitutos.map((s: any) => ({ ...s, producto_id: id }))
         );
       }
@@ -176,7 +176,7 @@ productos.delete("/market/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("productos_market_75638143")
+      .from("productos_market")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -187,9 +187,9 @@ productos.delete("/market/:id", async (c) => {
   }
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
 // COMENTARIOS INTERNOS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
 
 // POST /productos/market/:id/comentarios
 productos.post("/market/:id/comentarios", async (c) => {
@@ -200,7 +200,7 @@ productos.post("/market/:id/comentarios", async (c) => {
     if (!comentario) return c.json({ error: "comentario es requerido" }, 400);
 
     const { data, error } = await supabase
-      .from("producto_comentarios_75638143")
+      .from("producto_comentarios")
       .insert({ producto_id: c.req.param("id"), autor, comentario })
       .select()
       .single();
@@ -212,9 +212,9 @@ productos.post("/market/:id/comentarios", async (c) => {
   }
 });
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
 // VARIANTES
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════
 
 // PUT /productos/market/variantes/:id
 productos.put("/market/variantes/:id", async (c) => {
@@ -223,7 +223,7 @@ productos.put("/market/variantes/:id", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("variantes_75638143")
+      .from("variantes")
       .update(body)
       .eq("id", c.req.param("id"))
       .select()
@@ -241,7 +241,7 @@ productos.delete("/market/variantes/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("variantes_75638143")
+      .from("variantes")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -253,3 +253,4 @@ productos.delete("/market/variantes/:id", async (c) => {
 });
 
 export { productos };
+

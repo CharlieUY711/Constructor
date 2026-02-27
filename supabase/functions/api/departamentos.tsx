@@ -23,7 +23,7 @@ departamentos.get("/", async (c) => {
     const { activo, search } = c.req.query();
 
     let query = supabase
-      .from("departamentos_75638143")
+      .from("departamentos")
       .select("*")
       .order("orden", { ascending: true });
 
@@ -44,7 +44,7 @@ departamentos.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("departamentos_75638143")
+      .from("departamentos")
       .select("*")
       .eq("id", c.req.param("id"))
       .single();
@@ -69,7 +69,7 @@ departamentos.post("/", async (c) => {
     }
 
     const { data, error } = await supabase
-      .from("departamentos_75638143")
+      .from("departamentos")
       .insert({ ...body, activo: body.activo ?? true })
       .select()
       .single();
@@ -89,7 +89,7 @@ departamentos.put("/:id", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("departamentos_75638143")
+      .from("departamentos")
       .update(body)
       .eq("id", c.req.param("id"))
       .select()
@@ -108,7 +108,7 @@ departamentos.delete("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("departamentos_75638143")
+      .from("departamentos")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -121,3 +121,4 @@ departamentos.delete("/:id", async (c) => {
 });
 
 export { departamentos };
+

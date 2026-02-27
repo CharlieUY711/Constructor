@@ -1,6 +1,6 @@
 /**
  * Roadmap — módulos + archivos adjuntos por módulo
- * Bucket: make-75638143-module-files
+ * Bucket: module-files
  * KV keys:
  *   roadmap:modules            → estado de todos los módulos
  *   module-files:{moduleId}    → array de ModuleFileEntry
@@ -12,7 +12,7 @@ import * as kv from "./kv_store.tsx";
 
 const roadmap = new Hono();
 
-const BUCKET = "make-75638143-module-files";
+const BUCKET = "module-files";
 
 const getSupabase = () =>
   createClient(
@@ -208,3 +208,5 @@ roadmap.delete("/files/:moduleId/:fileId", async (c) => {
 });
 
 export { roadmap };
+
+

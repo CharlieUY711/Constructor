@@ -52,13 +52,13 @@ pedidos.get("/", async (c) => {
     } = c.req.query();
 
     let query = supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .select(`
         *,
-        cliente_persona:personas_75638143(id, nombre, apellido, email, telefono),
-        cliente_org:organizaciones_75638143(id, nombre, tipo),
-        metodo_pago:metodos_pago_75638143(id, nombre, tipo, proveedor),
-        metodo_envio:metodos_envio_75638143(id, nombre, tipo, precio)
+        cliente_persona:personas(id, nombre, apellido, email, telefono),
+        cliente_org:organizaciones(id, nombre, tipo),
+        metodo_pago:metodos_pago(id, nombre, tipo, proveedor),
+        metodo_envio:metodos_envio(id, nombre, tipo, precio)
       `)
       .order("created_at", { ascending: false });
 
@@ -86,13 +86,13 @@ pedidos.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .select(`
         *,
-        cliente_persona:personas_75638143(id, nombre, apellido, email, telefono),
-        cliente_org:organizaciones_75638143(id, nombre, tipo),
-        metodo_pago:metodos_pago_75638143(id, nombre, tipo, proveedor),
-        metodo_envio:metodos_envio_75638143(id, nombre, tipo, precio)
+        cliente_persona:personas(id, nombre, apellido, email, telefono),
+        cliente_org:organizaciones(id, nombre, tipo),
+        metodo_pago:metodos_pago(id, nombre, tipo, proveedor),
+        metodo_envio:metodos_envio(id, nombre, tipo, precio)
       `)
       .eq("id", c.req.param("id"))
       .single();
@@ -137,7 +137,7 @@ pedidos.post("/", async (c) => {
     };
 
     const { data, error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .insert(payload)
       .select()
       .single();
@@ -166,7 +166,7 @@ pedidos.put("/:id", async (c) => {
     }
 
     const { data, error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .update({ ...body, ...extra, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"))
       .select()
@@ -192,7 +192,7 @@ pedidos.put("/:id/estado", async (c) => {
 
     // Obtener estado actual
     const { data: actual, error: fetchErr } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .select("estado")
       .eq("id", c.req.param("id"))
       .single();
@@ -207,7 +207,7 @@ pedidos.put("/:id/estado", async (c) => {
     }
 
     const { data, error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .update({ estado: nuevo_estado, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"))
       .select()
@@ -232,7 +232,7 @@ pedidos.put("/:id/estado-pago", async (c) => {
     }
 
     const { data, error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .update({ estado_pago, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"))
       .select()
@@ -251,7 +251,7 @@ pedidos.delete("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -264,3 +264,4 @@ pedidos.delete("/:id", async (c) => {
 });
 
 export { pedidos };
+

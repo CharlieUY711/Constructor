@@ -137,3 +137,4 @@ etiquetas.delete('/:token', async (c) => {
     return c.json({ error: `Error deleting etiqueta: ${e}` }, 500);
   }
 });
+

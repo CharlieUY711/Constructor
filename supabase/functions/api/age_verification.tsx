@@ -1,6 +1,6 @@
 /* =====================================================
    age_verification.tsx — Endpoints de verificación de edad
-   Rutas: /make-server-75638143/age-verification/*
+   Rutas: /age-verification/*
    ===================================================== */
 import { Hono } from "npm:hono";
 import * as kv from "./kv_store.tsx";
@@ -145,3 +145,5 @@ ageVerification.get("/recent", async (c) => {
     return c.json({ error: `Error obteniendo verificaciones: ${err}` }, 500);
   }
 });
+
+

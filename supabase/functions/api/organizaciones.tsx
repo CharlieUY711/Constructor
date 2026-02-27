@@ -16,7 +16,7 @@ organizaciones.get("/", async (c) => {
     const { tipo, activo, search } = c.req.query();
 
     let query = supabase
-      .from("organizaciones_75638143")
+      .from("organizaciones")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -42,7 +42,7 @@ organizaciones.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("organizaciones_75638143")
+      .from("organizaciones")
       .select("*")
       .eq("id", c.req.param("id"))
       .single();
@@ -63,7 +63,7 @@ organizaciones.post("/", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("organizaciones_75638143")
+      .from("organizaciones")
       .insert(body)
       .select()
       .single();
@@ -83,7 +83,7 @@ organizaciones.put("/:id", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("organizaciones_75638143")
+      .from("organizaciones")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"))
       .select()
@@ -102,7 +102,7 @@ organizaciones.delete("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("organizaciones_75638143")
+      .from("organizaciones")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -115,3 +115,4 @@ organizaciones.delete("/:id", async (c) => {
 });
 
 export { organizaciones };
+

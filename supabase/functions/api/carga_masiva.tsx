@@ -2,7 +2,7 @@ import { Hono } from "npm:hono";
 import { createClient } from "npm:@supabase/supabase-js";
 
 const app = new Hono();
-const BUCKET = "make-75638143-files";
+const BUCKET = "files";
 
 const getSupabase = () =>
   createClient(
@@ -109,3 +109,6 @@ app.delete("/file", async (c) => {
 });
 
 export { app as cargaMasiva };
+
+
+

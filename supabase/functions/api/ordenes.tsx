@@ -1,8 +1,8 @@
 import { Hono } from "npm:hono";
 import { createClient } from "npm:@supabase/supabase-js";
 
-// Alias de /ordenes → pedidos_75638143
-// El frontstore (ODDY_Front2) llama a /ordenes pero la tabla es pedidos_75638143
+// Alias de /ordenes → pedidos
+// El frontstore (ODDY_Front2) llama a /ordenes pero la tabla es pedidos
 // Este archivo adapta los campos que espera el frontstore
 
 const ordenes = new Hono();
@@ -61,8 +61,8 @@ ordenes.get("/", async (c) => {
     const { sesion_id, usuario_id } = c.req.query();
 
     let query = supabase
-      .from("pedidos_75638143")
-      .select("*, metodo_pago:metodos_pago_75638143(id,nombre), metodo_envio:metodos_envio_75638143(id,nombre,precio)")
+      .from("pedidos")
+      .select("*, metodo_pago:metodos_pago(id,nombre), metodo_envio:metodos_envio(id,nombre,precio)")
       .order("created_at", { ascending: false });
 
     if (usuario_id) query = query.eq("cliente_persona_id", usuario_id);
@@ -81,8 +81,8 @@ ordenes.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("pedidos_75638143")
-      .select("*, metodo_pago:metodos_pago_75638143(id,nombre), metodo_envio:metodos_envio_75638143(id,nombre,precio)")
+      .from("pedidos")
+      .select("*, metodo_pago:metodos_pago(id,nombre), metodo_envio:metodos_envio(id,nombre,precio)")
       .eq("id", c.req.param("id"))
       .single();
 
@@ -106,7 +106,7 @@ ordenes.post("/", async (c) => {
     let items = body.items ?? [];
     if (items.length === 0 && sesion_id) {
       const { data: carritoItems } = await supabase
-        .from("carrito_75638143")
+        .from("carrito")
         .select("*")
         .eq("sesion_id", sesion_id);
       items = (carritoItems ?? []).map((i: Record<string,unknown>) => ({
@@ -147,7 +147,7 @@ ordenes.post("/", async (c) => {
     };
 
     const { data, error } = await supabase
-      .from("pedidos_75638143")
+      .from("pedidos")
       .insert(payload)
       .select()
       .single();
@@ -157,7 +157,7 @@ ordenes.post("/", async (c) => {
     // Vaciar carrito después de crear la orden
     if (sesion_id) {
       await supabase
-        .from("carrito_75638143")
+        .from("carrito")
         .delete()
         .eq("sesion_id", sesion_id);
     }
@@ -170,3 +170,5 @@ ordenes.post("/", async (c) => {
 });
 
 export { ordenes };
+
+

@@ -23,7 +23,7 @@ metodosEnvio.get("/", async (c) => {
     const { activo, tipo } = c.req.query();
 
     let query = supabase
-      .from("metodos_envio_75638143")
+      .from("metodos_envio")
       .select("*")
       .order("orden", { ascending: true })
       .order("created_at", { ascending: true });
@@ -45,7 +45,7 @@ metodosEnvio.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("metodos_envio_75638143")
+      .from("metodos_envio")
       .select("*")
       .eq("id", c.req.param("id"))
       .single();
@@ -76,7 +76,7 @@ metodosEnvio.post("/", async (c) => {
     };
 
     const { data, error } = await supabase
-      .from("metodos_envio_75638143")
+      .from("metodos_envio")
       .insert(payload)
       .select()
       .single();
@@ -96,7 +96,7 @@ metodosEnvio.put("/:id", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("metodos_envio_75638143")
+      .from("metodos_envio")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"))
       .select()
@@ -115,7 +115,7 @@ metodosEnvio.delete("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("metodos_envio_75638143")
+      .from("metodos_envio")
       .delete()
       .eq("id", c.req.param("id"));
 

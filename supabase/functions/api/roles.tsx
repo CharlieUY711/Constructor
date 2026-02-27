@@ -16,11 +16,11 @@ roles.get("/", async (c) => {
     const { persona_id, organizacion_id, rol, activo } = c.req.query();
 
     let query = supabase
-      .from("roles_contextuales_75638143")
+      .from("roles_contextuales")
       .select(`
         *,
-        persona:personas_75638143(id, nombre, apellido, email, tipo),
-        organizacion:organizaciones_75638143(id, nombre, tipo)
+        persona:personas(id, nombre, apellido, email, tipo),
+        organizacion:organizaciones(id, nombre, tipo)
       `)
       .order("created_at", { ascending: false });
 
@@ -43,11 +43,11 @@ roles.get("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("roles_contextuales_75638143")
+      .from("roles_contextuales")
       .select(`
         *,
-        persona:personas_75638143(id, nombre, apellido, email, tipo),
-        organizacion:organizaciones_75638143(id, nombre, tipo)
+        persona:personas(id, nombre, apellido, email, tipo),
+        organizacion:organizaciones(id, nombre, tipo)
       `)
       .eq("id", c.req.param("id"))
       .single();
@@ -68,7 +68,7 @@ roles.post("/", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("roles_contextuales_75638143")
+      .from("roles_contextuales")
       .insert(body)
       .select()
       .single();
@@ -88,7 +88,7 @@ roles.put("/:id", async (c) => {
     const body = await c.req.json();
 
     const { data, error } = await supabase
-      .from("roles_contextuales_75638143")
+      .from("roles_contextuales")
       .update({ ...body, updated_at: new Date().toISOString() })
       .eq("id", c.req.param("id"))
       .select()
@@ -107,7 +107,7 @@ roles.delete("/:id", async (c) => {
   try {
     const supabase = getSupabase();
     const { error } = await supabase
-      .from("roles_contextuales_75638143")
+      .from("roles_contextuales")
       .delete()
       .eq("id", c.req.param("id"));
 
@@ -120,3 +120,5 @@ roles.delete("/:id", async (c) => {
 });
 
 export { roles };
+
+
