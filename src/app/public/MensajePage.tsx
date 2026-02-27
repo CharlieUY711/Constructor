@@ -5,7 +5,7 @@
    ===================================================== */
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from '../../utils/supabase/info';
 import {
   Gift, Heart, Star, Coffee, Package, Sparkles, Sun,
   TreePine, Music, Award, Smile, Home, Send, Wine,

@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Lightbulb, ExternalLink, Link2, Check } from 'lucide-react';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../utils/supabase/info';
 
 const API = `https://${projectId}.supabase.co/functions/v1/api/ideas`;
 const HEADERS = { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` };

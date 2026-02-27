@@ -39,6 +39,9 @@ app.use(
   }),
 );
 
+// Handle OPTIONS preflight explicitly
+app.options('/*', (c) => c.text('', 204));
+
 // Health check endpoint
 app.get("/health", (c) => {
   return c.json({ status: "ok" });

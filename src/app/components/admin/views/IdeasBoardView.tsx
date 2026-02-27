@@ -38,7 +38,7 @@ import { toast } from 'sonner';
 import * as roadmapApi from '../../../services/roadmapApi';
 import { MANIFEST_BY_SECTION } from '../../../utils/moduleManifest';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from '../../../utils/supabase/info';
 import { OrangeHeader } from '../OrangeHeader';
 
 const API = `https://${projectId}.supabase.co/functions/v1/api/ideas`;
