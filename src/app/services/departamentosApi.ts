@@ -1,5 +1,5 @@
-/* =====================================================
-   Departamentos API Service — Dashboard ↔ Backend
+﻿/* =====================================================
+   Departamentos API Service â€” Dashboard â†” Backend
    Charlie Marketplace Builder v1.5
    ===================================================== */
 import { projectId, publicAnonKey } from '/utils/supabase/info';
@@ -10,7 +10,7 @@ const HEADERS = {
   'Authorization': `Bearer ${publicAnonKey}`,
 };
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface Departamento {
   id: string;
   nombre: string;
@@ -20,7 +20,7 @@ export interface Departamento {
   orden?: number;
   activo: boolean;
   moneda?: 'UYU' | 'USD' | 'EUR';
-  edad_minima?: 'Todas' | '+18';
+  edad_minima?: 'Todas' | '+13' | '+18' | '+21';
   alcance?: 'Local' | 'Nacional' | 'Internacional';
   created_at?: string;
   updated_at?: string;
@@ -57,11 +57,11 @@ export interface DepartamentoInput {
   orden?: number;
   activo?: boolean;
   moneda?: 'UYU' | 'USD' | 'EUR';
-  edad_minima?: 'Todas' | '+18';
+  edad_minima?: 'Todas' | '+13' | '+18' | '+21';
   alcance?: 'Local' | 'Nacional' | 'Internacional';
 }
 
-// ── CRUD ───────────────────────────────────────────────────────────────────
+// â”€â”€ CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function getDepartamentos(): Promise<Departamento[]> {
   const res = await fetch(`${BASE}`, { headers: HEADERS });

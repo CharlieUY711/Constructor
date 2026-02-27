@@ -131,3 +131,80 @@ export async function verifyCreds(platform: Platform): Promise<{ ok: boolean; da
   return { ok: res.ok, data: res.data, error: res.error };
 }
 
+// ── Posts ──────────────────────────────────────────────
+
+export interface RRSSPost {
+  id: string;
+  platform: string;
+  tipo: string;
+  contenido: string | null;
+  imagen_url: string | null;
+  estado: string;
+  programado_para: string | null;
+  publicado_en: string | null;
+  external_id: string | null;
+  likes: number;
+  alcance: number;
+  comentarios: number;
+  error_msg: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Get posts with optional filters */
+export async function getPosts(filters?: { platform?: string; estado?: string }): Promise<RRSSPost[]> {
+  const params = new URLSearchParams();
+  if (filters?.platform) params.append("platform", filters.platform);
+  if (filters?.estado) params.append("estado", filters.estado);
+  const query = params.toString() ? `?${params.toString()}` : "";
+
+  const res = await apiGet<RRSSPost[]>(`/posts${query}`);
+  if (!res.ok || !res.data) return [];
+  return res.data;
+}
+
+/** Create a new post */
+export async function createPost(data: Partial<RRSSPost>): Promise<RRSSPost | null> {
+  const res = await apiPost<RRSSPost>("/posts", data);
+  if (!res.ok || !res.data) return null;
+  return res.data;
+}
+
+/** Update a post */
+export async function updatePost(id: string, data: Partial<RRSSPost>): Promise<RRSSPost | null> {
+  const res = await apiPost<RRSSPost>(`/posts/${id}`, data);
+  if (!res.ok || !res.data) return null;
+  return res.data;
+}
+
+/** Delete a post */
+export async function deletePost(id: string): Promise<boolean> {
+  const res = await apiDelete(`/posts/${id}`);
+  return res.ok;
+}
+
+// ── Métricas ───────────────────────────────────────────
+
+export interface RRSSMetrica {
+  id: string;
+  platform: string;
+  fecha: string;
+  seguidores: number;
+  alcance: number;
+  engagement: number;
+  impresiones: number;
+  nuevos_seguidores: number;
+  created_at: string;
+}
+
+/** Get historical metrics */
+export async function getMetricas(platform?: string, dias?: number): Promise<RRSSMetrica[]> {
+  const params = new URLSearchParams();
+  if (platform) params.append("platform", platform);
+  if (dias) params.append("dias", dias.toString());
+  const query = params.toString() ? `?${params.toString()}` : "";
+
+  const res = await apiGet<RRSSMetrica[]>(`/metricas${query}`);
+  if (!res.ok || !res.data) return [];
+  return res.data;
+}

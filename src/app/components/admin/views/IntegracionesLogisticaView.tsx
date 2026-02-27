@@ -3,11 +3,12 @@
  * Carriers, Google Maps Platform y rutas — Uruguay first, Latam progresivo
  * "Sin API": configuración de URL de tracking + ingreso manual de código
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import { ExternalLink, Settings2, CheckCircle2, AlertCircle, Clock, Zap, Link2, Copy, Check, Map, Key } from 'lucide-react';
 import { Truck } from 'lucide-react';
+import { getIntegraciones, type Integracion } from '../../../services/integracionesApi';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -25,92 +26,37 @@ interface Carrier {
   docsUrl?: string;
 }
 
-const CARRIERS: Carrier[] = [
-  // ── Uruguay · Con API ────────────────────────────
-  {
-    id: 'brixo', emoji: '🟣', name: 'Brixo',
-    description: 'Logística urbana en Uruguay. API REST para creación de envíos, tracking en tiempo real y webhooks de estado.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'api', status: 'pending',
-    recommended: true,
-    docsUrl: 'https://brixo.com.uy',
-  },
-  {
-    id: 'moviapp', emoji: '🔵', name: 'MoviMiento',
-    description: 'Plataforma de última milla en Montevideo. API para despachar y rastrear envíos en el día.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://movimiento.com.uy',
-  },
-  {
-    id: 'pedidosya', emoji: '🟡', name: 'PedidosYa Envíos',
-    description: 'Servicio de envíos de PedidosYa. Cobertura en Montevideo y ciudades principales.',
-    countries: ['🇺🇾', '🇦🇷'], region: 'uy', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://developers.pedidosya.com',
-  },
-  {
-    id: 'gexpress', emoji: '🟢', name: 'GexPress',
-    description: 'Distribución y logística nacional en Uruguay. API disponible para grandes volúmenes.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'api', status: 'pending',
-  },
-  // ── Uruguay · Sin API ─────────────────────────────
-  {
-    id: 'correo-uy', emoji: '🔴', name: 'Correo Uruguayo',
-    description: 'Servicio postal oficial de Uruguay. Cobertura nacional. Tracking disponible en web.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'no-api', status: 'pending',
-    badge: 'Tracking manual',
-    trackingUrlPattern: 'https://www.correo.com.uy/sitio/online/seguimiento/{codigo}',
-  },
-  {
-    id: 'oca-uy', emoji: '🟠', name: 'OCA (Uruguay)',
-    description: 'Red de envíos de OCA en Uruguay. Amplia cobertura en todo el país.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'no-api', status: 'pending',
-    badge: 'Tracking manual',
-    trackingUrlPattern: 'https://www.oca.com.uy/tracking?nro={codigo}',
-  },
-  {
-    id: 'mosca', emoji: '⚫', name: 'Mosca',
-    description: 'Empresa de transporte terrestre nacional. Sin API pública, gestión manual de envíos.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'no-api', status: 'pending',
-    badge: 'Sin tracking web',
-  },
-  {
-    id: 'copasa', emoji: '🔵', name: 'Copasa',
-    description: 'Transporte de mercancías en el interior del país.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'no-api', status: 'pending',
-    badge: 'Tracking manual',
-  },
-  // ── Argentina ─────────────────────────────────────
-  {
-    id: 'andreani', emoji: '🔵', name: 'Andreani',
-    description: 'La empresa de logística más grande de Argentina. API robusta con tracking y webhooks.',
-    countries: ['🇦🇷'], region: 'ar', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://developers.andreani.com',
-  },
-  {
-    id: 'correo-ar', emoji: '🔵', name: 'Correo Argentino',
-    description: 'Servicio postal oficial de Argentina. Cobertura nacional total.',
-    countries: ['🇦🇷'], region: 'ar', apiMode: 'no-api', status: 'pending',
-    trackingUrlPattern: 'https://www.correoargentino.com.ar/formularios/ondp?id={codigo}',
-  },
-  // ── Global ─────────────────────────────────────────
-  {
-    id: 'fedex', emoji: '🟣', name: 'FedEx',
-    description: 'Envíos internacionales con API completa, generación de guías y tracking en tiempo real.',
-    countries: ['🌎'], region: 'global', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://developer.fedex.com',
-  },
-  {
-    id: 'dhl', emoji: '🔴', name: 'DHL',
-    description: 'Logística internacional. API para cotización, generación de envíos y tracking.',
-    countries: ['🌎'], region: 'global', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://developer.dhl.com',
-  },
-  {
-    id: 'ups', emoji: '🟤', name: 'UPS',
-    description: 'Envíos internacionales con API completa y cobertura global extendida.',
-    countries: ['🌎'], region: 'global', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://developer.ups.com',
-  },
-];
+// Mapeo de metadatos visuales por nombre de integración
+const CARRIER_METADATA: Record<string, Partial<Carrier>> = {
+  'google_maps': { emoji: '🗺️', countries: ['🌎'], region: 'global', apiMode: 'api' },
+};
+
+// Helper para convertir Integracion a Carrier
+function integracionToCarrier(integracion: Integracion): Carrier {
+  const metadata = CARRIER_METADATA[integracion.nombre] || {};
+  const config = integracion.config as any;
+  
+  // Mapear estado
+  let status: Status = 'pending';
+  if (integracion.estado === 'activo') status = 'connected';
+  else if (integracion.estado === 'error') status = 'pending';
+  else if (integracion.estado === 'configurando') status = 'sandbox';
+  
+  return {
+    id: integracion.id,
+    emoji: metadata.emoji || '🚚',
+    name: integracion.proveedor,
+    description: `${integracion.proveedor} - ${integracion.nombre}`,
+    countries: metadata.countries || ['🌎'],
+    region: metadata.region || 'global',
+    apiMode: metadata.apiMode || 'api',
+    status,
+    badge: config.badge,
+    trackingUrlPattern: config.trackingUrlPattern,
+    docsUrl: config.docsUrl,
+    recommended: config.recommended || false,
+  };
+}
 
 /* ── Google Maps Platform APIs ──────────────────────────────────────────── */
 interface GoogleApi {
@@ -183,6 +129,24 @@ export function IntegracionesLogisticaView({ onNavigate }: Props) {
   const [googleApiKey, setGoogleApiKey] = useState('');
   const [googlePanelOpen, setGooglePanelOpen] = useState(false);
   const [googleSaved, setGoogleSaved]   = useState(false);
+  const [integraciones, setIntegraciones] = useState<Integracion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getIntegraciones({ tipo: 'logistica' });
+        setIntegraciones(data);
+      } catch (err) {
+        console.error('Error cargando integraciones de logística:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const CARRIERS: Carrier[] = integraciones.map(integracionToCarrier);
 
   const filtered = CARRIERS.filter(c => {
     const regionOk = regionFilter === 'all' || c.region === regionFilter;
@@ -342,10 +306,10 @@ export function IntegracionesLogisticaView({ onNavigate }: Props) {
         {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
           {[
-            { label: 'Carriers disponibles', value: CARRIERS.length,                                         color: '#111827' },
+            { label: 'Carriers disponibles', value: loading ? '...' : CARRIERS.length,                                         color: '#111827' },
             { label: 'Google APIs',           value: GOOGLE_APIS.length,                                     color: '#4285F4' },
-            { label: 'Con API',               value: CARRIERS.filter(c => c.apiMode === 'api').length,       color: '#10B981' },
-            { label: 'Uruguay 🇺🇾',            value: CARRIERS.filter(c => c.region === 'uy').length,        color: ORANGE },
+            { label: 'Con API',               value: loading ? '...' : CARRIERS.filter(c => c.apiMode === 'api').length,       color: '#10B981' },
+            { label: 'Uruguay 🇺🇾',            value: loading ? '...' : CARRIERS.filter(c => c.region === 'uy').length,        color: ORANGE },
           ].map((s, i) => (
             <div key={i} style={{ flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: '12px 16px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem', fontWeight: '800', color: s.color }}>{s.value}</div>

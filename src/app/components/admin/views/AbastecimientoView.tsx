@@ -2,15 +2,16 @@
    AbastecimientoView — Abastecimiento / MRP
    OC Automáticas · Stock de Reserva · MRP
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Package, AlertTriangle, TrendingDown, ShoppingCart,
   CheckCircle2, Clock, Plus, Search, BarChart3,
   RefreshCw, Zap, ArrowRight, ArrowUp, ArrowDown,
-  AlertCircle, Settings,
+  AlertCircle, Settings, Loader2,
 } from 'lucide-react';
+import { getAlertasStock, getOrdenesCompra, getMRPComponentes, type AlertaStock as AlertaStockApi, type SugerenciaOC as SugerenciaOCApi, type ComponenteMRP as ComponenteMRPApi } from '../../../services/abastecimientoApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -54,30 +55,6 @@ interface ComponenteMRP {
   unidad: string;
 }
 
-const ALERTAS: AlertaStock[] = [
-  { sku: 'ALI-003', nombre: 'Galletitas surtidas 300g', categoria: 'Alimentación', stockActual: 15, stockMinimo: 50, stockOptimo: 200, unidad: 'u', proveedor: 'Distribuidora El Sol', tiempoReposicion: 5, consumoPromDiario: 8, diasRestantes: 2, nivel: 'critico' },
-  { sku: 'IND-003', nombre: 'Medias deportivas', categoria: 'Indumentaria', stockActual: 0, stockMinimo: 30, stockOptimo: 100, unidad: 'u', proveedor: 'Textil Importadora SA', tiempoReposicion: 12, consumoPromDiario: 5, diasRestantes: 0, nivel: 'critico' },
-  { sku: 'NOT-001', nombre: 'Cuaderno tapa dura A5', categoria: 'Papelería', stockActual: 48, stockMinimo: 60, stockOptimo: 200, unidad: 'u', proveedor: 'Papelera Bonaerense', tiempoReposicion: 3, consumoPromDiario: 4, diasRestantes: 12, nivel: 'bajo' },
-  { sku: 'CAN-BOX', nombre: 'Caja decorativa kraft', categoria: 'Packaging', stockActual: 100, stockMinimo: 80, stockOptimo: 300, unidad: 'u', proveedor: 'Cajas & Envases SA', tiempoReposicion: 7, consumoPromDiario: 15, diasRestantes: 7, nivel: 'bajo' },
-  { sku: 'ADH-001', nombre: 'Post-it variados', categoria: 'Papelería', stockActual: 60, stockMinimo: 40, stockOptimo: 150, unidad: 'pack', proveedor: '3M Argentina', tiempoReposicion: 2, consumoPromDiario: 3, diasRestantes: 20, nivel: 'ok' },
-  { sku: 'BOL-002', nombre: 'Bolígrafo metálico', categoria: 'Papelería', stockActual: 120, stockMinimo: 100, stockOptimo: 400, unidad: 'u', proveedor: 'Papelera Bonaerense', tiempoReposicion: 3, consumoPromDiario: 6, diasRestantes: 20, nivel: 'ok' },
-];
-
-const SUGERENCIAS_OC: SugerenciaOC[] = [
-  { id: 'oc1', sku: 'ALI-003', nombre: 'Galletitas surtidas 300g', proveedor: 'Distribuidora El Sol', cantidad: 300, precioUnit: 480, total: 144000, motivoOC: 'Stock crítico — 2 días restantes', estado: 'sugerida', fechaSugerida: '17/01/2024' },
-  { id: 'oc2', sku: 'IND-003', nombre: 'Medias deportivas', proveedor: 'Textil Importadora SA', cantidad: 200, precioUnit: 2200, total: 440000, motivoOC: 'Stock en 0 — reposición urgente', estado: 'aprobada', fechaSugerida: '16/01/2024' },
-  { id: 'oc3', sku: 'NOT-001', nombre: 'Cuaderno tapa dura A5', proveedor: 'Papelera Bonaerense', cantidad: 200, precioUnit: 1850, total: 370000, motivoOC: 'Por debajo del mínimo', estado: 'sugerida', fechaSugerida: '17/01/2024' },
-  { id: 'oc4', sku: 'CAN-BOX', nombre: 'Caja decorativa kraft', proveedor: 'Cajas & Envases SA', cantidad: 500, precioUnit: 340, total: 170000, motivoOC: 'Proyecto Canastas navideñas 2024', estado: 'enviada', fechaSugerida: '15/01/2024' },
-];
-
-const MRP_COMPONENTES: ComponenteMRP[] = [
-  { sku: 'ALI-001', descripcion: 'Dulce de leche 450g', necesario: 240, stockDisponible: 80, aComprar: 160, unidad: 'u' },
-  { sku: 'ALI-002', descripcion: 'Mermelada berries 340g', necesario: 120, stockDisponible: 60, aComprar: 60, unidad: 'u' },
-  { sku: 'ALI-003', descripcion: 'Galletitas surtidas 300g', necesario: 120, stockDisponible: 15, aComprar: 105, unidad: 'u' },
-  { sku: 'ALI-004', descripcion: 'Chocolate tableta 80g', necesario: 360, stockDisponible: 90, aComprar: 270, unidad: 'u' },
-  { sku: 'CAN-BOX', descripcion: 'Caja decorativa kraft', necesario: 120, stockDisponible: 100, aComprar: 20, unidad: 'u' },
-  { sku: 'CAN-RIB', descripcion: 'Lazo y cinta', necesario: 120, stockDisponible: 150, aComprar: 0, unidad: 'set' },
-];
 
 type Tab = 'alertas' | 'oc_sugeridas' | 'mrp';
 
@@ -92,10 +69,115 @@ const ESTADO_OC_CFG: Record<EstadoOC, { label: string; color: string; bg: string
 export function AbastecimientoView({ onNavigate }: Props) {
   const [tab, setTab] = useState<Tab>('alertas');
   const [search, setSearch] = useState('');
+  const [alertas, setAlertas] = useState<AlertaStock[]>([]);
+  const [sugerenciasOC, setSugerenciasOC] = useState<SugerenciaOC[]>([]);
+  const [mrpComponentes, setMrpComponentes] = useState<ComponenteMRP[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [alertasData, ocData, mrpData] = await Promise.all([
+        getAlertasStock(true),
+        getOrdenesCompra(),
+        getMRPComponentes()
+      ]);
+
+      const adaptedAlertas: AlertaStock[] = alertasData.map(a => ({
+        sku: a.sku || '',
+        nombre: a.producto,
+        categoria: a.categoria || '',
+        stockActual: a.stock_actual || 0,
+        stockMinimo: a.stock_minimo || 0,
+        stockOptimo: a.stock_optimo || 0,
+        unidad: a.unidad || 'u',
+        proveedor: a.proveedor || '',
+        tiempoReposicion: a.tiempo_reposicion || 0,
+        consumoPromDiario: a.consumo_prom_diario || 0,
+        diasRestantes: a.dias_restantes || 0,
+        nivel: a.nivel,
+      }));
+
+      const adaptedOC: SugerenciaOC[] = ocData.map(o => ({
+        id: o.id,
+        sku: o.sku || '',
+        nombre: o.producto,
+        proveedor: o.proveedor,
+        cantidad: o.cantidad_sugerida || 0,
+        precioUnit: o.precio_unit || o.precio_estimado || 0,
+        total: o.total || (o.cantidad_sugerida || 0) * (o.precio_unit || o.precio_estimado || 0),
+        motivoOC: o.motivo_oc || '',
+        estado: o.estado,
+        fechaSugerida: o.fecha_sugerida || o.created_at || '',
+      }));
+
+      const adaptedMRP: ComponenteMRP[] = mrpData.map(m => ({
+        sku: m.sku || '',
+        descripcion: m.componente,
+        necesario: m.necesario || 0,
+        stockDisponible: m.stock_actual || 0,
+        aComprar: m.a_comprar || 0,
+        unidad: m.unidad || 'u',
+      }));
+
+      setAlertas(adaptedAlertas);
+      setSugerenciasOC(adaptedOC);
+      setMrpComponentes(adaptedMRP);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error cargando abastecimiento:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ALERTAS: AlertaStock[] = alertas;
+  const SUGERENCIAS_OC: SugerenciaOC[] = sugerenciasOC;
+  const MRP_COMPONENTES: ComponenteMRP[] = mrpComponentes;
 
   const criticos = ALERTAS.filter(a => a.nivel === 'critico').length;
   const bajos = ALERTAS.filter(a => a.nivel === 'bajo').length;
   const valorOCSugeridas = SUGERENCIAS_OC.filter(o=>o.estado==='sugerida').reduce((s,o)=>s+o.total,0);
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={ShoppingCart}
+          title="Abastecimiento"
+          subtitle="Cargando..."
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+          ]}
+        />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 size={32} color={ORANGE} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={ShoppingCart}
+          title="Abastecimiento"
+          subtitle={`Error: ${error}`}
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+            { label: '↻ Reintentar', primary: true, onClick: loadData },
+          ]}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

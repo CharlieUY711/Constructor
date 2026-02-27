@@ -57,6 +57,11 @@ import { IntegracionesLogisticaView }  from './components/admin/views/Integracio
 import { IntegracionesTiendasView }    from './components/admin/views/IntegracionesTiendasView';
 import { IntegracionesRRSSView }       from './components/admin/views/IntegracionesRRSSView';
 import { IntegracionesServiciosView }  from './components/admin/views/IntegracionesServiciosView';
+import { IntegracionesComunicacionView } from './components/admin/views/IntegracionesComunicacionView';
+import { IntegracionesMarketplaceView } from './components/admin/views/IntegracionesMarketplaceView';
+import { IntegracionesIdentidadView }   from './components/admin/views/IntegracionesIdentidadView';
+import { APIKeysView }                  from './components/admin/views/APIKeysView';
+import { WebhooksView }                 from './components/admin/views/WebhooksView';
 // ── Workspace Suite (6 herramientas) ──────────────────────────────────────────
 import { BibliotecaWorkspace }         from './components/admin/views/BibliotecaWorkspace';
 import { EditorImagenesWorkspace }     from './components/admin/views/EditorImagenesWorkspace';
@@ -80,6 +85,7 @@ import { UserDashboardView }           from './components/admin/views/UserDashbo
 import { ConfigVistasPorRolView }      from './components/admin/views/ConfigVistasPorRolView';
 import { DocumentacionView }           from './components/admin/views/DocumentacionView';
 import { MetaMapView }                 from './components/admin/views/MetaMapView';
+import { GoogleMapsTestView }          from './components/admin/views/GoogleMapsTestView';
 import { Toaster } from 'sonner';
 
 export type MainSection =
@@ -135,6 +141,11 @@ export type MainSection =
   | 'integraciones-tiendas'
   | 'integraciones-rrss'
   | 'integraciones-servicios'
+  | 'integraciones-marketplace'
+  | 'integraciones-comunicacion'
+  | 'integraciones-identidad'
+  | 'integraciones-api-keys'
+  | 'integraciones-webhooks'
   // ── Workspace Suite ──────────────────────────────────────────────────────────
   | 'biblioteca'
   | 'editor-imagenes'
@@ -160,7 +171,8 @@ export type MainSection =
   | 'dashboard-usuario'
   | 'config-vistas'
   | 'documentacion'
-  | 'metamap-config';
+  | 'metamap-config'
+  | 'google-maps-test';
 
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<MainSection>('dashboard');
@@ -224,6 +236,11 @@ export default function AdminDashboard() {
           {activeSection === 'integraciones-tiendas'   && <IntegracionesTiendasView   onNavigate={nav} />}
           {activeSection === 'integraciones-rrss'      && <IntegracionesRRSSView      onNavigate={nav} />}
           {activeSection === 'integraciones-servicios' && <IntegracionesServiciosView onNavigate={nav} />}
+          {activeSection === 'integraciones-marketplace' && <IntegracionesMarketplaceView onNavigate={nav} />}
+          {activeSection === 'integraciones-comunicacion' && <IntegracionesComunicacionView onNavigate={nav} />}
+          {activeSection === 'integraciones-identidad' && <IntegracionesIdentidadView onNavigate={nav} />}
+          {activeSection === 'integraciones-api-keys' && <APIKeysView onNavigate={nav} />}
+          {activeSection === 'integraciones-webhooks' && <WebhooksView onNavigate={nav} />}
           {/* ── Workspace Suite ── */}
           {activeSection === 'biblioteca'              && <BibliotecaWorkspace        onNavigate={nav} />}
           {activeSection === 'editor-imagenes'         && <EditorImagenesWorkspace    onNavigate={nav} />}
@@ -250,6 +267,7 @@ export default function AdminDashboard() {
           {activeSection === 'config-vistas'           && <ConfigVistasPorRolView     onNavigate={nav} />}
           {activeSection === 'documentacion'           && <DocumentacionView          onNavigate={nav} />}
           {activeSection === 'metamap-config'          && <MetaMapView                onNavigate={nav} />}
+          {activeSection === 'google-maps-test'         && <GoogleMapsTestView />}
         </main>
       </div>
     </>

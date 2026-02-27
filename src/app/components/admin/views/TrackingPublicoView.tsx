@@ -2,14 +2,15 @@
    TrackingPublicoView — Tracking Público de Envíos
    Búsqueda por número · Timeline de estados
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Search, Package, Truck, MapPin, CheckCircle2,
   Clock, XCircle, Navigation, Bell, Globe, Copy,
-  QrCode, ExternalLink, ArrowRight,
+  QrCode, ExternalLink, ArrowRight, Loader2,
 } from 'lucide-react';
+import { getTrackingEnvioByCodigo, type TrackingEnvio as TrackingEnvioApi, type TrackingEvento as TrackingEventoApi } from '../../../services/trackingApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -36,56 +37,6 @@ interface TrackingData {
   eventos: EventoTracking[];
 }
 
-const TRACKING_DB: Record<string, TrackingData> = {
-  'ENV-15000-001': {
-    numero: 'ENV-15000-001', trackingExterno: 'CA123456789AR', carrier: 'Correo Argentino',
-    estado: 'En reparto', estadoTipo: 'en_reparto',
-    origen: 'CABA — Depósito Central', destino: 'Av. Corrientes 2145, CABA',
-    destinatario: 'Martín García', peso: '1.2 kg · 2 bultos', fechaEstimada: '17/01/2024',
-    eventos: [
-      { fecha: '17 Ene', hora: '09:15', tipo: 'en_reparto', descripcion: 'El paquete salió para entrega', ubicacion: 'CABA Sur — Base Correo' },
-      { fecha: '16 Ene', hora: '18:30', tipo: 'en_deposito', descripcion: 'Llegó al centro de distribución', ubicacion: 'Centro de Distribución CABA' },
-      { fecha: '16 Ene', hora: '07:00', tipo: 'en_transito', descripcion: 'En tránsito al centro', ubicacion: 'CABA Norte' },
-      { fecha: '15 Ene', hora: '14:00', tipo: 'despachado', descripcion: 'Despachado desde depósito origen', ubicacion: 'Depósito Central CABA' },
-      { fecha: '15 Ene', hora: '10:30', tipo: 'creado', descripcion: 'Orden de envío generada', ubicacion: 'Sistema' },
-    ],
-  },
-  'CA123456789AR': {
-    numero: 'ENV-15000-001', trackingExterno: 'CA123456789AR', carrier: 'Correo Argentino',
-    estado: 'En reparto', estadoTipo: 'en_reparto',
-    origen: 'CABA — Depósito Central', destino: 'Av. Corrientes 2145, CABA',
-    destinatario: 'Martín García', peso: '1.2 kg · 2 bultos', fechaEstimada: '17/01/2024',
-    eventos: [
-      { fecha: '17 Ene', hora: '09:15', tipo: 'en_reparto', descripcion: 'El paquete salió para entrega', ubicacion: 'CABA Sur — Base Correo' },
-      { fecha: '16 Ene', hora: '18:30', tipo: 'en_deposito', descripcion: 'Llegó al centro de distribución', ubicacion: 'Centro de Distribución CABA' },
-      { fecha: '15 Ene', hora: '14:00', tipo: 'despachado', descripcion: 'Despachado desde depósito origen', ubicacion: 'Depósito Central CABA' },
-      { fecha: '15 Ene', hora: '10:30', tipo: 'creado', descripcion: 'Orden de envío generada', ubicacion: 'Sistema' },
-    ],
-  },
-  'AND789012': {
-    numero: 'ENV-15000-002', trackingExterno: 'AND789012', carrier: 'Andreani',
-    estado: 'Despachado', estadoTipo: 'despachado',
-    origen: 'Depósito Central CABA', destino: 'Rivadavia 890, Córdoba',
-    destinatario: 'Martín García — Sucursal Córdoba', peso: '3.5 kg · 1 bulto', fechaEstimada: '19/01/2024',
-    eventos: [
-      { fecha: '15 Ene', hora: '15:00', tipo: 'despachado', descripcion: 'Salió hacia Córdoba por ruta nacional', ubicacion: 'CABA — Base Andreani' },
-      { fecha: '15 Ene', hora: '10:30', tipo: 'creado', descripcion: 'Orden de envío generada', ubicacion: 'Sistema' },
-    ],
-  },
-  'ENV-15001-001': {
-    numero: 'ENV-15001-001', trackingExterno: 'OCA456789', carrier: 'OCA',
-    estado: 'Entregado', estadoTipo: 'entregado',
-    origen: 'Depósito Norte GBA', destino: 'Mitre 340, San Isidro',
-    destinatario: 'Sofía Rodríguez', peso: '0.8 kg · 1 bulto', fechaEstimada: '14/01/2024',
-    eventos: [
-      { fecha: '14 Ene', hora: '11:22', tipo: 'entregado', descripcion: '✓ Entregado a Sofía Rodríguez', ubicacion: 'San Isidro, Buenos Aires' },
-      { fecha: '14 Ene', hora: '08:00', tipo: 'en_reparto', descripcion: 'Salió para entrega a domicilio', ubicacion: 'GBA Norte — Sucursal OCA' },
-      { fecha: '13 Ene', hora: '20:00', tipo: 'en_deposito', descripcion: 'En sucursal San Isidro', ubicacion: 'San Isidro' },
-      { fecha: '12 Ene', hora: '14:00', tipo: 'despachado', descripcion: 'Despachado desde Depósito Norte', ubicacion: 'Depósito Norte GBA' },
-      { fecha: '12 Ene', hora: '09:00', tipo: 'creado', descripcion: 'Orden de envío generada', ubicacion: 'Sistema' },
-    ],
-  },
-};
 
 const ESTADO_CFG: Record<string, { color: string; bg: string; icon: React.ElementType }> = {
   creado:      { color: '#6B7280', bg: '#F3F4F6', icon: Package      },
@@ -236,12 +187,50 @@ export function TrackingPublicoView({ onNavigate }: Props) {
   const [resultado, setResultado] = useState<TrackingData | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const buscar = (q: string) => {
-    const q2 = q.trim().toUpperCase();
-    const data = TRACKING_DB[q2] || TRACKING_DB[q.trim()];
-    if (data) { setResultado(data); setNotFound(false); }
-    else { setResultado(null); setNotFound(true); }
+  const buscar = async (q: string) => {
+    const codigo = q.trim();
+    if (!codigo) return;
+    
+    setLoading(true);
+    setError(null);
+    setNotFound(false);
+    try {
+      const data = await getTrackingEnvioByCodigo(codigo);
+      
+      // Adaptar datos del backend al formato esperado
+      const adaptedData: TrackingData = {
+        numero: data.numero || data.codigo,
+        trackingExterno: data.tracking_externo || '',
+        carrier: data.carrier || '',
+        estado: data.estado || '',
+        estadoTipo: data.estado_tipo || 'creado',
+        origen: data.origen || '',
+        destino: data.destino || '',
+        destinatario: data.destinatario || '',
+        peso: data.peso || '',
+        fechaEstimada: data.fecha_estimada || '',
+        eventos: (data.eventos || []).map((e: TrackingEventoApi) => ({
+          fecha: e.fecha ? new Date(e.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : '',
+          hora: e.hora || (e.fecha ? new Date(e.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) : ''),
+          tipo: e.tipo || 'info',
+          descripcion: e.descripcion,
+          ubicacion: e.ubicacion || e.lugar || '',
+        })),
+      };
+      
+      setResultado(adaptedData);
+      setNotFound(false);
+    } catch (err) {
+      setResultado(null);
+      setNotFound(true);
+      setError(err instanceof Error ? err.message : 'Error buscando envío');
+      console.error('Error buscando tracking:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const copiar = () => {
@@ -278,9 +267,9 @@ export function TrackingPublicoView({ onNavigate }: Props) {
                   style={{ width: '100%', paddingLeft: '44px', paddingRight: '14px', paddingTop: '12px', paddingBottom: '12px', border: '1.5px solid #E5E7EB', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
-              <button onClick={() => buscar(query)}
-                style={{ padding: '12px 22px', border: 'none', borderRadius: '10px', backgroundColor: ORANGE, color: '#fff', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                <Search size={15} /> Buscar
+              <button onClick={() => buscar(query)} disabled={loading}
+                style={{ padding: '12px 22px', border: 'none', borderRadius: '10px', backgroundColor: loading ? '#9CA3AF' : ORANGE, color: '#fff', fontSize: '14px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                {loading ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Search size={15} />} {loading ? 'Buscando...' : 'Buscar'}
               </button>
             </div>
             {/* Ejemplos */}
@@ -297,10 +286,10 @@ export function TrackingPublicoView({ onNavigate }: Props) {
         </div>
 
         {/* Resultado */}
-        {resultado && <TrackingPublico data={resultado} onCopy={copiar} />}
+        {resultado && !loading && <TrackingPublico data={resultado} onCopy={copiar} />}
 
         {/* No encontrado */}
-        {notFound && (
+        {notFound && !loading && (
           <div style={{ maxWidth: '480px', margin: '0 auto', textAlign: 'center', padding: '40px 24px' }}>
             <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
               <Package size={28} color="#DC2626" />
@@ -314,7 +303,7 @@ export function TrackingPublicoView({ onNavigate }: Props) {
         )}
 
         {/* Estado inicial */}
-        {!resultado && !notFound && (
+        {!resultado && !notFound && !loading && (
           <div style={{ maxWidth: '640px', margin: '0 auto' }}>
             {/* Cómo funciona */}
             <div style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '20px', marginBottom: '16px' }}>

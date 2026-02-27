@@ -28,17 +28,8 @@ const app = new Hono().basePath("/api");
 // Enable logger
 app.use('*', logger(console.log));
 
-// Enable CORS for all routes and methods
-app.use(
-  "/*",
-  cors({
-    origin: "*",
-    allowHeaders: ["Content-Type", "Authorization", "apikey", "x-client-info"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    exposeHeaders: ["Content-Length"],
-    maxAge: 600,
-  }),
-);
+// CORS global removido - cada función maneja su propio CORS
+// Esto evita conflictos con los CORS específicos de cada ruta
 
 // Health check endpoint
 app.get("/health", (c) => {

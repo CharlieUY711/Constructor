@@ -8,12 +8,14 @@ import { roles } from "./roles.tsx";
 import { pedidos } from "./pedidos.tsx";
 import { metodosPago } from "./metodos_pago.tsx";
 import { metodosEnvio } from "./metodos_envio.tsx";
+import { rutas } from "./rutas.tsx";
 import { etiquetas } from "./etiquetas.tsx";
 import { roadmap } from "./roadmap.tsx";
 import { ideasBoard } from "./ideas_board.tsx";
 import { cargaMasiva } from "./carga_masiva.tsx";
 import { ageVerification } from "./age_verification.tsx";
 import { rrss } from "./rrss.tsx";
+import { marketing } from "./marketing.tsx";
 import { productos } from "./productos.tsx";
 import { carrito } from "./carrito.tsx";
 import { departamentos } from "./departamentos.tsx";
@@ -21,6 +23,13 @@ import { ordenes } from "./ordenes.tsx";
 import { categorias } from "./categorias.tsx";
 import { subcategorias } from "./subcategorias.tsx";
 import { disputas } from "./disputas.tsx";
+import { transportistas } from "./transportistas.tsx";
+import { fulfillment } from "./fulfillment.tsx";
+import { produccion } from "./produccion.tsx";
+import { abastecimiento } from "./abastecimiento.tsx";
+import { mapaEnvios } from "./mapa-envios.tsx";
+import { tracking } from "./tracking.tsx";
+import { integraciones } from "./integraciones.tsx";
 
 const app = new Hono().basePath("/api");
 
@@ -56,6 +65,7 @@ app.route("/roles", roles);
 app.route("/pedidos", pedidos);
 app.route("/metodos-pago", metodosPago);
 app.route("/metodos-envio", metodosEnvio);
+app.route("/rutas", rutas);
 
 // Marketing
 app.route("/etiquetas", etiquetas);
@@ -75,6 +85,9 @@ app.route("/age-verification", ageVerification);
 // Redes Sociales — RRSS (Meta: Instagram + Facebook)
 app.route("/rrss", rrss);
 
+// Marketing — Campañas, Suscriptores, Fidelización, Sorteos
+app.route("/marketing", marketing);
+
 // ...después de los imports existentes:
 app.route("/productos", productos);
 app.route("/carrito", carrito);
@@ -83,6 +96,13 @@ app.route("/ordenes", ordenes);
 app.route("/categorias", categorias);
 app.route("/subcategorias", subcategorias);
 app.route("/disputas", disputas);
+app.route("/transportistas", transportistas);
+app.route("/fulfillment", fulfillment);
+app.route("/produccion", produccion);
+app.route("/abastecimiento", abastecimiento);
+app.route("/mapa-envios", mapaEnvios);
+app.route("/tracking", tracking);
+app.route("/integraciones", integraciones);
 
 Deno.serve(app.fetch);
 

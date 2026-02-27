@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import { RRSSBanner }   from '../RRSSBanner';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   BarChart2, Users, Heart, Eye, Send, MessageCircle,
   Image, Calendar, ChevronLeft, ChevronRight, Plus,
-  Share2, ShoppingBag, Zap,
+  Share2, ShoppingBag, Zap, Loader2,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
+import { getMetricas, getPosts, type RRSSMetrica, type RRSSPost } from '../../../services/rrssApi';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
@@ -19,35 +20,89 @@ type FBTab = 'publicaciones' | 'mensajes';
 
 const ORANGE = '#FF6835';
 
-const LINE_DATA = [
-  { day: '13 Feb', facebook: 320, instagram: 280, whatsapp: 140 },
-  { day: '14 Feb', facebook: 310, instagram: 295, whatsapp: 155 },
-  { day: '15 Feb', facebook: 340, instagram: 302, whatsapp: 148 },
-  { day: '16 Feb', facebook: 328, instagram: 318, whatsapp: 162 },
-  { day: '17 Feb', facebook: 355, instagram: 290, whatsapp: 170 },
-  { day: '18 Feb', facebook: 342, instagram: 308, whatsapp: 158 },
-  { day: '19 Feb', facebook: 370, instagram: 325, whatsapp: 180 },
-];
-
-const PIE_DATA = [
-  { name: 'Facebook',  value: 45, color: '#1877F2' },
-  { name: 'Instagram', value: 35, color: '#E1306C' },
-  { name: 'WhatsApp',  value: 20, color: '#25D366' },
-];
-
-// Calendar events Feb 2026
-const CAL_EVENTS: Record<number, { label: string; color: string }[]> = {
-  5:  [{ label: 'Promoción especial', color: '#1877F2' }, { label: 'Nueva colección', color: '#E1306C' }],
-  12: [{ label: 'Broadcast semanal',  color: '#25D366' }],
-  18: [{ label: 'Post de engagement', color: '#1877F2' }, { label: 'Story del día',   color: '#E1306C' }],
-  26: [{ label: 'Lanzamiento nueva temporada', color: '#E1306C' }],
-  28: [{ label: 'Cierre mes – Resumen', color: '#25D366' }],
+const PLATFORM_COLORS: Record<string, string> = {
+  facebook: '#1877F2',
+  instagram: '#E1306C',
+  whatsapp: '#25D366',
 };
 
 export function RedesSocialesView({ onNavigate }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('panel');
   const [fbTab, setFbTab] = useState<FBTab>('publicaciones');
   const [calMonth] = useState({ year: 2026, month: 2 });
+  const [metricas, setMetricas] = useState<RRSSMetrica[]>([]);
+  const [posts, setPosts] = useState<RRSSPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load data on mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [metricasData, postsData] = await Promise.all([
+        getMetricas(undefined, 7),
+        getPosts({ estado: 'publicado' }),
+      ]);
+      setMetricas(metricasData);
+      setPosts(postsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error loading RRSS data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate stats from real data
+  const getLatestMetrica = (platform: string): RRSSMetrica | null => {
+    return metricas.filter(m => m.platform === platform).sort((a, b) => 
+      new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+    )[0] || null;
+  };
+
+  const formatNumber = (n: number): string => {
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return n.toString();
+  };
+
+  // Prepare line chart data from metrics
+  const lineData = metricas.reduce((acc, m) => {
+    const date = new Date(m.fecha);
+    const dayKey = `${date.getDate()} ${date.toLocaleDateString('es-ES', { month: 'short' })}`;
+    if (!acc[dayKey]) acc[dayKey] = { day: dayKey, facebook: 0, instagram: 0, whatsapp: 0 };
+    acc[dayKey][m.platform] = m.alcance;
+    return acc;
+  }, {} as Record<string, { day: string; facebook: number; instagram: number; whatsapp: number }>);
+  const LINE_DATA = Object.values(lineData).sort((a, b) => a.day.localeCompare(b.day));
+
+  // Calculate pie chart data from total engagement
+  const totalEngagement = metricas.reduce((acc, m) => {
+    acc[m.platform] = (acc[m.platform] || 0) + m.engagement;
+    return acc;
+  }, {} as Record<string, number>);
+  const total = Object.values(totalEngagement).reduce((a, b) => a + b, 0);
+  const PIE_DATA = Object.entries(totalEngagement).map(([platform, value]) => ({
+    name: platform.charAt(0).toUpperCase() + platform.slice(1),
+    value: total > 0 ? Math.round((value / total) * 100) : 0,
+    color: PLATFORM_COLORS[platform] || '#6B7280',
+  }));
+
+  // Prepare calendar events from scheduled posts
+  const CAL_EVENTS: Record<number, { label: string; color: string }[]> = {};
+  posts.filter(p => p.estado === 'programado' && p.programado_para).forEach(post => {
+    const date = new Date(post.programado_para!);
+    const day = date.getDate();
+    if (!CAL_EVENTS[day]) CAL_EVENTS[day] = [];
+    CAL_EVENTS[day].push({
+      label: post.contenido?.slice(0, 30) || 'Post programado',
+      color: PLATFORM_COLORS[post.platform] || '#6B7280',
+    });
+  });
 
   const TABS: { id: Tab; label: string; icon?: any }[] = [
     { id: 'panel',      label: '⊞ Panel Unificado' },
@@ -119,13 +174,66 @@ export function RedesSocialesView({ onNavigate }: Props) {
           {/* ── PANEL UNIFICADO ── */}
           {activeTab === 'panel' && (
             <>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>
+                  <Loader2 size={32} className="animate-spin" style={{ margin: '0 auto 12px', display: 'block' }} />
+                  <p>Cargando datos...</p>
+                </div>
+              ) : error ? (
+                <div style={{ backgroundColor: '#FEF2F2', borderRadius: '10px', border: '1px solid #FECACA', padding: '14px 18px', color: '#991B1B' }}>
+                  <p style={{ margin: 0, fontWeight: '700' }}>⚠️ Error: {error}</p>
+                </div>
+              ) : (
+                <>
               {/* Platform stat cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 {[
-                  { platform: 'Facebook', color: '#1877F2', bg: '#EFF6FF', stats: [{ v: '18.5K', l: 'Seguidores' }, { v: '243', l: 'Alcance hoy' }, { v: '12', l: 'Posts' }] },
-                  { platform: 'Instagram', color: '#E1306C', bg: '#FFF0F6', stats: [{ v: '22.8K', l: 'Seguidores' }, { v: '9.8%', l: 'Engagement' }, { v: '245', l: 'Productos' }] },
-                  { platform: 'WhatsApp', color: '#25D366', bg: '#F0FFF4', stats: [{ v: '3.9K', l: 'Contactos' }, { v: '156', l: 'Conversaciones' }, { v: '94%', l: 'Tasa respuesta' }] },
-                  { platform: 'Programadas', color: '#8B5CF6', bg: '#F5F3FF', stats: [{ v: '8', l: 'Posts programados' }, { v: '3', l: 'Pendientes' }, { v: '5', l: 'Esta semana' }] },
+                  { 
+                    platform: 'Facebook', 
+                    color: '#1877F2', 
+                    bg: '#EFF6FF', 
+                    stats: [
+                      { v: formatNumber(getLatestMetrica('facebook')?.seguidores || 0), l: 'Seguidores' },
+                      { v: formatNumber(getLatestMetrica('facebook')?.alcance || 0), l: 'Alcance hoy' },
+                      { v: posts.filter(p => p.platform === 'facebook').length.toString(), l: 'Posts' }
+                    ] 
+                  },
+                  { 
+                    platform: 'Instagram', 
+                    color: '#E1306C', 
+                    bg: '#FFF0F6', 
+                    stats: [
+                      { v: formatNumber(getLatestMetrica('instagram')?.seguidores || 0), l: 'Seguidores' },
+                      { v: `${getLatestMetrica('instagram')?.engagement.toFixed(1) || 0}%`, l: 'Engagement' },
+                      { v: posts.filter(p => p.platform === 'instagram').length.toString(), l: 'Posts' }
+                    ] 
+                  },
+                  { 
+                    platform: 'WhatsApp', 
+                    color: '#25D366', 
+                    bg: '#F0FFF4', 
+                    stats: [
+                      { v: formatNumber(getLatestMetrica('whatsapp')?.seguidores || 0), l: 'Contactos' },
+                      { v: posts.filter(p => p.platform === 'whatsapp').length.toString(), l: 'Posts' },
+                      { v: `${getLatestMetrica('whatsapp')?.engagement.toFixed(1) || 0}%`, l: 'Engagement' }
+                    ] 
+                  },
+                  { 
+                    platform: 'Programadas', 
+                    color: '#8B5CF6', 
+                    bg: '#F5F3FF', 
+                    stats: [
+                      { v: posts.filter(p => p.estado === 'programado').length.toString(), l: 'Posts programados' },
+                      { v: posts.filter(p => p.estado === 'borrador').length.toString(), l: 'Pendientes' },
+                      { v: posts.filter(p => {
+                        if (!p.programado_para) return false;
+                        const date = new Date(p.programado_para);
+                        const weekFromNow = new Date();
+                        weekFromNow.setDate(weekFromNow.getDate() + 7);
+                        return date <= weekFromNow;
+                      }).length.toString(), l: 'Esta semana' }
+                    ] 
+                  },
                 ].map((p, i) => (
                   <div key={i} style={{ backgroundColor: p.bg, borderRadius: '12px', border: `1px solid ${p.color}22`, padding: '16px 18px' }}>
                     <p style={{ margin: '0 0 10px', fontWeight: '700', color: p.color, fontSize: '0.85rem' }}>{p.platform}</p>
@@ -171,36 +279,50 @@ export function RedesSocialesView({ onNavigate }: Props) {
               {/* Recent publications */}
               <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: '16px' }}>
                 <h3 style={{ margin: '0 0 12px', fontWeight: '700', color: '#111827', fontSize: '0.88rem' }}>Publicaciones en Meta Business</h3>
-                {[
-                  { platform: 'Facebook', icon: '🔵', content: 'Llega el verano con nuestras novedades ☀️', date: '18 Feb', likes: 124, reach: '1.2K' },
-                  { platform: 'Instagram', icon: '📸', content: 'Nueva colección disponible — Link en bio 🛍️', date: '17 Feb', likes: 342, reach: '3.8K' },
-                  { platform: 'Instagram', icon: '📸', content: 'Behind the scenes del nuevo lanzamiento 🎬', date: '15 Feb', likes: 287, reach: '2.9K' },
-                ].map((p, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < 2 ? '1px solid #F3F4F6' : 'none' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '1.1rem' }}>{p.icon}</span>
-                      <div>
-                        <p style={{ margin: 0, fontSize: '0.82rem', color: '#111827', fontWeight: '600' }}>{p.content}</p>
-                        <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#9CA3AF' }}>{p.platform} · {p.date}</p>
+                {posts.slice(0, 5).length === 0 ? (
+                  <p style={{ color: '#9CA3AF', fontSize: '0.8rem', textAlign: 'center', padding: '20px' }}>No hay publicaciones aún</p>
+                ) : (
+                  posts.slice(0, 5).map((p, i) => {
+                    const date = p.publicado_en ? new Date(p.publicado_en) : new Date(p.created_at);
+                    const icon = p.platform === 'facebook' ? '🔵' : p.platform === 'instagram' ? '📸' : '💬';
+                    return (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < posts.slice(0, 5).length - 1 ? '1px solid #F3F4F6' : 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+                          <div>
+                            <p style={{ margin: 0, fontSize: '0.82rem', color: '#111827', fontWeight: '600' }}>{p.contenido || 'Sin contenido'}</p>
+                            <p style={{ margin: '2px 0 0', fontSize: '0.72rem', color: '#9CA3AF' }}>
+                              {p.platform} · {date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '14px', fontSize: '0.75rem', color: '#6B7280' }}>
+                          <span>❤️ {p.likes}</span>
+                          <span>👁 {formatNumber(p.alcance)}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '14px', fontSize: '0.75rem', color: '#6B7280' }}>
-                      <span>❤️ {p.likes}</span>
-                      <span>👁 {p.reach}</span>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                )}
               </div>
 
               {/* Pending tasks */}
               <div style={{ backgroundColor: '#FFFBEB', borderRadius: '10px', border: '1px solid #FDE68A', padding: '14px 18px' }}>
                 <p style={{ margin: '0 0 6px', fontWeight: '700', color: '#92400E', fontSize: '0.85rem' }}>⚠️ Tareas Pendientes</p>
                 <ul style={{ margin: 0, paddingLeft: '16px', color: '#78350F', fontSize: '0.78rem', lineHeight: '1.8' }}>
-                  <li>Conectar cuenta de Facebook con token de acceso válido</li>
-                  <li>Configurar webhook de WhatsApp para recibir mensajes</li>
-                  <li>Completar configuración de Instagram Shopping</li>
+                  {posts.filter(p => p.estado === 'borrador').length > 0 && (
+                    <li>{posts.filter(p => p.estado === 'borrador').length} publicación(es) en borrador</li>
+                  )}
+                  {posts.filter(p => p.estado === 'programado').length > 0 && (
+                    <li>{posts.filter(p => p.estado === 'programado').length} publicación(es) programada(s)</li>
+                  )}
+                  {metricas.length === 0 && (
+                    <li>No hay métricas registradas. Configura las credenciales para comenzar a medir.</li>
+                  )}
                 </ul>
               </div>
+                </>
+              )}
             </>
           )}
 
@@ -208,11 +330,11 @@ export function RedesSocialesView({ onNavigate }: Props) {
           {activeTab === 'facebook' && (
             <>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                <Stat value="18.5K" label="Seguidores" highlight />
-                <Stat value="0" label="Total Likes" />
-                <Stat value="0.0K" label="Alcance" />
-                <Stat value="0" label="Programadas" />
-                <Stat value="0" label="Sin leer" />
+                <Stat value={formatNumber(getLatestMetrica('facebook')?.seguidores || 0)} label="Seguidores" highlight />
+                <Stat value={posts.filter(p => p.platform === 'facebook').reduce((sum, p) => sum + p.likes, 0).toString()} label="Total Likes" />
+                <Stat value={formatNumber(getLatestMetrica('facebook')?.alcance || 0)} label="Alcance" />
+                <Stat value={posts.filter(p => p.platform === 'facebook' && p.estado === 'programado').length.toString()} label="Programadas" />
+                <Stat value={posts.filter(p => p.platform === 'facebook' && p.estado === 'borrador').length.toString()} label="Borradores" />
               </div>
               <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 {(['publicaciones', 'mensajes'] as FBTab[]).map(t => (
@@ -240,10 +362,10 @@ export function RedesSocialesView({ onNavigate }: Props) {
           {activeTab === 'instagram' && (
             <>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                <Stat value="22.8K" label="Seguidores" highlight />
-                <Stat value="9.8%" label="Engagement" />
-                <Stat value="63" label="DMs" />
-                <Stat value="245" label="Productos" />
+                <Stat value={formatNumber(getLatestMetrica('instagram')?.seguidores || 0)} label="Seguidores" highlight />
+                <Stat value={`${getLatestMetrica('instagram')?.engagement.toFixed(1) || 0}%`} label="Engagement" />
+                <Stat value={posts.filter(p => p.platform === 'instagram').reduce((sum, p) => sum + p.comentarios, 0).toString()} label="Comentarios" />
+                <Stat value={posts.filter(p => p.platform === 'instagram').length.toString()} label="Posts" />
               </div>
               <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', border: '1px solid #E5E7EB', padding: '40px', textAlign: 'center' }}>
                 <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'linear-gradient(135deg, #405DE6, #E1306C, #FD1D1D)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -268,10 +390,10 @@ export function RedesSocialesView({ onNavigate }: Props) {
           {activeTab === 'whatsapp' && (
             <>
               <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                <Stat value="3.9K" label="Contactos" highlight />
-                <Stat value="156" label="Conversaciones" />
-                <Stat value="94%" label="Tasa Respuesta" />
-                <Stat value="245" label="Catálogo" />
+                <Stat value={formatNumber(getLatestMetrica('whatsapp')?.seguidores || 0)} label="Contactos" highlight />
+                <Stat value={posts.filter(p => p.platform === 'whatsapp').length.toString()} label="Posts" />
+                <Stat value={`${getLatestMetrica('whatsapp')?.engagement.toFixed(1) || 0}%`} label="Engagement" />
+                <Stat value={formatNumber(getLatestMetrica('whatsapp')?.alcance || 0)} label="Alcance" />
               </div>
               <div style={{ backgroundColor: '#FFFFFF', borderRadius: '14px', border: '1px solid #E5E7EB', padding: '40px', textAlign: 'center' }}>
                 <div style={{ width: '70px', height: '70px', borderRadius: '50%', backgroundColor: '#25D36622', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>

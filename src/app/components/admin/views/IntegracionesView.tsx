@@ -1,15 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { HubView, HubCardDef, HubComingSoonItem } from '../HubView';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Plug, CreditCard, Truck, Store, Smartphone, Settings2, Globe,
-  CheckCircle, BarChart2, Zap, TrendingUp, Shield, Package, Users,
+  CheckCircle, BarChart2, Zap, TrendingUp, Shield, Package, Users, Key, Webhook,
 } from 'lucide-react';
+import { getIntegraciones } from '../../../services/integracionesApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 
 export function IntegracionesView({ onNavigate }: Props) {
   const nav = (s: MainSection) => () => onNavigate(s);
+  const [integraciones, setIntegraciones] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getIntegraciones();
+        setIntegraciones(data);
+      } catch (err) {
+        console.error('Error cargando integraciones:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Calcular contadores por tipo
+  const getCountByTipo = (tipo: string) => integraciones.filter(i => i.tipo === tipo).length;
+  const getActiveByTipo = (tipo: string) => integraciones.filter(i => i.tipo === tipo && i.estado === 'activo').length;
 
   const cards: HubCardDef[] = [
     {
@@ -17,42 +38,88 @@ export function IntegracionesView({ onNavigate }: Props) {
       gradient: 'linear-gradient(135deg, #FF6835 0%, #e04e20 100%)', color: '#FF6835',
       badge: '🇺🇾 Uruguay · 🌎 Global', label: 'Pasarela de Pagos',
       description: 'Plexo, OCA, Creditel, Abitab, RedPagos, Mercado Pago, PayPal, Stripe. Plexo recomendado para Uruguay.',
-      stats: [{ icon: CreditCard, value: '8', label: 'Proveedores' }, { icon: CheckCircle, value: '0', label: 'Conectadas' }, { icon: Shield, value: 'UY', label: 'Foco inicial' }],
+      stats: [
+        { icon: CreditCard, value: loading ? '...' : String(getCountByTipo('pagos')), label: 'Proveedores' },
+        { icon: CheckCircle, value: loading ? '...' : String(getActiveByTipo('pagos')), label: 'Conectadas' },
+        { icon: Shield, value: 'UY', label: 'Foco inicial' }
+      ],
     },
     {
       id: 'integraciones-logistica', icon: Truck, onClick: nav('integraciones-logistica'),
       gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#10B981',
       badge: '🇺🇾 Uruguay · 🇦🇷 Argentina', label: 'Logística',
       description: 'Correo UY, OCA, Brixo, Mosca, PedidosYa, Fedex, DHL, Andreani y más. Soporte sin API.',
-      stats: [{ icon: Truck, value: '13', label: 'Proveedores' }, { icon: CheckCircle, value: '0', label: 'Conectadas' }, { icon: Package, value: 'UY', label: 'Foco inicial' }],
+      stats: [
+        { icon: Truck, value: loading ? '...' : String(getCountByTipo('logistica')), label: 'Proveedores' },
+        { icon: CheckCircle, value: loading ? '...' : String(getActiveByTipo('logistica')), label: 'Conectadas' },
+        { icon: Package, value: 'UY', label: 'Foco inicial' }
+      ],
     },
     {
-      id: 'integraciones-tiendas', icon: Store, onClick: nav('integraciones-tiendas'),
+      id: 'integraciones-marketplace', icon: Store, onClick: nav('integraciones-marketplace'),
       gradient: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)', color: '#3B82F6',
-      badge: '🇺🇾 Uruguay · 🌎 Global', label: 'Tiendas',
-      description: 'Mercado Libre, TiendaNube, WooCommerce, Shopify, VTEX, Magento. Sincronización bidireccional.',
-      stats: [{ icon: Store, value: '7', label: 'Proveedores' }, { icon: CheckCircle, value: '0', label: 'Conectadas' }, { icon: TrendingUp, value: '2w', label: 'Sincronización' }],
+      badge: '🇺🇾 Uruguay · 🌎 Global', label: 'Marketplace',
+      description: 'Mercado Libre, MercadoPago. Sincronización bidireccional de productos y pedidos.',
+      stats: [
+        { icon: Store, value: loading ? '...' : String(getCountByTipo('marketplace')), label: 'Proveedores' },
+        { icon: CheckCircle, value: loading ? '...' : String(getActiveByTipo('marketplace')), label: 'Conectadas' },
+        { icon: TrendingUp, value: '2w', label: 'Sincronización' }
+      ],
     },
     {
-      id: 'integraciones-rrss', icon: Smartphone, onClick: nav('integraciones-rrss'),
+      id: 'integraciones-comunicacion', icon: Smartphone, onClick: nav('integraciones-comunicacion'),
       gradient: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)', color: '#EC4899',
-      badge: '🌎 Global', label: 'Redes Sociales',
-      description: 'Meta Business, Instagram Shopping, WhatsApp Business, TikTok Shop, Pinterest. Catálogo en redes.',
-      stats: [{ icon: Smartphone, value: '6', label: 'Proveedores' }, { icon: CheckCircle, value: '0', label: 'Conectadas' }, { icon: Users, value: '—', label: 'Audiencia' }],
+      badge: '🌎 Global', label: 'Comunicación',
+      description: 'WhatsApp Business, Resend, Gmail/SMTP, Meta, Twilio SMS. Envío de mensajes y notificaciones.',
+      stats: [
+        { icon: Smartphone, value: loading ? '...' : String(getCountByTipo('comunicacion')), label: 'Proveedores' },
+        { icon: CheckCircle, value: loading ? '...' : String(getActiveByTipo('comunicacion')), label: 'Conectadas' },
+        { icon: Users, value: '—', label: 'Audiencia' }
+      ],
     },
     {
-      id: 'integraciones-servicios', icon: Settings2, onClick: nav('integraciones-servicios'),
+      id: 'integraciones-identidad', icon: Shield, onClick: nav('integraciones-identidad'),
       gradient: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)', color: '#8B5CF6',
-      badge: '🌎 Global', label: 'Servicios',
-      description: 'Twilio, Resend, SendGrid, Google Analytics, Zapier, n8n, Slack. Comunicaciones y automatizaciones.',
-      stats: [{ icon: Settings2, value: '8', label: 'Proveedores' }, { icon: CheckCircle, value: '0', label: 'Conectadas' }, { icon: Zap, value: '—', label: 'Automatizadas' }],
+      badge: '🌎 Global', label: 'Identidad',
+      description: 'MetaMap (KYC). Verificación de identidad y cumplimiento normativo.',
+      stats: [
+        { icon: Shield, value: loading ? '...' : String(getCountByTipo('identidad')), label: 'Proveedores' },
+        { icon: CheckCircle, value: loading ? '...' : String(getActiveByTipo('identidad')), label: 'Conectadas' },
+        { icon: Zap, value: '—', label: 'Verificaciones' }
+      ],
     },
     {
-      id: 'integraciones-apis', icon: Globe, onClick: nav('integraciones-apis'),
+      id: 'integraciones-analytics', icon: BarChart2, onClick: nav('integraciones-analytics'),
       gradient: 'linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%)', color: '#0EA5E9',
-      badge: '🌎 Global · Catálogo centralizado', label: 'Repositorio de APIs',
-      description: 'Catálogo centralizado — 23 APIs disponibles con estado, credenciales, documentación y test en vivo.',
-      stats: [{ icon: Globe, value: '23', label: 'APIs catalogadas' }, { icon: CheckCircle, value: '1', label: 'Conectadas' }, { icon: BarChart2, value: '—', label: 'Llamadas/día' }],
+      badge: '🌎 Global', label: 'Analytics',
+      description: 'Google Analytics y más. Tracking de eventos y métricas de negocio.',
+      stats: [
+        { icon: BarChart2, value: loading ? '...' : String(getCountByTipo('analytics')), label: 'Proveedores' },
+        { icon: CheckCircle, value: loading ? '...' : String(getActiveByTipo('analytics')), label: 'Conectadas' },
+        { icon: TrendingUp, value: '—', label: 'Eventos/día' }
+      ],
+    },
+    {
+      id: 'integraciones-api-keys', icon: Key, onClick: nav('integraciones-api-keys'),
+      gradient: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', color: '#6366F1',
+      badge: '🌎 Global', label: 'API Keys',
+      description: 'Gestioná las API keys para dar acceso a terceros a tu plataforma.',
+      stats: [
+        { icon: Key, value: '—', label: 'Keys activas' },
+        { icon: CheckCircle, value: '—', label: 'Permisos' },
+        { icon: Shield, value: '—', label: 'Seguridad' }
+      ],
+    },
+    {
+      id: 'integraciones-webhooks', icon: Webhook, onClick: nav('integraciones-webhooks'),
+      gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', color: '#F59E0B',
+      badge: '🌎 Global', label: 'Webhooks',
+      description: 'Configurá webhooks para recibir eventos externos y notificaciones en tiempo real.',
+      stats: [
+        { icon: Webhook, value: '—', label: 'Webhooks' },
+        { icon: CheckCircle, value: '—', label: 'Activos' },
+        { icon: Zap, value: '—', label: 'Eventos' }
+      ],
     },
   ];
 

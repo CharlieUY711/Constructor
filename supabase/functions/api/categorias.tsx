@@ -32,18 +32,34 @@ categorias.get("/", async (c) => {
     
     let { data, error } = await query;
     
-    // Si falla por relación no encontrada, hacer consultas separadas
-    if (error && error.message?.includes("relationship")) {
-      console.log("Relación no encontrada, usando consultas separadas");
-      query = supabase
+    // Si falla por relación no encontrada o columna no existe, hacer consultas separadas
+    if (error && (error.message?.includes("relationship") || error.message?.includes("does not exist") || error.message?.includes("column"))) {
+      console.log("Error con relación o columna, usando consultas separadas:", error.message);
+      
+      // Intentar consulta simple sin filtros primero para ver si la tabla existe
+      let result = await supabase
         .from("categorias")
         .select("*")
         .order("orden", { ascending: true });
-      if (departamento_id) query = query.eq("departamento_id", departamento_id);
-      if (activo !== undefined) query = query.eq("activo", activo === "true");
       
-      const result = await query;
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.log("Error en consulta separada:", JSON.stringify(result.error));
+        // Si la tabla no existe, retornar error descriptivo
+        if (result.error.message?.includes("does not exist")) {
+          return c.json({ 
+            error: "La tabla categorias no existe. Por favor ejecuta la migración 20260228_fix_categorias_complete.sql" 
+          }, 500);
+        }
+        throw result.error;
+      }
+      
+      // Aplicar filtros manualmente si es necesario
+      if (departamento_id && result.data) {
+        result.data = result.data.filter((cat: any) => cat.departamento_id === departamento_id);
+      }
+      if (activo !== undefined && result.data) {
+        result.data = result.data.filter((cat: any) => cat.activo === (activo === "true"));
+      }
       
       // Obtener subcategorias por separado
       if (result.data && result.data.length > 0) {
@@ -59,7 +75,7 @@ categorias.get("/", async (c) => {
           subcategorias: subcategoriasData?.filter((sub: any) => sub.categoria_id === cat.id) || []
         }));
       } else {
-        data = result.data;
+        data = result.data || [];
       }
     } else if (error) {
       throw error;

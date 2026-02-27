@@ -2,14 +2,15 @@
    MapaEnviosView — Mapa Visual de Envíos Activos
    Vista geográfica por ruta y estado
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   MapPin, Truck, Package, Navigation, CheckCircle2,
   AlertCircle, Filter, RefreshCw, Eye, Clock,
-  ZoomIn, ZoomOut, Layers, Circle,
+  ZoomIn, ZoomOut, Layers, Circle, Loader2,
 } from 'lucide-react';
+import { getPuntosMapa, type PuntoMapa as PuntoMapaApi } from '../../../services/mapaEnviosApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -26,21 +27,6 @@ interface PuntoMapa {
   provincia: string;
 }
 
-const PUNTOS: PuntoMapa[] = [
-  // CABA / GBA
-  { id: 'dep1', tipo: 'deposito',    numero: 'DEP-CABA',        x: 38, y: 57, cliente: 'Depósito Central', carrier: '—', localidad: 'CABA', provincia: 'CABA' },
-  { id: 'dep2', tipo: 'deposito',    numero: 'DEP-GBA-N',       x: 40, y: 53, cliente: 'Depósito Norte', carrier: '—', localidad: 'San Martín', provincia: 'Buenos Aires' },
-  { id: 'e01',  tipo: 'en_reparto',  numero: 'ENV-15000-001',   x: 37, y: 56, cliente: 'Martín García', carrier: 'CA', localidad: 'Caballito', provincia: 'CABA' },
-  { id: 'e02',  tipo: 'en_transito', numero: 'ENV-15000-002',   x: 36, y: 62, cliente: 'Martín García', carrier: 'Andreani', localidad: 'Córdoba', provincia: 'Córdoba' },
-  { id: 'e03',  tipo: 'entregado',   numero: 'ENV-15001-001',   x: 40, y: 54, cliente: 'Sofía Rodríguez', carrier: 'OCA', localidad: 'San Isidro', provincia: 'Buenos Aires' },
-  { id: 'e04',  tipo: 'en_transito', numero: 'ENV-15002-001',   x: 26, y: 65, cliente: 'Empresa Textil', carrier: 'Fedex', localidad: 'Mendoza', provincia: 'Mendoza' },
-  { id: 'e05',  tipo: 'en_reparto',  numero: 'ENV-15003-001',   x: 39, y: 59, cliente: 'Lucas Fernández', carrier: 'CA', localidad: 'Lomas de Zamora', provincia: 'Buenos Aires' },
-  { id: 'e06',  tipo: 'fallido',     numero: 'ENV-15002-003',   x: 44, y: 42, cliente: 'Punto Tucumán', carrier: 'DHL', localidad: 'Tucumán', provincia: 'Tucumán' },
-  { id: 'e07',  tipo: 'en_reparto',  numero: 'ENV-XXX-004',     x: 35, y: 56, cliente: 'Julia Pereyra', carrier: 'Andreani', localidad: 'Córdoba Centro', provincia: 'Córdoba' },
-  { id: 'e08',  tipo: 'en_transito', numero: 'ENV-XXX-005',     x: 39, y: 76, cliente: 'Estudio Sur', carrier: 'CA', localidad: 'Bariloche', provincia: 'Río Negro' },
-  { id: 'e09',  tipo: 'entregado',   numero: 'ENV-XXX-006',     x: 48, y: 44, cliente: 'Don Luis', carrier: 'Andreani', localidad: 'Salta', provincia: 'Salta' },
-  { id: 'e10',  tipo: 'en_reparto',  numero: 'ENV-XXX-007',     x: 52, y: 42, cliente: 'Empresa Jujuy', carrier: 'CA', localidad: 'Jujuy', provincia: 'Jujuy' },
-];
 
 const TIPO_CFG: Record<string, { color: string; label: string; icon: React.ElementType; size: number }> = {
   deposito:    { color: '#374151', label: 'Depósito',     icon: Package,      size: 18 },
@@ -140,6 +126,42 @@ function ArgentinaSVG({ puntos, filtro, onSelect, selected }: {
 export function MapaEnviosView({ onNavigate }: Props) {
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
   const [selectedPunto, setSelectedPunto] = useState<PuntoMapa | null>(null);
+  const [puntos, setPuntos] = useState<PuntoMapa[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const puntosData = await getPuntosMapa();
+      
+      const adaptedPuntos: PuntoMapa[] = puntosData.map(p => ({
+        id: p.id,
+        tipo: p.tipo,
+        numero: p.numero || '',
+        x: p.x || p.lat || 0,
+        y: p.y || p.lng || 0,
+        cliente: p.cliente || '',
+        carrier: p.carrier || '',
+        localidad: p.localidad || '',
+        provincia: p.provincia || '',
+      }));
+
+      setPuntos(adaptedPuntos);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error cargando mapa de envíos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const PUNTOS: PuntoMapa[] = puntos;
 
   const counts = {
     en_transito: PUNTOS.filter(p => p.tipo === 'en_transito').length,
@@ -147,6 +169,40 @@ export function MapaEnviosView({ onNavigate }: Props) {
     entregado:   PUNTOS.filter(p => p.tipo === 'entregado').length,
     fallido:     PUNTOS.filter(p => p.tipo === 'fallido').length,
   };
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={Navigation}
+          title="Mapa de Envíos"
+          subtitle="Cargando..."
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+          ]}
+        />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 size={32} color={ORANGE} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={Navigation}
+          title="Mapa de Envíos"
+          subtitle={`Error: ${error}`}
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+            { label: '↻ Reintentar', primary: true, onClick: loadData },
+          ]}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -156,7 +212,7 @@ export function MapaEnviosView({ onNavigate }: Props) {
         subtitle={`${counts.en_transito} en tránsito · ${counts.en_reparto} en reparto · ${counts.entregado} entregados · ${counts.fallido} fallidos`}
         actions={[
           { label: '← Logística', onClick: () => onNavigate('logistica') },
-          { label: '↻ Actualizar', onClick: () => {} },
+          { label: '↻ Actualizar', onClick: loadData },
         ]}
       />
 

@@ -2,7 +2,7 @@
    RutasView — Gestión de Rutas de Distribución
    Rutas Standard · Por Proyecto · Asignación
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
@@ -11,94 +11,13 @@ import {
   Navigation, Users, Calendar, Edit2, Layers,
   ArrowRight, RotateCcw,
 } from 'lucide-react';
+import { getRutas, createRuta, updateRuta, deleteRuta, type Ruta, type Parada } from '../../../services/rutasApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
 
 type TipoRuta = 'standard' | 'proyecto';
 type EstadoRuta = 'activa' | 'pausada' | 'completada' | 'planificada';
-
-interface Parada {
-  id: string;
-  orden: number;
-  direccion: string;
-  localidad: string;
-  envios: number;
-  estado: 'pendiente' | 'entregado' | 'fallido';
-}
-
-interface Ruta {
-  id: string;
-  nombre: string;
-  tipo: TipoRuta;
-  estado: EstadoRuta;
-  carrier: string;
-  zona: string;
-  frecuencia?: string;
-  proyecto?: string;
-  paradas: Parada[];
-  enviosTotales: number;
-  kmsEstimados: number;
-  tiempoEstimado: string;
-  fechaProxima?: string;
-  observaciones?: string;
-}
-
-const RUTAS: Ruta[] = [
-  {
-    id: 'r1', nombre: 'Ruta CABA Sur — Zona A', tipo: 'standard', estado: 'activa',
-    carrier: 'Express Delivery GBA', zona: 'CABA Sur', frecuencia: 'Lunes / Miércoles / Viernes',
-    enviosTotales: 18, kmsEstimados: 42, tiempoEstimado: '4-5 hs',
-    paradas: [
-      { id: 'p1', orden: 1, direccion: 'Av. San Juan 1200', localidad: 'San Cristóbal', envios: 3, estado: 'entregado' },
-      { id: 'p2', orden: 2, direccion: 'Caseros 540', localidad: 'Boedo', envios: 2, estado: 'entregado' },
-      { id: 'p3', orden: 3, direccion: 'Av. Rivadavia 4500', localidad: 'Caballito', envios: 5, estado: 'pendiente' },
-      { id: 'p4', orden: 4, direccion: 'Acoyte 234', localidad: 'Caballito', envios: 4, estado: 'pendiente' },
-      { id: 'p5', orden: 5, direccion: 'Av. Corrientes 6800', localidad: 'Palermo', envios: 4, estado: 'pendiente' },
-    ],
-  },
-  {
-    id: 'r2', nombre: 'Ruta GBA Norte — Zona B', tipo: 'standard', estado: 'activa',
-    carrier: 'Correo Argentino', zona: 'GBA Norte', frecuencia: 'Martes / Jueves',
-    enviosTotales: 24, kmsEstimados: 78, tiempoEstimado: '6-7 hs',
-    paradas: [
-      { id: 'p6', orden: 1, direccion: 'Av. Maipú 1800', localidad: 'Vicente López', envios: 6, estado: 'entregado' },
-      { id: 'p7', orden: 2, direccion: 'Moreno 2340', localidad: 'San Isidro', envios: 8, estado: 'pendiente' },
-      { id: 'p8', orden: 3, direccion: 'Pavón 560', localidad: 'San Martín', envios: 10, estado: 'pendiente' },
-    ],
-  },
-  {
-    id: 'r3', nombre: 'Proyecto Canastas Navideñas 2024', tipo: 'proyecto', estado: 'planificada',
-    carrier: 'Express Delivery GBA', zona: 'CABA + GBA', proyecto: 'Canastas Corp 2024',
-    enviosTotales: 120, kmsEstimados: 340, tiempoEstimado: '3 días', fechaProxima: '20/12/2024',
-    observaciones: 'Distribución masiva de 120 canastas corporativas. Requiere 3 camionetas.',
-    paradas: [
-      { id: 'p9',  orden: 1,  direccion: 'Catalinas Norte — Torre 1', localidad: 'CABA Microcentro', envios: 25, estado: 'pendiente' },
-      { id: 'p10', orden: 2,  direccion: 'WTC Buenos Aires', localidad: 'CABA Puerto Madero', envios: 18, estado: 'pendiente' },
-      { id: 'p11', orden: 3,  direccion: 'Av. del Libertador 5000', localidad: 'CABA Palermo', envios: 15, estado: 'pendiente' },
-      { id: 'p12', orden: 4,  direccion: 'Panamericana km 35', localidad: 'GBA Norte', envios: 62, estado: 'pendiente' },
-    ],
-  },
-  {
-    id: 'r4', nombre: 'Ruta Córdoba Capital', tipo: 'standard', estado: 'activa',
-    carrier: 'Andreani', zona: 'Córdoba Capital', frecuencia: 'Miércoles',
-    enviosTotales: 8, kmsEstimados: 25, tiempoEstimado: '3-4 hs',
-    paradas: [
-      { id: 'p13', orden: 1, direccion: 'Av. Colón 800', localidad: 'Córdoba Centro', envios: 3, estado: 'pendiente' },
-      { id: 'p14', orden: 2, direccion: 'Dean Funes 1200', localidad: 'Córdoba', envios: 5, estado: 'pendiente' },
-    ],
-  },
-  {
-    id: 'r5', nombre: 'Ruta Especial — Clientes VIP', tipo: 'proyecto', estado: 'activa',
-    carrier: 'Express Delivery GBA', zona: 'CABA Premium', proyecto: 'Clientes VIP Q1-2024',
-    enviosTotales: 6, kmsEstimados: 28, tiempoEstimado: '2-3 hs', fechaProxima: '18/01/2024',
-    paradas: [
-      { id: 'p15', orden: 1, direccion: 'Av. Alvear 1698', localidad: 'Recoleta', envios: 2, estado: 'entregado' },
-      { id: 'p16', orden: 2, direccion: 'Santa Fe 3592', localidad: 'Palermo', envios: 2, estado: 'entregado' },
-      { id: 'p17', orden: 3, direccion: 'Juramento 1788', localidad: 'Belgrano', envios: 2, estado: 'pendiente' },
-    ],
-  },
-];
 
 const ESTADO_CFG: Record<EstadoRuta, { label: string; color: string; bg: string }> = {
   activa:       { label: 'Activa',       color: '#059669', bg: '#ECFDF5' },
@@ -110,11 +29,35 @@ const ESTADO_CFG: Record<EstadoRuta, { label: string; color: string; bg: string 
 type Tab = 'todas' | 'standard' | 'proyecto';
 
 export function RutasView({ onNavigate }: Props) {
+  const [rutas, setRutas] = useState<Ruta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('todas');
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Ruta | null>(RUTAS[0]);
+  const [selected, setSelected] = useState<Ruta | null>(null);
 
-  const filtered = RUTAS.filter(r => {
+  // Cargar rutas al montar
+  useEffect(() => {
+    const loadRutas = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getRutas();
+        setRutas(data);
+        if (data.length > 0) {
+          setSelected(data[0]);
+        }
+      } catch (err) {
+        console.error('Error cargando rutas:', err);
+        setError(err instanceof Error ? err.message : 'Error cargando rutas');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadRutas();
+  }, []);
+
+  const filtered = rutas.filter(r => {
     if (tab === 'standard' && r.tipo !== 'standard') return false;
     if (tab === 'proyecto' && r.tipo !== 'proyecto') return false;
     if (search && !r.nombre.toLowerCase().includes(search.toLowerCase()) &&
@@ -122,17 +65,41 @@ export function RutasView({ onNavigate }: Props) {
     return true;
   });
 
-  const totalEnviosActivos = RUTAS.filter(r => r.estado === 'activa').reduce((s,r) => s + r.enviosTotales, 0);
+  const totalEnviosActivos = rutas.filter(r => r.estado === 'activa').reduce((s,r) => s + r.enviosTotales, 0);
+
+  const handleCreateRuta = async () => {
+    // TODO: Implementar modal de creación
+    console.log('Crear nueva ruta');
+  };
+
+  const handleEditRuta = async (ruta: Ruta) => {
+    // TODO: Implementar modal de edición
+    console.log('Editar ruta:', ruta);
+  };
+
+  const handleDeleteRuta = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar esta ruta?')) return;
+    try {
+      await deleteRuta(id);
+      setRutas(rutas.filter(r => r.id !== id));
+      if (selected?.id === id) {
+        setSelected(null);
+      }
+    } catch (err) {
+      console.error('Error eliminando ruta:', err);
+      alert('Error al eliminar la ruta');
+    }
+  };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <OrangeHeader
         icon={Map}
         title="Rutas de Distribución"
-        subtitle={`${RUTAS.filter(r=>r.estado==='activa').length} rutas activas · ${totalEnviosActivos} envíos planificados`}
+        subtitle={loading ? 'Cargando...' : error ? `Error: ${error}` : `${rutas.filter(r=>r.estado==='activa').length} rutas activas · ${totalEnviosActivos} envíos planificados`}
         actions={[
           { label: '← Logística', onClick: () => onNavigate('logistica') },
-          { label: '+ Nueva Ruta', primary: true },
+          { label: '+ Nueva Ruta', primary: true, onClick: handleCreateRuta },
         ]}
       />
 
@@ -157,7 +124,20 @@ export function RutasView({ onNavigate }: Props) {
           </div>
           {/* Lista */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
-            {filtered.map((ruta) => {
+            {loading ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280', fontSize: '12px' }}>
+                Cargando rutas...
+              </div>
+            ) : error ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#DC2626', fontSize: '12px' }}>
+                {error}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280', fontSize: '12px' }}>
+                No hay rutas {search ? 'que coincidan con la búsqueda' : ''}
+              </div>
+            ) : (
+              filtered.map((ruta) => {
               const estadoCfg = ESTADO_CFG[ruta.estado];
               const isSelected = selected?.id === ruta.id;
               const entregados = ruta.paradas.filter(p => p.estado === 'entregado').length;
@@ -188,7 +168,8 @@ export function RutasView({ onNavigate }: Props) {
                   <div style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '4px' }}>{entregados}/{ruta.paradas.length} entregados ({pct}%)</div>
                 </div>
               );
-            })}
+              })
+            )}
           </div>
         </div>
 
@@ -223,12 +204,17 @@ export function RutasView({ onNavigate }: Props) {
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                  <button style={{ padding: '8px 16px', border: `1.5px solid ${ORANGE}`, borderRadius: '8px', backgroundColor: 'transparent', color: ORANGE, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                  <button onClick={() => handleEditRuta(selected)} style={{ padding: '8px 16px', border: `1.5px solid ${ORANGE}`, borderRadius: '8px', backgroundColor: 'transparent', color: ORANGE, fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                     Editar
                   </button>
-                  <button style={{ padding: '8px 16px', border: 'none', borderRadius: '8px', backgroundColor: ORANGE, color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
-                    ▶ Iniciar ruta
+                  <button onClick={() => handleDeleteRuta(selected.id)} style={{ padding: '8px 16px', border: 'none', borderRadius: '8px', backgroundColor: '#DC2626', color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    Eliminar
                   </button>
+                  {selected.estado !== 'activa' && (
+                    <button style={{ padding: '8px 16px', border: 'none', borderRadius: '8px', backgroundColor: ORANGE, color: '#fff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                      ▶ Iniciar ruta
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -236,10 +222,10 @@ export function RutasView({ onNavigate }: Props) {
             {/* Paradas */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
               <h3 style={{ margin: '0 0 14px', fontSize: '13px', fontWeight: 800, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Paradas ({selected.paradas.length})
+                Paradas ({selected.paradas?.length || 0})
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {selected.paradas.map((parada, idx) => {
+                {selected.paradas && selected.paradas.length > 0 ? selected.paradas.map((parada, idx) => {
                   const isDone = parada.estado === 'entregado';
                   const isFail = parada.estado === 'fallido';
                   return (
@@ -280,7 +266,11 @@ export function RutasView({ onNavigate }: Props) {
                       </div>
                     </div>
                   );
-                })}
+                }) : (
+                  <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280', fontSize: '12px' }}>
+                    No hay paradas asignadas a esta ruta
+                  </div>
+                )}
               </div>
             </div>
           </div>

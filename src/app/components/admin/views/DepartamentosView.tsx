@@ -3,7 +3,7 @@ import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   ChevronRight, ChevronDown, Edit2, AlertTriangle,
-  RefreshCw, Download, Zap, ShieldCheck, UserCog, Plus, X, Check, Loader2,
+  RefreshCw, Download, Zap, ShieldCheck, UserCog, Plus, X, Check, Loader2, Trash2,
 } from 'lucide-react';
 import { FolderTree } from 'lucide-react';
 import {
@@ -319,9 +319,10 @@ interface RowProps {
   onLoadCategorias: (departamentoId: string) => Promise<Categoria[]>;
   onSaveCategoria: (data: { departamento_id: string; nombre: string; icono?: string; color?: string; orden?: number; activo?: boolean }) => Promise<void>;
   onSaveSubcategoria: (data: { categoria_id: string; nombre: string; orden?: number; activo?: boolean }) => Promise<void>;
+  onDeleteCategoria?: (id: string) => Promise<void>;
 }
 
-function DeptRow({ dept, index, isExpanded, viewMode, onToggleExpand, onEdit, onToggleActivo, onLoadCategorias, onSaveCategoria, onSaveSubcategoria }: RowProps) {
+function DeptRow({ dept, index, isExpanded, viewMode, onToggleExpand, onEdit, onToggleActivo, onLoadCategorias, onSaveCategoria, onSaveSubcategoria, onDeleteCategoria }: RowProps) {
   const isAdmin = viewMode === 'admin';
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loadingCategorias, setLoadingCategorias] = useState(false);
@@ -331,6 +332,7 @@ function DeptRow({ dept, index, isExpanded, viewMode, onToggleExpand, onEdit, on
   const [editCategoria, setEditCategoria] = useState<Categoria | null>(null);
   const [editSubcategoria, setEditSubcategoria] = useState<Subcategoria | null>(null);
   const [categoriaForSub, setCategoriaForSub] = useState<string>('');
+  const [deletingCategoriaId, setDeletingCategoriaId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isExpanded && categorias.length === 0) {
@@ -365,6 +367,23 @@ function DeptRow({ dept, index, isExpanded, viewMode, onToggleExpand, onEdit, on
     await loadCategorias();
     setShowCategoriaModal(false);
     setEditCategoria(null);
+  };
+
+  const handleDeleteCategoria = async (id: string) => {
+    if (!onDeleteCategoria) return;
+    if (!confirm('¿Estás seguro de que querés eliminar esta categoría? Esto también eliminará todas sus subcategorías.')) {
+      return;
+    }
+    setDeletingCategoriaId(id);
+    try {
+      await onDeleteCategoria(id);
+      await loadCategorias();
+    } catch (error) {
+      console.error('Error eliminando categoría:', error);
+      alert('Error al eliminar la categoría');
+    } finally {
+      setDeletingCategoriaId(null);
+    }
   };
 
   const handleSaveSubcategoria = async (data: { categoria_id: string; nombre: string; orden?: number; activo?: boolean }) => {
@@ -510,11 +529,30 @@ function DeptRow({ dept, index, isExpanded, viewMode, onToggleExpand, onEdit, on
                       <span style={{ padding: '1px 6px', borderRadius: '10px', backgroundColor: '#F3F4F6', color: '#6B7280', fontSize: '0.65rem', fontWeight: '700' }}>Inactivo</span>
                     )}
                     {isAdmin && (
-                      <div style={{ display: 'flex', gap: '6px' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <button onClick={() => { setEditCategoria(cat); setShowCategoriaModal(true); }}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: '2px' }}>
                           <Edit2 size={12} />
                         </button>
+                        {onDeleteCategoria && (
+                          <button 
+                            onClick={() => handleDeleteCategoria(cat.id)}
+                            disabled={deletingCategoriaId === cat.id}
+                            style={{ 
+                              background: 'none', 
+                              border: 'none', 
+                              cursor: deletingCategoriaId === cat.id ? 'not-allowed' : 'pointer', 
+                              color: deletingCategoriaId === cat.id ? '#D1D5DB' : '#EF4444', 
+                              padding: '2px',
+                              opacity: deletingCategoriaId === cat.id ? 0.5 : 1
+                            }}>
+                            {deletingCategoriaId === cat.id ? (
+                              <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                            ) : (
+                              <Trash2 size={12} />
+                            )}
+                          </button>
+                        )}
                         <button onClick={() => { setCategoriaForSub(cat.id); setEditSubcategoria(null); setShowSubcategoriaModal(true); }}
                           style={{ padding: '2px 6px', backgroundColor: '#F0F9FF', color: '#0284C7', border: 'none', borderRadius: '4px', fontWeight: '600', fontSize: '0.65rem', cursor: 'pointer' }}>
                           + Sub
@@ -796,6 +834,9 @@ export function DepartamentosView({ onNavigate }: Props) {
                   onSaveSubcategoria={async (data) => {
                     await createSubcategoria(data);
                   }}
+                  onDeleteCategoria={isAdmin ? async (id) => {
+                    await deleteCategoria(id);
+                  } : undefined}
                 />
               ))
             )}

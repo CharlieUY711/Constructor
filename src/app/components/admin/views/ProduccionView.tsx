@@ -2,14 +2,16 @@
    ProduccionView — Producción / Armado
    BOM · Órdenes de Armado · Kits y Canastas
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Factory, Package, Layers, Plus, Search, Clock,
   CheckCircle2, AlertCircle, ChevronRight, Edit2,
   BarChart3, GitBranch, Box, Wrench, Play,
+  Loader2,
 } from 'lucide-react';
+import { getArticulosProduccion, getOrdenesArmado, type ArticuloCompuesto as ArticuloCompuestoApi, type OrdenArmado as OrdenArmadoApi } from '../../../services/produccionApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -52,58 +54,6 @@ interface OrdenArmado {
   notas?: string;
 }
 
-const ARTICULOS: ArticuloCompuesto[] = [
-  {
-    id: 'ac1', sku: 'KIT-001', nombre: 'Kit Bienvenida Premium', tipo: 'kit', activo: true,
-    descripcion: 'Kit de onboarding para nuevos clientes premium', tiempoArmado: 15, costoManoObra: 350,
-    componentes: [
-      { sku: 'NOT-001', descripcion: 'Cuaderno tapa dura A5', cantidad: 1, unidad: 'u', stockActual: 48, disponible: true },
-      { sku: 'BOL-002', descripcion: 'Bolígrafo metálico', cantidad: 2, unidad: 'u', stockActual: 120, disponible: true },
-      { sku: 'TAZ-003', descripcion: 'Taza cerámica blanca', cantidad: 1, unidad: 'u', stockActual: 30, disponible: true },
-      { sku: 'CAR-001', descripcion: 'Tarjeta de bienvenida impresa', cantidad: 1, unidad: 'u', stockActual: 200, disponible: true },
-      { sku: 'BOL-010', descripcion: 'Bolsa tela estampada', cantidad: 1, unidad: 'u', stockActual: 55, disponible: true },
-    ],
-  },
-  {
-    id: 'ac2', sku: 'CAN-001', nombre: 'Canasta Navideña Familiar', tipo: 'canasta', activo: true,
-    descripcion: 'Canasta de productos gourmet para regalar en navidad', tiempoArmado: 25, costoManoObra: 600,
-    componentes: [
-      { sku: 'ALI-001', descripcion: 'Dulce de leche 450g', cantidad: 2, unidad: 'u', stockActual: 80, disponible: true },
-      { sku: 'ALI-002', descripcion: 'Mermelada berries 340g', cantidad: 1, unidad: 'u', stockActual: 60, disponible: true },
-      { sku: 'ALI-003', descripcion: 'Galletitas surtidas 300g', cantidad: 1, unidad: 'u', stockActual: 15, disponible: false },
-      { sku: 'ALI-004', descripcion: 'Chocolate tableta 80g', cantidad: 3, unidad: 'u', stockActual: 90, disponible: true },
-      { sku: 'CAN-BOX', descripcion: 'Caja decorativa kraft', cantidad: 1, unidad: 'u', stockActual: 100, disponible: true },
-      { sku: 'CAN-RIB', descripcion: 'Lazo y cinta', cantidad: 1, unidad: 'set', stockActual: 150, disponible: true },
-    ],
-  },
-  {
-    id: 'ac3', sku: 'PKG-001', nombre: 'Pack Oficina Completo', tipo: 'pack', activo: true,
-    descripcion: 'Pack de artículos de oficina premium para empresas', tiempoArmado: 10, costoManoObra: 200,
-    componentes: [
-      { sku: 'PAP-001', descripcion: 'Resma papel A4 500h', cantidad: 1, unidad: 'u', stockActual: 200, disponible: true },
-      { sku: 'CAR-002', descripcion: 'Carpeta A4 con aros', cantidad: 3, unidad: 'u', stockActual: 85, disponible: true },
-      { sku: 'BOL-003', descripcion: 'Lapiceras punta fina x10', cantidad: 1, unidad: 'pack', stockActual: 40, disponible: true },
-      { sku: 'ADH-001', descripcion: 'Post-it variados', cantidad: 2, unidad: 'pack', stockActual: 60, disponible: true },
-    ],
-  },
-  {
-    id: 'ac4', sku: 'CMB-001', nombre: 'Combo Indumentaria Deportiva', tipo: 'combo', activo: true,
-    descripcion: 'Remera + Short + Medias coordinados por talle', tiempoArmado: 8, costoManoObra: 150,
-    componentes: [
-      { sku: 'IND-001', descripcion: 'Remera dry-fit', cantidad: 1, unidad: 'u', stockActual: 50, disponible: true },
-      { sku: 'IND-002', descripcion: 'Short deportivo', cantidad: 1, unidad: 'u', stockActual: 35, disponible: true },
-      { sku: 'IND-003', descripcion: 'Medias deportivas', cantidad: 2, unidad: 'u', stockActual: 0, disponible: false },
-    ],
-  },
-];
-
-const ORDENES_ARMADO: OrdenArmado[] = [
-  { id: 'oa1', numero: 'OA-2024-001', articuloId: 'ac2', articuloNombre: 'Canasta Navideña Familiar', cantidad: 120, estado: 'pendiente', ruta: 'Ruta Proyecto Canastas 2024', fechaPedido: '15/01', fechaEntrega: '20/12', prioridad: 'alta', notas: 'Entrega navideña masiva — prioridad máxima' },
-  { id: 'oa2', numero: 'OA-2024-002', articuloId: 'ac1', articuloNombre: 'Kit Bienvenida Premium', cantidad: 15, estado: 'en_proceso', operario: 'María L.', fechaPedido: '16/01', fechaEntrega: '18/01', prioridad: 'normal' },
-  { id: 'oa3', numero: 'OA-2024-003', articuloId: 'ac3', articuloNombre: 'Pack Oficina Completo', cantidad: 30, estado: 'en_proceso', operario: 'Carlos V.', fechaPedido: '14/01', fechaEntrega: '17/01', prioridad: 'alta' },
-  { id: 'oa4', numero: 'OA-2024-004', articuloId: 'ac1', articuloNombre: 'Kit Bienvenida Premium', cantidad: 8, estado: 'completada', operario: 'Lucas R.', fechaPedido: '10/01', fechaEntrega: '12/01', prioridad: 'normal' },
-  { id: 'oa5', numero: 'OA-2024-005', articuloId: 'ac4', articuloNombre: 'Combo Indumentaria Deportiva', cantidad: 20, estado: 'pendiente', fechaPedido: '16/01', fechaEntrega: '22/01', prioridad: 'baja', notas: 'Falta stock de medias — revisar con Compras' },
-];
 
 type Tab = 'ordenes' | 'bom' | 'articulos';
 
@@ -124,12 +74,104 @@ const TIPO_CFG: Record<string, { label: string; emoji: string; color: string }> 
 export function ProduccionView({ onNavigate }: Props) {
   const [tab, setTab] = useState<Tab>('ordenes');
   const [search, setSearch] = useState('');
-  const [selectedArticulo, setSelectedArticulo] = useState<ArticuloCompuesto | null>(ARTICULOS[0]);
+  const [selectedArticulo, setSelectedArticulo] = useState<ArticuloCompuesto | null>(null);
   const [selectedOrden, setSelectedOrden] = useState<OrdenArmado | null>(null);
+  const [articulos, setArticulos] = useState<ArticuloCompuesto[]>([]);
+  const [ordenesArmado, setOrdenesArmado] = useState<OrdenArmado[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [articulosData, ordenesData] = await Promise.all([
+        getArticulosProduccion(true),
+        getOrdenesArmado()
+      ]);
+
+      const adaptedArticulos: ArticuloCompuesto[] = articulosData.map(a => ({
+        id: a.id,
+        sku: a.sku,
+        nombre: a.nombre,
+        tipo: a.tipo,
+        descripcion: a.descripcion,
+        componentes: Array.isArray(a.componentes) ? a.componentes : [],
+        tiempoArmado: a.tiempo_armado || 0,
+        costoManoObra: a.costo_mano_obra || 0,
+        activo: a.activo ?? true,
+      }));
+
+      const adaptedOrdenes: OrdenArmado[] = ordenesData.map(o => ({
+        id: o.id,
+        numero: o.numero || '',
+        articuloId: o.articulo_id || '',
+        articuloNombre: o.articulo_nombre || '',
+        cantidad: o.cantidad,
+        estado: o.estado,
+        ruta: o.ruta,
+        operario: o.operario,
+        fechaPedido: o.fecha_pedido || '',
+        fechaEntrega: o.fecha_entrega || '',
+        prioridad: o.prioridad || 'normal',
+        notas: o.notas,
+      }));
+
+      setArticulos(adaptedArticulos);
+      setOrdenesArmado(adaptedOrdenes);
+      if (adaptedArticulos.length > 0) setSelectedArticulo(adaptedArticulos[0]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error cargando producción:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ARTICULOS: ArticuloCompuesto[] = articulos;
+  const ORDENES_ARMADO: OrdenArmado[] = ordenesArmado;
 
   const pendientes = ORDENES_ARMADO.filter(o => o.estado === 'pendiente').length;
   const enProceso  = ORDENES_ARMADO.filter(o => o.estado === 'en_proceso').length;
-  const sinStock   = ARTICULOS.flatMap(a => a.componentes).filter(c => !c.disponible).length;
+  const sinStock   = ARTICULOS.flatMap(a => a.componentes || []).filter((c: any) => !c.disponible).length;
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={Package}
+          title="Producción / Armado"
+          subtitle="Cargando..."
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+          ]}
+        />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 size={32} color={ORANGE} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={Package}
+          title="Producción / Armado"
+          subtitle={`Error: ${error}`}
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+            { label: '↻ Reintentar', primary: true, onClick: loadData },
+          ]}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>

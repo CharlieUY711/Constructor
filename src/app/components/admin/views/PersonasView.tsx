@@ -6,6 +6,8 @@ import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import { toast } from 'sonner';
 import { getPersonas, createPersona, updatePersona, deletePersona, type Persona } from '../../../services/personasApi';
+import { GoogleAddressAutocomplete } from '../../ui/GoogleAddressAutocomplete';
+import { getPlaceDetails } from '../../../utils/google/places';
 import {
   Search, Plus, Edit2, Trash2, User, Building2,
   Mail, Phone, FileText, RefreshCw, X, Save, Filter,
@@ -354,8 +356,67 @@ export function PersonasView({ onNavigate }: Props) {
               {/* Dirección */}
               <div>
                 <label style={{ ...labelStyle, marginBottom: 8, display: 'block' }}>Dirección</label>
+                <div style={{ marginBottom: 10 }}>
+                  <GoogleAddressAutocomplete
+                    value={form.direccion?.calle ?? ''}
+                    onChange={(value) => setDir('calle', value)}
+                    onSelect={async (result) => {
+                      try {
+                        // Obtener detalles completos del lugar para extraer componentes
+                        if (result.place_id) {
+                          const details = await getPlaceDetails(result.place_id);
+                          if (details) {
+                            // Extraer componentes de la dirección
+                            let ciudad = '';
+                            let pais = '';
+                            let cp = '';
+                            
+                            details.address_components.forEach((comp: any) => {
+                              const types = comp.types;
+                              if (types.includes('locality') || types.includes('administrative_area_level_2')) {
+                                ciudad = comp.long_name;
+                              }
+                              if (types.includes('country')) {
+                                pais = comp.long_name;
+                              }
+                              if (types.includes('postal_code')) {
+                                cp = comp.long_name;
+                              }
+                            });
+                            
+                            // Actualizar todos los campos de dirección
+                            setForm(f => ({
+                              ...f,
+                              direccion: {
+                                calle: result.address,
+                                ciudad: ciudad || f.direccion?.ciudad || '',
+                                pais: pais || f.direccion?.pais || '',
+                                cp: cp || f.direccion?.cp || '',
+                              },
+                            }));
+                            
+                            toast.success('Dirección geocodificada y completada automáticamente');
+                          } else {
+                            // Si no hay detalles, al menos guardar la dirección
+                            setDir('calle', result.address);
+                            toast.success('Dirección guardada');
+                          }
+                        } else {
+                          setDir('calle', result.address);
+                          toast.success('Dirección guardada');
+                        }
+                      } catch (error) {
+                        console.error('Error obteniendo detalles de la dirección:', error);
+                        // Al menos guardar la dirección básica
+                        setDir('calle', result.address);
+                        toast.success('Dirección guardada (algunos campos pueden requerir completarse manualmente)');
+                      }
+                    }}
+                    placeholder="Buscar dirección (con autocompletado de Google Maps)"
+                    className="w-full"
+                  />
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <input value={form.direccion?.calle ?? ''} onChange={e => setDir('calle', e.target.value)} style={inputStyle} placeholder="Calle y número" />
                   <input value={form.direccion?.ciudad ?? ''} onChange={e => setDir('ciudad', e.target.value)} style={inputStyle} placeholder="Ciudad" />
                   <input value={form.direccion?.pais ?? ''} onChange={e => setDir('pais', e.target.value)} style={inputStyle} placeholder="País" />
                   <input value={form.direccion?.cp ?? ''} onChange={e => setDir('cp', e.target.value)} style={inputStyle} placeholder="Código postal" />

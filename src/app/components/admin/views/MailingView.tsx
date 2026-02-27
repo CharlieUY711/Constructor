@@ -1,61 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Mail, Users, BarChart2, TestTube2, TrendingUp,
   Plus, Search, Filter, Send, Clock, FileText,
   CheckCircle2, CircleX, Eye, Edit2, Trash2,
-  Upload, Download, Tag, ChevronDown,
+  Upload, Download, Tag, ChevronDown, Loader2,
 } from 'lucide-react';
+import {
+  getCampanas, createCampana, updateCampana, deleteCampana,
+  getSuscriptores, createSuscriptor, updateSuscriptor, deleteSuscriptor,
+  type Campana, type Suscriptor,
+} from '../../../services/marketingApi';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
 const ORANGE = '#FF6835';
 type Tab = 'campanas' | 'suscriptores' | 'segmentacion' | 'abtesting' | 'analiticas';
 
-interface Campaign {
-  id: string;
-  name: string;
-  subject: string;
-  status: 'draft' | 'scheduled' | 'sent' | 'sending';
-  recipients: number;
-  openRate?: number;
-  clickRate?: number;
-  sentAt?: string;
-  scheduledAt?: string;
-}
-
-const MOCK_CAMPAIGNS: Campaign[] = [
-  { id: '1', name: 'Newsletter Agosto 2025', subject: '🔥 Ofertas de temporada + Nuevos productos', status: 'sent', recipients: 1240, openRate: 34.2, clickRate: 8.7, sentAt: '2025-08-01' },
-  { id: '2', name: 'Promo Fin de Semana', subject: '⚡ Solo por 48hs: 20% OFF en todo', status: 'sent', recipients: 980, openRate: 41.5, clickRate: 12.3, sentAt: '2025-07-26' },
-  { id: '3', name: 'Bienvenida nuevos usuarios', subject: '👋 ¡Bienvenido a Charlie Marketplace!', status: 'sent', recipients: 312, openRate: 62.1, clickRate: 28.4, sentAt: '2025-07-20' },
-  { id: '4', name: 'Campaña Septiembre', subject: '🍂 Novedades de otoño — próximamente', status: 'scheduled', recipients: 1500, scheduledAt: '2025-09-01' },
-  { id: '5', name: 'Black Friday Early Access', subject: '🖤 Acceso anticipado para miembros VIP', status: 'draft', recipients: 0 },
-];
-
-interface Subscriber {
-  id: string;
-  email: string;
-  name: string;
-  tags: string[];
-  status: 'active' | 'unsubscribed';
-  createdAt: string;
-}
-
-const MOCK_SUBSCRIBERS: Subscriber[] = [
-  { id: '1', email: 'ana@ejemplo.com',     name: 'Ana García',     tags: ['VIP', 'Electrónica'],   status: 'active',       createdAt: '2025-06-15' },
-  { id: '2', email: 'carlos@ejemplo.com',  name: 'Carlos Martín',  tags: ['Oferta'],               status: 'active',       createdAt: '2025-07-02' },
-  { id: '3', email: 'lucia@ejemplo.com',   name: 'Lucía Pérez',    tags: ['Moda', 'VIP'],          status: 'active',       createdAt: '2025-07-10' },
-  { id: '4', email: 'mario@ejemplo.com',   name: 'Mario Silva',    tags: ['Hogar'],                status: 'unsubscribed', createdAt: '2025-05-20' },
-  { id: '5', email: 'sofia@ejemplo.com',   name: 'Sofía López',    tags: ['Electrónica'],          status: 'active',       createdAt: '2025-07-18' },
-  { id: '6', email: 'pedro@ejemplo.com',   name: 'Pedro Ruiz',     tags: ['VIP', 'Hogar', 'Moda'], status: 'active',       createdAt: '2025-07-22' },
-];
-
-const STATUS_BADGE: Record<Campaign['status'], { label: string; bg: string; color: string }> = {
-  sent:      { label: 'Enviada',     bg: '#DCFCE7', color: '#15803D' },
-  scheduled: { label: 'Programada', bg: '#EDE9FE', color: '#7C3AED' },
-  draft:     { label: 'Borrador',   bg: '#F3F4F6', color: '#374151' },
-  sending:   { label: 'Enviando…', bg: '#FEF3C7', color: '#B45309' },
+const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  enviada:    { label: 'Enviada',     bg: '#DCFCE7', color: '#15803D' },
+  programada: { label: 'Programada', bg: '#EDE9FE', color: '#7C3AED' },
+  borrador:   { label: 'Borrador',   bg: '#F3F4F6', color: '#374151' },
+  pausada:    { label: 'Pausada',    bg: '#FEF3C7', color: '#B45309' },
 };
 
 export function MailingView({ onNavigate }: Props) {
@@ -63,6 +30,94 @@ export function MailingView({ onNavigate }: Props) {
   const [searchSubs, setSearchSubs] = useState('');
   const [showNewCampaign, setShowNewCampaign] = useState(false);
   const [newCampaign, setNewCampaign] = useState({ name: '', subject: '', body: '' });
+  
+  // Estados para datos reales
+  const [campanas, setCampanas] = useState<Campana[]>([]);
+  const [suscriptores, setSuscriptores] = useState<Suscriptor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Cargar datos al montar
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [campanasData, suscriptoresData] = await Promise.all([
+        getCampanas(),
+        getSuscriptores(),
+      ]);
+      setCampanas(campanasData);
+      setSuscriptores(suscriptoresData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error loading mailing data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateCampana = async (estado: 'borrador' | 'programada' = 'borrador') => {
+    if (!newCampaign.name || !newCampaign.subject) {
+      alert('Nombre y asunto son requeridos');
+      return;
+    }
+    try {
+      const created = await createCampana({
+        nombre: newCampaign.name,
+        asunto: newCampaign.subject,
+        contenido_html: newCampaign.body,
+        estado: estado,
+      });
+      if (created) {
+        setCampanas([...campanas, created]);
+        setShowNewCampaign(false);
+        setNewCampaign({ name: '', subject: '', body: '' });
+      }
+    } catch (err) {
+      alert('Error creando campaña: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  const handleDeleteCampana = async (id: string) => {
+    if (!confirm('¿Eliminar esta campaña?')) return;
+    try {
+      const success = await deleteCampana(id);
+      if (success) {
+        setCampanas(campanas.filter(c => c.id !== id));
+      }
+    } catch (err) {
+      alert('Error eliminando campaña');
+    }
+  };
+
+  const handleDeleteSuscriptor = async (id: string) => {
+    if (!confirm('¿Eliminar este suscriptor?')) return;
+    try {
+      const success = await deleteSuscriptor(id);
+      if (success) {
+        setSuscriptores(suscriptores.filter(s => s.id !== id));
+      }
+    } catch (err) {
+      alert('Error eliminando suscriptor');
+    }
+  };
+
+  const handleCreateSuscriptor = async () => {
+    const email = prompt('Email del suscriptor:');
+    if (!email) return;
+    try {
+      const created = await createSuscriptor({ email, estado: 'activo' });
+      if (created) {
+        setSuscriptores([...suscriptores, created]);
+      }
+    } catch (err) {
+      alert('Error creando suscriptor: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
 
   const tabs: { id: Tab; label: string; Icon: any }[] = [
     { id: 'campanas',     label: 'Campañas',    Icon: Mail },
@@ -72,13 +127,24 @@ export function MailingView({ onNavigate }: Props) {
     { id: 'analiticas',   label: 'Analíticas',   Icon: BarChart2 },
   ];
 
-  const sent       = MOCK_CAMPAIGNS.filter(c => c.status === 'sent').length;
-  const scheduled  = MOCK_CAMPAIGNS.filter(c => c.status === 'scheduled').length;
-  const drafts     = MOCK_CAMPAIGNS.filter(c => c.status === 'draft').length;
-  const filteredSubs = MOCK_SUBSCRIBERS.filter(s =>
+  const sent       = campanas.filter(c => c.estado === 'enviada').length;
+  const scheduled  = campanas.filter(c => c.estado === 'programada').length;
+  const drafts     = campanas.filter(c => c.estado === 'borrador').length;
+  const filteredSubs = suscriptores.filter(s =>
     s.email.toLowerCase().includes(searchSubs.toLowerCase()) ||
-    s.name.toLowerCase().includes(searchSubs.toLowerCase())
+    (s.nombre && s.nombre.toLowerCase().includes(searchSubs.toLowerCase()))
   );
+
+  // Calcular tasas de apertura y clicks
+  const getOpenRate = (c: Campana): number | null => {
+    if (c.total_enviados === 0) return null;
+    return (c.total_abiertos / c.total_enviados) * 100;
+  };
+
+  const getClickRate = (c: Campana): number | null => {
+    if (c.total_enviados === 0) return null;
+    return (c.total_clicks / c.total_enviados) * 100;
+  };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -124,10 +190,21 @@ export function MailingView({ onNavigate }: Props) {
           {/* ── CAMPAÑAS ── */}
           {activeTab === 'campanas' && (
             <>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>
+                  <Loader2 size={32} className="animate-spin" style={{ margin: '0 auto 12px', display: 'block' }} />
+                  <p>Cargando campañas...</p>
+                </div>
+              ) : error ? (
+                <div style={{ backgroundColor: '#FEF2F2', borderRadius: '10px', border: '1px solid #FECACA', padding: '14px 18px', color: '#991B1B', marginBottom: '24px' }}>
+                  <p style={{ margin: 0, fontWeight: '700' }}>⚠️ Error: {error}</p>
+                </div>
+              ) : (
+                <>
               {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 {[
-                  { label: 'Total Campañas', value: MOCK_CAMPAIGNS.length, color: '#111827' },
+                  { label: 'Total Campañas', value: campanas.length, color: '#111827' },
                   { label: 'Enviadas',        value: sent,      color: '#16A34A' },
                   { label: 'Programadas',     value: scheduled, color: '#7C3AED' },
                   { label: 'Borradores',      value: drafts,    color: '#374151' },
@@ -159,44 +236,69 @@ export function MailingView({ onNavigate }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {MOCK_CAMPAIGNS.map((c, i) => {
-                      const s = STATUS_BADGE[c.status];
-                      return (
-                        <tr key={c.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
-                          <td style={{ padding: '14px 16px' }}>
-                            <p style={{ margin: 0, fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{c.name}</p>
-                            <p style={{ margin: '2px 0 0', color: '#6B7280', fontSize: '0.75rem' }}>{c.subject}</p>
-                          </td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <span style={{ padding: '3px 10px', borderRadius: '20px', backgroundColor: s.bg, color: s.color, fontSize: '0.75rem', fontWeight: '700' }}>{s.label}</span>
-                          </td>
-                          <td style={{ padding: '14px 16px', color: '#374151', fontSize: '0.875rem' }}>{c.recipients > 0 ? c.recipients.toLocaleString() : '—'}</td>
-                          <td style={{ padding: '14px 16px', color: c.openRate ? '#16A34A' : '#9CA3AF', fontSize: '0.875rem', fontWeight: c.openRate ? '700' : '400' }}>{c.openRate ? `${c.openRate}%` : '—'}</td>
-                          <td style={{ padding: '14px 16px', color: c.clickRate ? '#2563EB' : '#9CA3AF', fontSize: '0.875rem', fontWeight: c.clickRate ? '700' : '400' }}>{c.clickRate ? `${c.clickRate}%` : '—'}</td>
-                          <td style={{ padding: '14px 16px' }}>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '4px' }}><Eye size={15} /></button>
-                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '4px' }}><Edit2 size={15} /></button>
-                              {c.status === 'draft' && <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: '4px' }}><Send size={15} /></button>}
-                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }}><Trash2 size={15} /></button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {campanas.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#9CA3AF' }}>
+                          <p style={{ margin: 0 }}>No hay campañas aún</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      campanas.map((c, i) => {
+                        const s = STATUS_BADGE[c.estado] || STATUS_BADGE.borrador;
+                        const openRate = getOpenRate(c);
+                        const clickRate = getClickRate(c);
+                        return (
+                          <tr key={c.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                            <td style={{ padding: '14px 16px' }}>
+                              <p style={{ margin: 0, fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{c.nombre}</p>
+                              <p style={{ margin: '2px 0 0', color: '#6B7280', fontSize: '0.75rem' }}>{c.asunto || 'Sin asunto'}</p>
+                            </td>
+                            <td style={{ padding: '14px 16px' }}>
+                              <span style={{ padding: '3px 10px', borderRadius: '20px', backgroundColor: s.bg, color: s.color, fontSize: '0.75rem', fontWeight: '700' }}>{s.label}</span>
+                            </td>
+                            <td style={{ padding: '14px 16px', color: '#374151', fontSize: '0.875rem' }}>{c.total_destinatarios > 0 ? c.total_destinatarios.toLocaleString() : '—'}</td>
+                            <td style={{ padding: '14px 16px', color: openRate ? '#16A34A' : '#9CA3AF', fontSize: '0.875rem', fontWeight: openRate ? '700' : '400' }}>{openRate ? `${openRate.toFixed(1)}%` : '—'}</td>
+                            <td style={{ padding: '14px 16px', color: clickRate ? '#2563EB' : '#9CA3AF', fontSize: '0.875rem', fontWeight: clickRate ? '700' : '400' }}>{clickRate ? `${clickRate.toFixed(1)}%` : '—'}</td>
+                            <td style={{ padding: '14px 16px' }}>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '4px' }}><Eye size={15} /></button>
+                                <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: '4px' }}><Edit2 size={15} /></button>
+                                {c.estado === 'borrador' && <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, padding: '4px' }}><Send size={15} /></button>}
+                                <button onClick={() => handleDeleteCampana(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '4px' }}><Trash2 size={15} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
+                </>
+              )}
             </>
           )}
 
           {/* ── SUSCRIPTORES ── */}
           {activeTab === 'suscriptores' && (
             <>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#6B7280' }}>
+                  <Loader2 size={32} className="animate-spin" style={{ margin: '0 auto 12px', display: 'block' }} />
+                  <p>Cargando suscriptores...</p>
+                </div>
+              ) : error ? (
+                <div style={{ backgroundColor: '#FEF2F2', borderRadius: '10px', border: '1px solid #FECACA', padding: '14px 18px', color: '#991B1B', marginBottom: '20px' }}>
+                  <p style={{ margin: 0, fontWeight: '700' }}>⚠️ Error: {error}</p>
+                </div>
+              ) : (
+                <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: '800', color: '#111827' }}>Suscriptores</h2>
-                  <p style={{ margin: '3px 0 0', color: '#6B7280', fontSize: '0.8rem' }}>{MOCK_SUBSCRIBERS.filter(s => s.status === 'active').length} activos · {MOCK_SUBSCRIBERS.filter(s => s.status === 'unsubscribed').length} desuscriptos</p>
+                  <p style={{ margin: '3px 0 0', color: '#6B7280', fontSize: '0.8rem' }}>
+                    {suscriptores.filter(s => s.estado === 'activo').length} activos · {suscriptores.filter(s => s.estado === 'inactivo' || s.estado === 'cancelado').length} inactivos
+                  </p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button style={{ padding: '9px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF', color: '#374151', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -205,7 +307,7 @@ export function MailingView({ onNavigate }: Props) {
                   <button style={{ padding: '9px 16px', border: '1px solid #E5E7EB', borderRadius: '8px', backgroundColor: '#FFF', color: '#374151', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Download size={14} /> Exportar
                   </button>
-                  <button style={{ padding: '9px 16px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button onClick={handleCreateSuscriptor} style={{ padding: '9px 16px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Plus size={14} /> Agregar
                   </button>
                 </div>
@@ -233,42 +335,52 @@ export function MailingView({ onNavigate }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredSubs.map((s, i) => (
-                      <tr key={s.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
-                        <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: ORANGE + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: ORANGE, fontSize: '0.8rem' }}>
-                              {s.name.charAt(0)}
-                            </div>
-                            <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{s.name}</span>
-                          </div>
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#374151', fontSize: '0.875rem' }}>{s.email}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                            {s.tags.map(t => (
-                              <span key={t} style={{ padding: '2px 8px', backgroundColor: '#F3F4F6', borderRadius: '12px', fontSize: '0.72rem', color: '#374151', fontWeight: '600' }}>{t}</span>
-                            ))}
-                          </div>
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: s.status === 'active' ? '#16A34A' : '#9CA3AF', fontWeight: '600' }}>
-                            {s.status === 'active' ? <CheckCircle2 size={13} /> : <CircleX size={13} />}
-                            {s.status === 'active' ? 'Activo' : 'Desuscripto'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#6B7280', fontSize: '0.8rem' }}>{s.createdAt}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}><Edit2 size={14} /></button>
-                            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }}><Trash2 size={14} /></button>
-                          </div>
+                    {filteredSubs.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ padding: '40px', textAlign: 'center', color: '#9CA3AF' }}>
+                          <p style={{ margin: 0 }}>No hay suscriptores</p>
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredSubs.map((s, i) => (
+                        <tr key={s.id} style={{ borderTop: '1px solid #F3F4F6', backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFAFA' }}>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: ORANGE + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: ORANGE, fontSize: '0.8rem' }}>
+                                {(s.nombre || s.email).charAt(0).toUpperCase()}
+                              </div>
+                              <span style={{ fontWeight: '600', color: '#111827', fontSize: '0.875rem' }}>{s.nombre || s.email}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#374151', fontSize: '0.875rem' }}>{s.email}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {s.tags && s.tags.length > 0 ? s.tags.map(t => (
+                                <span key={t} style={{ padding: '2px 8px', backgroundColor: '#F3F4F6', borderRadius: '12px', fontSize: '0.72rem', color: '#374151', fontWeight: '600' }}>{t}</span>
+                              )) : <span style={{ color: '#9CA3AF', fontSize: '0.72rem' }}>—</span>}
+                            </div>
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.8rem', color: s.estado === 'activo' ? '#16A34A' : '#9CA3AF', fontWeight: '600' }}>
+                              {s.estado === 'activo' ? <CheckCircle2 size={13} /> : <CircleX size={13} />}
+                              {s.estado === 'activo' ? 'Activo' : s.estado === 'cancelado' ? 'Cancelado' : 'Inactivo'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#6B7280', fontSize: '0.8rem' }}>{new Date(s.created_at).toLocaleDateString('es-ES')}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}><Edit2 size={14} /></button>
+                              <button onClick={() => handleDeleteSuscriptor(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }}><Trash2 size={14} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
+                </>
+              )}
             </>
           )}
 
@@ -377,18 +489,27 @@ export function MailingView({ onNavigate }: Props) {
               <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '24px' }}>
                 <h3 style={{ margin: '0 0 20px', fontWeight: '700', color: '#111827', fontSize: '0.95rem' }}>Rendimiento por campaña</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {MOCK_CAMPAIGNS.filter(c => c.openRate).map(c => (
-                    <div key={c.id}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.82rem', color: '#374151', fontWeight: '600' }}>{c.name}</span>
-                        <span style={{ fontSize: '0.82rem', color: '#6B7280' }}>{c.openRate}% apertura · {c.clickRate}% clics</span>
+                  {campanas.filter(c => c.total_enviados > 0).map(c => {
+                    const openRate = getOpenRate(c);
+                    const clickRate = getClickRate(c);
+                    return (
+                      <div key={c.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.82rem', color: '#374151', fontWeight: '600' }}>{c.nombre}</span>
+                          <span style={{ fontSize: '0.82rem', color: '#6B7280' }}>
+                            {openRate ? `${openRate.toFixed(1)}%` : '—'} apertura · {clickRate ? `${clickRate.toFixed(1)}%` : '—'} clics
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          {openRate && <div style={{ height: '8px', borderRadius: '4px', backgroundColor: '#16A34A', width: `${Math.min((openRate / 70) * 100, 100)}%`, transition: 'width 0.5s' }} />}
+                          {clickRate && <div style={{ height: '8px', borderRadius: '4px', backgroundColor: '#2563EB', width: `${Math.min((clickRate / 70) * 100, 100)}%`, transition: 'width 0.5s' }} />}
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: '#16A34A', width: `${(c.openRate! / 70) * 100}%`, transition: 'width 0.5s' }} />
-                        <div style={{ height: '8px', borderRadius: '4px', backgroundColor: '#2563EB', width: `${(c.clickRate! / 70) * 100}%`, transition: 'width 0.5s' }} />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                  {campanas.filter(c => c.total_enviados > 0).length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#9CA3AF', fontSize: '0.8rem' }}>No hay campañas enviadas aún</p>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '16px', marginTop: '14px' }}>
                   {[{ color: '#16A34A', label: 'Apertura' }, { color: '#2563EB', label: 'Clics' }].map(l => (
@@ -426,11 +547,11 @@ export function MailingView({ onNavigate }: Props) {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => setShowNewCampaign(false)} style={{ flex: 1, padding: '11px', borderRadius: '8px', border: '1px solid #E5E7EB', backgroundColor: '#FFF', color: '#374151', fontWeight: '600', cursor: 'pointer', fontSize: '0.875rem' }}>Cancelar</button>
-              <button style={{ flex: 1, padding: '11px', backgroundColor: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <button onClick={() => handleCreateCampana('borrador')} style={{ flex: 1, padding: '11px', backgroundColor: '#F3F4F6', color: '#374151', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                 <FileText size={15} /> Guardar borrador
               </button>
-              <button style={{ flex: 1, padding: '11px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                <Send size={15} /> Enviar ahora
+              <button onClick={() => handleCreateCampana('programada')} style={{ flex: 1, padding: '11px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <Send size={15} /> Programar
               </button>
             </div>
           </div>

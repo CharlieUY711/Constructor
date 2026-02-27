@@ -1,6 +1,10 @@
 /**
  * Envíos API — Gestión de envíos y tracking
- * Tabla: envios_75638143, envios_eventos_75638143
+ * Tabla: envios, envios_eventos
+ * 
+ * TABLA MIGRADA: envios_75638143 → envios (Feb 2026)
+ * La tabla con sufijo puede eliminarse desde el SQL Editor de Supabase
+ * una vez verificado que no hay referencias activas.
  */
 
 import { Hono } from "npm:hono";
@@ -23,6 +27,11 @@ envios.use('/*', cors({
   maxAge: 86400,
 }));
 
+// Handler explícito para OPTIONS (preflight)
+envios.options('/*', (c) => {
+  return c.text('', 204);
+});
+
 const getSupabase = () =>
   createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -38,7 +47,7 @@ envios.get("/", async (c) => {
     console.log(`[envios] GET / - Filtros:`, { pedido_madre_id, estado, carrier, tramo });
     
     let query = supabase
-      .from("envios_75638143")
+      .from("envios")
       .select("*")
       .order("fecha_creacion", { ascending: false });
     
@@ -62,7 +71,7 @@ envios.get("/", async (c) => {
     
     if (envioIds.length > 0) {
       const { data: eventosData, error: eventosErr } = await supabase
-        .from("envios_eventos_75638143")
+        .from("envios_eventos")
         .select("*")
         .in("envio_id", envioIds)
         .order("fecha", { ascending: false });
@@ -93,7 +102,7 @@ envios.get("/:id", async (c) => {
     const supabase = getSupabase();
     
     const { data: envio, error: envioErr } = await supabase
-      .from("envios_75638143")
+      .from("envios")
       .select("*")
       .eq("id", id)
       .single();
@@ -101,7 +110,7 @@ envios.get("/:id", async (c) => {
     if (envioErr) throw envioErr;
     
     const { data: eventos, error: eventosErr } = await supabase
-      .from("envios_eventos_75638143")
+      .from("envios_eventos")
       .select("*")
       .eq("envio_id", id)
       .order("fecha", { ascending: false });
@@ -122,7 +131,7 @@ envios.get("/pedido/:pedidoId", async (c) => {
     const supabase = getSupabase();
     
     const { data, error } = await supabase
-      .from("envios_75638143")
+      .from("envios")
       .select("*")
       .eq("pedido_madre_id", pedidoId)
       .order("fecha_creacion", { ascending: false });
@@ -145,13 +154,13 @@ envios.post("/", async (c) => {
     // Generar número de envío si no viene
     if (!body.numero) {
       const { count } = await supabase
-        .from("envios_75638143")
+        .from("envios")
         .select("id", { count: "exact", head: true });
       body.numero = `ENV-${15000 + (count ?? 0)}-${String((count ?? 0) + 1).padStart(3, '0')}`;
     }
     
     const { data, error } = await supabase
-      .from("envios_75638143")
+      .from("envios")
       .insert({
         ...body,
         fecha_creacion: new Date().toISOString(),
@@ -162,7 +171,7 @@ envios.post("/", async (c) => {
     if (error) throw error;
     
     // Crear evento inicial
-    await supabase.from("envios_eventos_75638143").insert({
+    await supabase.from("envios_eventos").insert({
       envio_id: data.id,
       estado: body.estado || "creado",
       descripcion: "Envío creado",
@@ -187,13 +196,13 @@ envios.put("/:id", async (c) => {
     // Si cambió el estado, crear evento
     if (body.estado) {
       const { data: existing } = await supabase
-        .from("envios_75638143")
+        .from("envios")
         .select("estado")
         .eq("id", id)
         .single();
       
       if (existing && existing.estado !== body.estado) {
-        await supabase.from("envios_eventos_75638143").insert({
+        await supabase.from("envios_eventos").insert({
           envio_id: id,
           estado: body.estado,
           descripcion: body.descripcion_evento || `Estado cambiado a ${body.estado}`,
@@ -204,7 +213,7 @@ envios.put("/:id", async (c) => {
     }
     
     const { data, error } = await supabase
-      .from("envios_75638143")
+      .from("envios")
       .update(body)
       .eq("id", id)
       .select()
@@ -227,7 +236,7 @@ envios.post("/:id/evento", async (c) => {
     const supabase = getSupabase();
     
     const { data, error } = await supabase
-      .from("envios_eventos_75638143")
+      .from("envios_eventos")
       .insert({
         envio_id: id,
         estado: body.estado,
@@ -245,7 +254,7 @@ envios.post("/:id/evento", async (c) => {
     // Si el evento cambia el estado, actualizar el envío
     if (body.estado) {
       await supabase
-        .from("envios_75638143")
+        .from("envios")
         .update({ estado: body.estado })
         .eq("id", id);
     }
@@ -265,7 +274,7 @@ envios.post("/:id/acuse", async (c) => {
     const supabase = getSupabase();
     
     const { data, error } = await supabase
-      .from("envios_75638143")
+      .from("envios")
       .update({
         acuse_recibido: true,
         acuse_fecha: new Date().toISOString(),
@@ -280,7 +289,7 @@ envios.post("/:id/acuse", async (c) => {
     if (error) throw error;
     
     // Crear evento de acuse
-    await supabase.from("envios_eventos_75638143").insert({
+    await supabase.from("envios_eventos").insert({
       envio_id: id,
       estado: "entregado",
       descripcion: `Acuse de recibo firmado por ${body.firmado_por}`,

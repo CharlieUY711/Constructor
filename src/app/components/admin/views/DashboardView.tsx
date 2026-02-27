@@ -10,7 +10,7 @@ import {
   LayoutDashboard, ShoppingCart, Megaphone, Database,
   Truck, Wrench, Settings, Lightbulb, TrendingUp,
   Package, Users, BarChart2, Plug, CheckSquare,
-  DollarSign, Activity, Map,
+  DollarSign, Activity, Map, MapPin,
 } from 'lucide-react';
 
 const ORANGE = '#FF6835';
@@ -144,6 +144,22 @@ export function DashboardView({ onNavigate }: Props) {
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = showIdeaModal ? `${ORANGE}15` : `${ORANGE}08`)}
           >
             <Lightbulb size={17} color={ORANGE} strokeWidth={2.2} />
+          </button>
+          {/* Botón temporal: Prueba Google Maps */}
+          <button
+            onClick={() => onNavigate('google-maps-test')}
+            title="Prueba Google Maps"
+            style={{
+              width: 38, height: 38, borderRadius: '50%',
+              border: '2px solid #10B98140',
+              backgroundColor: '#10B98108',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#10B98120')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#10B98108')}
+          >
+            <MapPin size={17} color="#10B981" strokeWidth={2.2} />
           </button>
         </div>
       </div>

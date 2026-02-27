@@ -2,10 +2,11 @@
  * 💳 Pasarela de Pagos
  * Procesadores locales Uruguay + Latam/Global
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import { ExternalLink, Settings2, CheckCircle2, AlertCircle, Clock, Zap, Star, CreditCard } from 'lucide-react';
+import { getIntegraciones, type Integracion } from '../../../services/integracionesApi';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
@@ -23,65 +24,38 @@ interface Provider {
   docsUrl?: string; recommended?: boolean;
 }
 
-const PROVIDERS: Provider[] = [
-  // ── Uruguay ──────────────────────────────────────
-  {
-    id: 'plexo', emoji: '🔵', name: 'Plexo',
-    description: 'Procesador de tarjetas para Uruguay. Visa, Mastercard, OCA, Creditel, Oca. Ideal para tiendas locales.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'api', status: 'sandbox',
-    badge: 'Sandbox disponible', recommended: true,
-    docsUrl: 'https://plexo.com.uy',
-  },
-  {
-    id: 'oca-cards', emoji: '🟠', name: 'OCA Tarjetas',
-    description: 'Tarjeta de crédito y débito OCA — segunda tarjeta más usada en Uruguay.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'no-api', status: 'pending',
-    badge: 'Integración vía Plexo', category: 'Incluida en Plexo',
-  },
-  {
-    id: 'creditel', emoji: '🟡', name: 'Creditel',
-    description: 'Financiera de crédito al consumo en Uruguay. Cobro en cuotas.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'no-api', status: 'pending',
-    badge: 'Integración vía Plexo',
-  },
-  {
-    id: 'abitab', emoji: '🔴', name: 'Abitab',
-    description: 'Pago en agencias Abitab. Sin necesidad de tarjeta. Muy popular en Uruguay.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'redirect', status: 'pending',
-    badge: 'Redirección a agencia',
-  },
-  {
-    id: 'redpagos', emoji: '🟢', name: 'RedPagos',
-    description: 'Red de cobranza en comercios. Alternativa a Abitab con cobertura nacional.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'redirect', status: 'pending',
-    badge: 'Redirección a agencia',
-  },
-  {
-    id: 'brou', emoji: '🔵', name: 'BROU e-Payments',
-    description: 'Plataforma de pagos online del Banco República. Débito directo en cuenta.',
-    countries: ['🇺🇾'], region: 'uy', apiMode: 'api', status: 'coming-soon',
-    badge: 'Próximamente',
-  },
-  // ── Latam / Global ──────────────────────────────
-  {
-    id: 'mp', emoji: '💙', name: 'Mercado Pago',
-    description: 'La pasarela de pagos más usada en Latinoamérica. Tarjetas, QR y transferencias.',
-    countries: ['🇺🇾', '🇦🇷', '🇧🇷', '🇨🇱'], region: 'latam', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://www.mercadopago.com.uy/developers',
-  },
-  {
-    id: 'paypal', emoji: '🌐', name: 'PayPal',
-    description: 'Pagos internacionales. Ideal para ventas a compradores fuera de Latam.',
-    countries: ['🌎'], region: 'global', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://developer.paypal.com',
-  },
-  {
-    id: 'stripe', emoji: '💜', name: 'Stripe',
-    description: 'Procesamiento de tarjetas global. Visa, Mastercard, Amex y wallets digitales.',
-    countries: ['🌎'], region: 'global', apiMode: 'api', status: 'pending',
-    docsUrl: 'https://stripe.com/docs',
-  },
-];
+// Mapeo de metadatos visuales por nombre de integración
+const PROVIDER_METADATA: Record<string, Partial<Provider>> = {
+  'plexo': { emoji: '🔵', countries: ['🇺🇾'], region: 'uy', apiMode: 'api', recommended: true },
+  'mercadopago': { emoji: '💙', countries: ['🇺🇾', '🇦🇷', '🇧🇷', '🇨🇱'], region: 'latam', apiMode: 'api' },
+};
+
+// Helper para convertir Integracion a Provider
+function integracionToProvider(integracion: Integracion): Provider {
+  const metadata = PROVIDER_METADATA[integracion.nombre] || {};
+  const config = integracion.config as any;
+  
+  // Mapear estado
+  let status: Status = 'pending';
+  if (integracion.estado === 'activo') status = 'connected';
+  else if (integracion.estado === 'error') status = 'pending';
+  else if (integracion.estado === 'configurando') status = 'sandbox';
+  
+  return {
+    id: integracion.id,
+    emoji: metadata.emoji || '💳',
+    name: integracion.proveedor,
+    description: `${integracion.proveedor} - ${integracion.nombre}`,
+    countries: metadata.countries || ['🌎'],
+    region: metadata.region || 'global',
+    apiMode: metadata.apiMode || 'api',
+    status,
+    badge: config.badge,
+    category: config.category,
+    docsUrl: config.docsUrl,
+    recommended: metadata.recommended || config.recommended || false,
+  };
+}
 
 const STATUS_META: Record<Status, { label: string; color: string; bg: string; Icon: any }> = {
   connected:    { label: 'Conectada',   color: '#10B981', bg: '#D1FAE5', Icon: CheckCircle2 },
@@ -103,6 +77,24 @@ export function IntegracionesPagosView({ onNavigate }: Props) {
   const [regionFilter, setRegionFilter] = useState<Filter>('all');
   const [apiFilter, setApiFilter]       = useState<ApiFilter>('all');
   const [expandedId, setExpandedId]     = useState<string | null>(null);
+  const [integraciones, setIntegraciones] = useState<Integracion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await getIntegraciones({ tipo: 'pagos' });
+        setIntegraciones(data);
+      } catch (err) {
+        console.error('Error cargando integraciones de pagos:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const PROVIDERS: Provider[] = integraciones.map(integracionToProvider);
 
   const filtered = PROVIDERS.filter(p => {
     const regionOk = regionFilter === 'all' || p.region === regionFilter || (regionFilter === 'latam' && p.region === 'global');
@@ -127,10 +119,10 @@ export function IntegracionesPagosView({ onNavigate }: Props) {
         {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
           {[
-            { label: 'Proveedores', value: PROVIDERS.length, color: '#111827' },
-            { label: 'Conectadas',  value: connected, color: '#10B981' },
-            { label: 'Sandbox',     value: sandbox,   color: '#F59E0B' },
-            { label: 'Uruguay 🇺🇾',  value: PROVIDERS.filter(p => p.region === 'uy').length, color: ORANGE },
+            { label: 'Proveedores', value: loading ? '...' : PROVIDERS.length, color: '#111827' },
+            { label: 'Conectadas',  value: loading ? '...' : connected, color: '#10B981' },
+            { label: 'Sandbox',     value: loading ? '...' : sandbox,   color: '#F59E0B' },
+            { label: 'Uruguay 🇺🇾',  value: loading ? '...' : PROVIDERS.filter(p => p.region === 'uy').length, color: ORANGE },
           ].map((s, i) => (
             <div key={i} style={{
               flex: 1, backgroundColor: '#fff', borderRadius: 10, padding: '12px 16px',

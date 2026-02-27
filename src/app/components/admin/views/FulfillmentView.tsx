@@ -2,7 +2,7 @@
    FulfillmentView — Fulfillment / Picking
    Wave Picking · Lotes · Empaque · Procesamiento
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
@@ -10,7 +10,9 @@ import {
   Layers, BarChart3, Play, Pause, Check, X,
   Search, Filter, Plus, Zap, RotateCcw,
   ArrowRight, Users, TrendingUp, Archive,
+  Loader2,
 } from 'lucide-react';
+import { getOrdenesFulfillment, getWaves, type OrdenFulfillment as OrdenFulfillmentApi, type Wave as WaveApi } from '../../../services/fulfillmentApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -52,29 +54,68 @@ interface Wave {
   inicio?: string;
 }
 
-const WAVES: Wave[] = [
-  { id: 'w1', nombre: 'Wave Mañana 09:00', ordenes: 12, items: 48, estado: 'completada', operarios: 3, inicio: '09:00' },
-  { id: 'w2', nombre: 'Wave Mañana 11:00', ordenes: 8,  items: 31, estado: 'en_proceso', operarios: 2, inicio: '11:00' },
-  { id: 'w3', nombre: 'Wave Tarde 14:00',  ordenes: 15, items: 62, estado: 'abierta',    operarios: 0 },
-  { id: 'w4', nombre: 'Wave Tarde 16:30',  ordenes: 6,  items: 22, estado: 'abierta',    operarios: 0 },
-];
+export function FulfillmentView({ onNavigate }: Props) {
+  const [tab, setTab] = useState<Tab>('ordenes');
+  const [search, setSearch] = useState('');
+  const [filterEstado, setFilterEstado] = useState<EstadoOrden | 'todos'>('todos');
+  const [selectedOrden, setSelectedOrden] = useState<OrdenFulfillment | null>(null);
+  const [ordenes, setOrdenes] = useState<OrdenFulfillment[]>([]);
+  const [waves, setWaves] = useState<Wave[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-const ORDENES: OrdenFulfillment[] = [
-  { id: 'of1', numero: 'OF-2024-001', pedido: 'PED-15000', cliente: 'Martín García', estado: 'en_picking', prioridad: 'urgente', items: 3, zona: 'A', tiempoEstimado: '12 min', fechaCreacion: '09:15', wave: 'w2', operario: 'Lucas R.',
-    lineas: [{ sku: 'SKU-001', descripcion: 'Remera XL Negra', cantidad: 2, ubicacion: 'A-14-3', pickeado: true }, { sku: 'SKU-088', descripcion: 'Pantalón M Azul', cantidad: 1, ubicacion: 'A-22-1', pickeado: false }] },
-  { id: 'of2', numero: 'OF-2024-002', pedido: 'PED-15001', cliente: 'Sofía Rodríguez', estado: 'listo_empacar', prioridad: 'alta', items: 5, zona: 'B', tiempoEstimado: '8 min', fechaCreacion: '09:22', wave: 'w2', operario: 'María L.',
-    lineas: [{ sku: 'SKU-034', descripcion: 'Zapatilla 42', cantidad: 1, ubicacion: 'B-03-2', pickeado: true }, { sku: 'SKU-035', descripcion: 'Medias pack x3', cantidad: 2, ubicacion: 'B-04-1', pickeado: true }, { sku: 'SKU-200', descripcion: 'Cordones', cantidad: 2, ubicacion: 'B-04-3', pickeado: true }] },
-  { id: 'of3', numero: 'OF-2024-003', pedido: 'PED-15002', cliente: 'Empresa Textil S.A.', estado: 'pendiente', prioridad: 'alta', items: 12, zona: 'C', tiempoEstimado: '25 min', fechaCreacion: '10:05', wave: 'w3',
-    lineas: [{ sku: 'SKU-110', descripcion: 'Hilo industrial x100', cantidad: 10, ubicacion: 'C-08-1', pickeado: false }, { sku: 'SKU-111', descripcion: 'Aguja industrial pack', cantidad: 2, ubicacion: 'C-08-2', pickeado: false }] },
-  { id: 'of4', numero: 'OF-2024-004', pedido: 'PED-15003', cliente: 'Lucas Fernández', estado: 'empacado', prioridad: 'normal', items: 1, zona: 'A', tiempoEstimado: '—', fechaCreacion: '08:50', wave: 'w1', operario: 'Carlos V.',
-    lineas: [{ sku: 'SKU-045', descripcion: 'Cinturón cuero L', cantidad: 1, ubicacion: 'A-05-2', pickeado: true }] },
-  { id: 'of5', numero: 'OF-2024-005', pedido: 'PED-15004', cliente: 'Ana Martínez', estado: 'despachado', prioridad: 'normal', items: 4, zona: 'B', tiempoEstimado: '—', fechaCreacion: '08:30', wave: 'w1', operario: 'Lucas R.',
-    lineas: [] },
-  { id: 'of6', numero: 'OF-2024-006', pedido: 'PED-15005', cliente: 'Roberto Sánchez', estado: 'pendiente', prioridad: 'baja', items: 2, zona: 'A', tiempoEstimado: '10 min', fechaCreacion: '10:30', wave: 'w3',
-    lineas: [{ sku: 'SKU-067', descripcion: 'Cartera de mano', cantidad: 1, ubicacion: 'A-18-4', pickeado: false }, { sku: 'SKU-068', descripcion: 'Billetera', cantidad: 1, ubicacion: 'A-18-5', pickeado: false }] },
-  { id: 'of7', numero: 'OF-2024-007', pedido: 'PED-15006', cliente: 'Julia Pereyra', estado: 'pendiente', prioridad: 'urgente', items: 7, zona: 'C', tiempoEstimado: '18 min', fechaCreacion: '10:45', wave: 'w3',
-    lineas: [] },
-];
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [ordenesData, wavesData] = await Promise.all([
+        getOrdenesFulfillment(),
+        getWaves()
+      ]);
+
+      const adaptedOrdenes: OrdenFulfillment[] = ordenesData.map(o => ({
+        id: o.id,
+        numero: o.numero || '',
+        pedido: o.pedido || '',
+        cliente: o.cliente,
+        estado: o.estado,
+        prioridad: o.prioridad || 'normal',
+        items: o.items || 0,
+        zona: o.zona || '',
+        tiempoEstimado: o.tiempo_estimado || '—',
+        fechaCreacion: o.fecha_creacion || o.created_at || '',
+        wave: o.wave_id,
+        operario: o.operario,
+        lineas: Array.isArray(o.lineas) ? o.lineas : [],
+      }));
+
+      const adaptedWaves: Wave[] = wavesData.map(w => ({
+        id: w.id,
+        nombre: w.nombre,
+        ordenes: Array.isArray(w.ordenes) ? w.ordenes.length : 0,
+        items: 0, // Calcular si es necesario
+        estado: w.estado,
+        operarios: w.operarios || 0,
+        inicio: w.inicio,
+      }));
+
+      setOrdenes(adaptedOrdenes);
+      setWaves(adaptedWaves);
+      if (adaptedOrdenes.length > 0) setSelectedOrden(adaptedOrdenes[0]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error cargando fulfillment:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ORDENES: OrdenFulfillment[] = ordenes;
+  const WAVES: Wave[] = waves;
 
 const ESTADO_CFG: Record<EstadoOrden, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   pendiente:      { label: 'Pendiente',       color: '#6B7280', bg: '#F3F4F6', icon: Clock       },
@@ -93,11 +134,6 @@ const PRIO_CFG: Record<PrioridadOrden, { label: string; color: string }> = {
 
 type Tab = 'ordenes' | 'waves' | 'empaque';
 
-export function FulfillmentView({ onNavigate }: Props) {
-  const [tab, setTab] = useState<Tab>('ordenes');
-  const [search, setSearch] = useState('');
-  const [filterEstado, setFilterEstado] = useState<EstadoOrden | 'todos'>('todos');
-  const [selectedOrden, setSelectedOrden] = useState<OrdenFulfillment | null>(ORDENES[0]);
 
   const filtered = ORDENES.filter(o => {
     if (filterEstado !== 'todos' && o.estado !== filterEstado) return false;

@@ -2,14 +2,16 @@
    TransportistasView — Catálogo de Carriers
    Transportistas · Tramos · Tarifas
    ===================================================== */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
 import {
   Users, Truck, Star, MapPin, Clock, Package,
   DollarSign, Plus, Search, Edit2, CheckCircle2,
   ArrowRight, Globe, Phone, Mail, ToggleLeft, ToggleRight,
+  Loader2,
 } from 'lucide-react';
+import { getTransportistas, getTramos, type Transportista as TransportistaApi, type Tramo as TramoApi } from '../../../services/transportistasApi';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -18,16 +20,16 @@ interface Transportista {
   id: string;
   nombre: string;
   tipo: 'nacional' | 'local' | 'internacional';
-  logo: string;
-  contacto: string;
-  email: string;
-  telefono: string;
-  rating: number;
-  enviosActivos: number;
-  enviosTotales: number;
+  logo?: string;
+  contacto?: string;
+  email?: string;
+  telefono?: string;
+  rating?: number;
+  enviosActivos?: number;
+  enviosTotales?: number;
   activo: boolean;
-  tiempoPromedio: string;
-  cobertura: string[];
+  tiempoPromedio?: string;
+  cobertura?: string[];
 }
 
 interface Tramo {
@@ -37,34 +39,11 @@ interface Tramo {
   origen: string;
   destino: string;
   tipo: 'local' | 'intercity' | 'internacional';
-  tiempoEstimado: string;
-  tarifaBase: number;
-  tarifaKg: number;
+  tiempoEstimado?: string;
+  tarifaBase?: number;
+  tarifaKg?: number;
   activo: boolean;
 }
-
-const TRANSPORTISTAS: Transportista[] = [
-  { id: 'c1', nombre: 'Correo Argentino', tipo: 'nacional', logo: '📮', contacto: 'Cuenta Empresa', email: 'empresas@correoargentino.com.ar', telefono: '0800-999-2767', rating: 4.1, enviosActivos: 34, enviosTotales: 1240, activo: true, tiempoPromedio: '3-5 días', cobertura: ['CABA', 'GBA', 'Interior'] },
-  { id: 'c2', nombre: 'Andreani', tipo: 'nacional', logo: '🚚', contacto: 'Cuenta Empresa #AE-7823', email: 'empresas@andreani.com', telefono: '0810-122-7263', rating: 4.5, enviosActivos: 21, enviosTotales: 890, activo: true, tiempoPromedio: '2-4 días', cobertura: ['CABA', 'GBA', 'Interior', 'Patagonia'] },
-  { id: 'c3', nombre: 'OCA', tipo: 'nacional', logo: '🔵', contacto: 'Cuenta OCA Business', email: 'business@oca.com.ar', telefono: '0810-999-622', rating: 3.8, enviosActivos: 12, enviosTotales: 456, activo: true, tiempoPromedio: '2-3 días', cobertura: ['CABA', 'GBA'] },
-  { id: 'c4', nombre: 'FedEx', tipo: 'internacional', logo: '📦', contacto: 'Cuenta Fedex #FE-2024', email: 'ar.entreprise@fedex.com', telefono: '+54 11 5555-9999', rating: 4.7, enviosActivos: 5, enviosTotales: 127, activo: true, tiempoPromedio: '3-7 días', cobertura: ['Internacional', 'Interior'] },
-  { id: 'c5', nombre: 'DHL Express', tipo: 'internacional', logo: '🌐', contacto: 'Cuenta DHL AR', email: 'ar.business@dhl.com', telefono: '+54 11 4318-7500', rating: 4.6, enviosActivos: 3, enviosTotales: 89, activo: true, tiempoPromedio: '2-5 días', cobertura: ['Internacional'] },
-  { id: 'c6', nombre: 'Express Delivery GBA', tipo: 'local', logo: '⚡', contacto: 'Diego Herrera', email: 'operaciones@expressdelivery.com.ar', telefono: '011 4567-8910', rating: 4.3, enviosActivos: 18, enviosTotales: 2340, activo: true, tiempoPromedio: 'Same day / 24h', cobertura: ['CABA', 'GBA Norte', 'GBA Sur'] },
-  { id: 'c7', nombre: 'Rápido del Sur', tipo: 'local', logo: '🏍️', contacto: 'Moto Courier', email: 'info@rapidodelsur.com', telefono: '011 4987-1234', rating: 3.9, enviosActivos: 0, enviosTotales: 340, activo: false, tiempoPromedio: '2-4 horas', cobertura: ['CABA', 'GBA Sur'] },
-];
-
-const TRAMOS: Tramo[] = [
-  { id: 't1', carrierId: 'c6', carrier: 'Express Delivery GBA', origen: 'CABA / GBA', destino: 'CABA', tipo: 'local', tiempoEstimado: 'Same day', tarifaBase: 1200, tarifaKg: 150, activo: true },
-  { id: 't2', carrierId: 'c6', carrier: 'Express Delivery GBA', origen: 'CABA / GBA', destino: 'GBA Norte', tipo: 'local', tiempoEstimado: '24h', tarifaBase: 1800, tarifaKg: 200, activo: true },
-  { id: 't3', carrierId: 'c6', carrier: 'Express Delivery GBA', origen: 'CABA / GBA', destino: 'GBA Sur', tipo: 'local', tiempoEstimado: '24h', tarifaBase: 1800, tarifaKg: 200, activo: true },
-  { id: 't4', carrierId: 'c1', carrier: 'Correo Argentino', origen: 'Depósito Central', destino: 'Interior (zona 1)', tipo: 'intercity', tiempoEstimado: '3-4 días', tarifaBase: 2800, tarifaKg: 350, activo: true },
-  { id: 't5', carrierId: 'c1', carrier: 'Correo Argentino', origen: 'Depósito Central', destino: 'Interior (zona 2)', tipo: 'intercity', tiempoEstimado: '5-7 días', tarifaBase: 4200, tarifaKg: 480, activo: true },
-  { id: 't6', carrierId: 'c2', carrier: 'Andreani', origen: 'Depósito Central', destino: 'Córdoba / Rosario', tipo: 'intercity', tiempoEstimado: '2-3 días', tarifaBase: 2500, tarifaKg: 320, activo: true },
-  { id: 't7', carrierId: 'c2', carrier: 'Andreani', origen: 'Depósito Central', destino: 'NOA / NEA', tipo: 'intercity', tiempoEstimado: '4-6 días', tarifaBase: 5500, tarifaKg: 600, activo: true },
-  { id: 't8', carrierId: 'c4', carrier: 'FedEx', origen: 'Argentina', destino: 'Uruguay / Chile', tipo: 'internacional', tiempoEstimado: '3-5 días', tarifaBase: 8500, tarifaKg: 1200, activo: true },
-  { id: 't9', carrierId: 'c5', carrier: 'DHL Express', origen: 'Argentina', destino: 'Europa / USA', tipo: 'internacional', tiempoEstimado: '5-8 días', tarifaBase: 15000, tarifaKg: 2500, activo: true },
-  { id: 't10', carrierId: 'c3', carrier: 'OCA', origen: 'CABA', destino: 'GBA', tipo: 'local', tiempoEstimado: '24-48h', tarifaBase: 1500, tarifaKg: 180, activo: true },
-];
 
 type Tab = 'transportistas' | 'tramos' | 'tarifas';
 
@@ -90,19 +69,112 @@ export function TransportistasView({ onNavigate }: Props) {
   const [tab, setTab] = useState<Tab>('transportistas');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Transportista | null>(null);
+  const [transportistas, setTransportistas] = useState<Transportista[]>([]);
+  const [tramos, setTramos] = useState<Tramo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const activos = TRANSPORTISTAS.filter(t => t.activo).length;
-  const totalEnviosActivos = TRANSPORTISTAS.reduce((s, t) => s + t.enviosActivos, 0);
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const filteredCarriers = TRANSPORTISTAS.filter(t =>
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [transportistasData, tramosData] = await Promise.all([
+        getTransportistas(),
+        Promise.all((await getTransportistas()).map(t => getTramos(t.id))).then(arr => arr.flat())
+      ]);
+
+      // Adaptar transportistas
+      const adaptedTransportistas: Transportista[] = transportistasData.map(t => ({
+        id: t.id,
+        nombre: t.nombre,
+        tipo: t.tipo as 'nacional' | 'local' | 'internacional',
+        logo: t.logo,
+        contacto: t.contacto,
+        email: t.email,
+        telefono: t.telefono,
+        rating: t.rating || 0,
+        enviosActivos: t.envios_activos || 0,
+        enviosTotales: t.envios_totales || 0,
+        activo: t.activo ?? (t.estado === 'activo'),
+        tiempoPromedio: t.tiempo_promedio,
+        cobertura: Array.isArray(t.cobertura) ? t.cobertura : [],
+      }));
+
+      // Adaptar tramos
+      const transportistasMap = new Map(transportistasData.map(t => [t.id, t]));
+      const adaptedTramos: Tramo[] = tramosData.map(t => ({
+        id: t.id,
+        carrierId: t.transportista_id,
+        carrier: transportistasMap.get(t.transportista_id)?.nombre || '',
+        origen: t.origen,
+        destino: t.destino,
+        tipo: t.tipo as 'local' | 'intercity' | 'internacional',
+        tiempoEstimado: t.tiempo_estimado,
+        tarifaBase: t.tarifa_base,
+        tarifaKg: t.tarifa_kg,
+        activo: t.activo ?? (t.estado === 'activo'),
+      }));
+
+      setTransportistas(adaptedTransportistas);
+      setTramos(adaptedTramos);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error cargando datos');
+      console.error('Error cargando transportistas:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const activos = transportistas.filter(t => t.activo).length;
+  const totalEnviosActivos = transportistas.reduce((s, t) => s + (t.enviosActivos || 0), 0);
+
+  const filteredCarriers = transportistas.filter(t =>
     !search || t.nombre.toLowerCase().includes(search.toLowerCase())
   );
 
-  const filteredTramos = TRAMOS.filter(t =>
+  const filteredTramos = tramos.filter(t =>
     !search || t.carrier.toLowerCase().includes(search.toLowerCase()) ||
     t.origen.toLowerCase().includes(search.toLowerCase()) ||
     t.destino.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={Truck}
+          title="Transportistas"
+          subtitle="Cargando..."
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+          ]}
+        />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Loader2 size={32} color={ORANGE} style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <OrangeHeader
+          icon={Truck}
+          title="Transportistas"
+          subtitle={`Error: ${error}`}
+          actions={[
+            { label: '← Logística', onClick: () => onNavigate('logistica') },
+            { label: '↻ Reintentar', primary: true, onClick: loadData },
+          ]}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -122,8 +194,8 @@ export function TransportistasView({ onNavigate }: Props) {
           {[
             { label: 'Carriers Activos', value: activos, icon: Users, color: ORANGE },
             { label: 'Envíos en curso', value: totalEnviosActivos, icon: Truck, color: '#2563EB' },
-            { label: 'Tramos configurados', value: TRAMOS.filter(t=>t.activo).length, icon: MapPin, color: '#7C3AED' },
-            { label: 'Rating promedio', value: (TRANSPORTISTAS.reduce((s,t)=>s+t.rating,0)/TRANSPORTISTAS.length).toFixed(1) + '★', icon: Star, color: '#F59E0B' },
+            { label: 'Tramos configurados', value: tramos.filter(t=>t.activo).length, icon: MapPin, color: '#7C3AED' },
+            { label: 'Rating promedio', value: transportistas.length > 0 ? (transportistas.reduce((s,t)=>s+(t.rating||0),0)/transportistas.length).toFixed(1) + '★' : '0★', icon: Star, color: '#F59E0B' },
           ].map(c => {
             const Icon = c.icon;
             return (
@@ -186,23 +258,25 @@ export function TransportistasView({ onNavigate }: Props) {
                           <span style={{ fontSize: '10px', fontWeight: 700, color: tipoCfg.color, backgroundColor: tipoCfg.bg, padding: '2px 7px', borderRadius: '10px' }}>{tipoCfg.label}</span>
                           {!carrier.activo && <span style={{ fontSize: '10px', fontWeight: 700, color: '#9CA3AF', backgroundColor: '#F3F4F6', padding: '2px 7px', borderRadius: '10px' }}>Inactivo</span>}
                         </div>
-                        <Stars n={carrier.rating} />
+                        <Stars n={carrier.rating || 0} />
                       </div>
                       <div style={{ width: '36px', height: '20px', borderRadius: '10px', backgroundColor: carrier.activo ? '#D1FAE5' : '#F3F4F6', display: 'flex', alignItems: 'center', padding: '0 2px', cursor: 'pointer', flexShrink: 0, justifyContent: carrier.activo ? 'flex-end' : 'flex-start' }}>
                         <div style={{ width: '16px', height: '16px', borderRadius: '50%', backgroundColor: carrier.activo ? '#059669' : '#9CA3AF' }} />
                       </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>⏱ {carrier.tiempoPromedio}</div>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>📦 {carrier.enviosActivos} activos</div>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>📊 {carrier.enviosTotales} totales</div>
-                      <div style={{ fontSize: '11px', color: '#6B7280' }}>☎ {carrier.telefono}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                      <div style={{ fontSize: '11px', color: '#6B7280' }}>⏱ {carrier.tiempoPromedio || '—'}</div>
+                      <div style={{ fontSize: '11px', color: '#6B7280' }}>📦 {carrier.enviosActivos || 0} activos</div>
+                      <div style={{ fontSize: '11px', color: '#6B7280' }}>📊 {carrier.enviosTotales || 0} totales</div>
+                      <div style={{ fontSize: '11px', color: '#6B7280' }}>☎ {carrier.telefono || '—'}</div>
                     </div>
-                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                      {carrier.cobertura.map(z => (
-                        <span key={z} style={{ fontSize: '10px', color: '#374151', backgroundColor: '#F3F4F6', padding: '2px 7px', borderRadius: '6px' }}>{z}</span>
-                      ))}
-                    </div>
+                    {carrier.cobertura && carrier.cobertura.length > 0 && (
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {carrier.cobertura.map(z => (
+                          <span key={z} style={{ fontSize: '10px', color: '#374151', backgroundColor: '#F3F4F6', padding: '2px 7px', borderRadius: '6px' }}>{z}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -240,10 +314,10 @@ export function TransportistasView({ onNavigate }: Props) {
                           <span style={{ fontSize: '10px', fontWeight: 700, color: tipoCfg.color, backgroundColor: tipoCfg.bg, padding: '3px 8px', borderRadius: '10px' }}>{tipoCfg.label}</span>
                         </td>
                         <td style={{ padding: '12px 14px', fontSize: '12px', color: '#374151', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Clock size={11} color="#9CA3AF" /> {tramo.tiempoEstimado}
+                          <Clock size={11} color="#9CA3AF" /> {tramo.tiempoEstimado || '—'}
                         </td>
-                        <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 700, color: '#111' }}>${tramo.tarifaBase.toLocaleString('es-AR')}</td>
-                        <td style={{ padding: '12px 14px', fontSize: '12px', color: '#6B7280' }}>${tramo.tarifaKg}/kg</td>
+                        <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 700, color: '#111' }}>${(tramo.tarifaBase || 0).toLocaleString('es-AR')}</td>
+                        <td style={{ padding: '12px 14px', fontSize: '12px', color: '#6B7280' }}>${tramo.tarifaKg || 0}/kg</td>
                         <td style={{ padding: '12px 14px' }}>
                           <span style={{ fontSize: '10px', fontWeight: 700, color: tramo.activo ? '#059669' : '#9CA3AF', backgroundColor: tramo.activo ? '#ECFDF5' : '#F3F4F6', padding: '3px 8px', borderRadius: '10px' }}>
                             {tramo.activo ? '● Activo' : '○ Inactivo'}
