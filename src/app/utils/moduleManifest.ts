@@ -1,111 +1,34 @@
-/**
- * MODULE MANIFEST — Charlie Marketplace Builder v1.5
- * ═══════════════════════════════════════════════════
- * FUENTE ÚNICA DE VERDAD sobre qué vistas existen y qué IDs del checklist cubren.
+﻿/**
+ * MODULE MANIFEST â€” Charlie Marketplace Builder v1.5
+ * â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+ * FUENTE ÃšNICA DE VERDAD sobre quÃ© vistas existen y quÃ© IDs del checklist cubren.
  *
- * ┌─ REGLA ──────────────────────────────────────────────────────────────────────┐
- * │  Cuando construís una vista nueva, SOLO tenés que agregar/editar UNA entrada │
- * │  aquí. moduleRegistry.ts y el ChecklistRoadmap se actualizan solos.          │
- * └──────────────────────────────────────────────────────────────────────────────┘
+ * â”Œâ”€ REGLA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+ * â”‚  Cuando construÃ­s una vista nueva, SOLO tenÃ©s que agregar/editar UNA entrada â”‚
+ * â”‚  aquÃ­. moduleRegistry.ts y el ChecklistRoadmap se actualizan solos.          â”‚
+ * â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
  *
- * isReal = true  → Vista funcional con UI completa (puede ser mock o real Supabase)
- * isReal = false → Hub de navegación o placeholder; no cuenta como completado
+ * isReal = true  â†’ Vista funcional con UI completa (puede ser mock o real Supabase)
+ * isReal = false â†’ Hub de navegaciÃ³n o placeholder; no cuenta como completado
  */
 
 import React from 'react';
 import type { MainSection } from '../AdminDashboard';
 
-// ── Imports de todos los componentes ────────────────────────────────────────────
-import { DashboardView }      from '../components/admin/views/DashboardView';
-import { EcommerceView }      from '../components/admin/views/EcommerceView';
-import { MarketingView }      from '../components/admin/views/MarketingView';
-import { HerramientasView }   from '../components/admin/views/HerramientasView';
-import { QrGeneratorView }    from '../components/admin/views/QrGeneratorView';
-import { GestionView }        from '../components/admin/views/GestionView';
-import { POSView }            from '../components/admin/views/POSView';
-import { SistemaView }        from '../components/admin/views/SistemaView';
-import { DisenoView }         from '../components/admin/views/DisenoView';
-import { ChecklistView }      from '../components/admin/views/ChecklistView';
-import { IntegracionesView }  from '../components/admin/views/IntegracionesView';
-import { MigracionRRSSView }  from '../components/admin/views/MigracionRRSSView';
-import { MailingView }        from '../components/admin/views/MailingView';
-import { GoogleAdsView }      from '../components/admin/views/GoogleAdsView';
-import { RuedaSorteosView }   from '../components/admin/views/RuedaSorteosView';
-import { FidelizacionView }   from '../components/admin/views/FidelizacionView';
-import { RedesSocialesView }  from '../components/admin/views/RedesSocialesView';
-import { RRSSHubView }        from '../components/admin/views/RRSSHubView';
-import { DepartamentosView }  from '../components/admin/views/DepartamentosView';
-import { SecondHandView }     from '../components/admin/views/SecondHandView';
-import { ERPInventarioView }  from '../components/admin/views/ERPInventarioView';
-import { ERPFacturacionView } from '../components/admin/views/ERPFacturacionView';
-import { ERPComprasView }     from '../components/admin/views/ERPComprasView';
-import { ERPCRMView }         from '../components/admin/views/ERPCRMView';
-import { ERPContabilidadView } from '../components/admin/views/ERPContabilidadView';
-import { ERPRRHHView }        from '../components/admin/views/ERPRRHHView';
-import { ProyectosView }      from '../components/admin/views/ProyectosView';
-import { PersonasView }       from '../components/admin/views/PersonasView';
-import { OrganizacionesView } from '../components/admin/views/OrganizacionesView';
-import { ClientesView }       from '../components/admin/views/ClientesView';
-import { PedidosView }        from '../components/admin/views/PedidosView';
-import { MetodosPagoView }    from '../components/admin/views/MetodosPagoView';
-import { MetodosEnvioView }   from '../components/admin/views/MetodosEnvioView';
-import { PagosView }          from '../components/admin/views/PagosView';
-import { EnviosView }         from '../components/admin/views/EnviosView';
-import { LogisticaView }      from '../components/admin/views/LogisticaView';
-import { EtiquetaEmotivaView } from '../components/admin/views/EtiquetaEmotivaView';
-import { TransportistasView } from '../components/admin/views/TransportistasView';
-import { RutasView }          from '../components/admin/views/RutasView';
-import { FulfillmentView }    from '../components/admin/views/FulfillmentView';
-import { ProduccionView }     from '../components/admin/views/ProduccionView';
-import { AbastecimientoView } from '../components/admin/views/AbastecimientoView';
-import { MapaEnviosView }     from '../components/admin/views/MapaEnviosView';
-import { TrackingPublicoView } from '../components/admin/views/TrackingPublicoView';
-import { SEOView }            from '../components/admin/views/SEOView';
-import { IdeasBoardView }     from '../components/admin/views/IdeasBoardView';
-import { IntegracionesPagosView }      from '../components/admin/views/IntegracionesPagosView';
-import { IntegracionesLogisticaView }  from '../components/admin/views/IntegracionesLogisticaView';
-import { IntegracionesTiendasView }    from '../components/admin/views/IntegracionesTiendasView';
-import { IntegracionesRRSSView }       from '../components/admin/views/IntegracionesRRSSView';
-import { IntegracionesServiciosView }  from '../components/admin/views/IntegracionesServiciosView';
-import { IntegracionesComunicacionView } from '../components/admin/views/IntegracionesComunicacionView';
-import { IntegracionesMarketplaceView } from '../components/admin/views/IntegracionesMarketplaceView';
-import { IntegracionesIdentidadView }   from '../components/admin/views/IntegracionesIdentidadView';
-import { APIKeysView }                  from '../components/admin/views/APIKeysView';
-import { WebhooksView }                 from '../components/admin/views/WebhooksView';
-import { BibliotecaWorkspace }         from '../components/admin/views/BibliotecaWorkspace';
-import { EditorImagenesWorkspace }     from '../components/admin/views/EditorImagenesWorkspace';
-import { GenDocumentosWorkspace }      from '../components/admin/views/GenDocumentosWorkspace';
-import { GenPresupuestosWorkspace }    from '../components/admin/views/GenPresupuestosWorkspace';
-import { OCRWorkspace }                from '../components/admin/views/OCRWorkspace';
-import { ImpresionWorkspace }          from '../components/admin/views/ImpresionWorkspace';
-import { AuditoriaHubView }            from '../components/admin/views/AuditoriaHubView';
-import { HealthMonitorView }           from '../components/admin/views/HealthMonitorView';
-import { SystemLogsView }              from '../components/admin/views/SystemLogsView';
-import { RepositorioAPIsView }         from '../components/admin/views/RepositorioAPIsView';
-import { ConstructorView }             from '../components/admin/views/ConstructorView';
-import { AuthRegistroView }            from '../components/admin/views/AuthRegistroView';
-import { CargaMasivaView }             from '../components/admin/views/CargaMasivaView';
-import { MetaBusinessView }            from '../components/admin/views/MetaBusinessView';
-import { UnifiedWorkspaceView }        from '../components/admin/views/UnifiedWorkspaceView';
-import { AdminDashboardView }          from '../components/admin/views/AdminDashboardView';
-import { UserDashboardView }           from '../components/admin/views/UserDashboardView';
-import { ConfigVistasPorRolView }      from '../components/admin/views/ConfigVistasPorRolView';
-import { DocumentacionView }           from '../components/admin/views/DocumentacionView';
-import { MetaMapView }                 from '../components/admin/views/MetaMapView';
-import { GoogleMapsTestView }          from '../components/admin/views/GoogleMapsTestView';
+// â”€â”€ Imports de todos los componentes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export interface ManifestEntry {
-  /** IDs exactos en MODULES_DATA que esta vista cubre (vacío = hub, no mapea nada) */
+  /** IDs exactos en MODULES_DATA que esta vista cubre (vacÃ­o = hub, no mapea nada) */
   checklistIds: string[];
-  /** Sección en AdminDashboard / sidebar */
+  /** SecciÃ³n en AdminDashboard / sidebar */
   section: MainSection;
   /** Nombre del archivo de vista (solo informativo) */
   viewFile: string;
   /** Componente React correspondiente a esta vista */
   component: React.ComponentType<{ onNavigate: (s: MainSection) => void }> | React.ComponentType<{}> | null;
-  /** true = vista funcional real | false = hub de navegación o placeholder */
+  /** true = vista funcional real | false = hub de navegaciÃ³n o placeholder */
   isReal: boolean;
-  /** ¿Conecta con Supabase/backend? */
+  /** Â¿Conecta con Supabase/backend? */
   hasSupabase?: boolean;
   /** Nota descriptiva */
   notes?: string;
@@ -113,38 +36,38 @@ export interface ManifestEntry {
 
 export const MODULE_MANIFEST: ManifestEntry[] = [
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ADMIN / SISTEMA
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: ['admin-settings', 'admin-users'],
     section: 'dashboard',
     viewFile: 'DashboardView.tsx',
-    component: DashboardView,
+    component: React.lazy(() => import('../components/admin/views/DashboardView').then(m => ({ default: m.DashboardView }))),
     isReal: true,
-    notes: 'Dashboard con métricas, charts y navegación rápida',
+    notes: 'Dashboard con mÃ©tricas, charts y navegaciÃ³n rÃ¡pida',
   },
   {
     checklistIds: ['admin-settings', 'admin-users'],
     section: 'sistema',
     viewFile: 'SistemaView.tsx',
-    component: SistemaView,
+    component: React.lazy(() => import('../components/admin/views/SistemaView').then(m => ({ default: m.SistemaView }))),
     isReal: true,
-    notes: 'Configuración del sistema — hub con cards de config',
+    notes: 'ConfiguraciÃ³n del sistema â€” hub con cards de config',
   },
   {
     checklistIds: ['admin-users'],
     section: 'departamentos',
     viewFile: 'DepartamentosView.tsx',
-    component: DepartamentosView,
+    component: React.lazy(() => import('../components/admin/views/DepartamentosView').then(m => ({ default: m.DepartamentosView }))),
     isReal: true,
-    notes: 'Gestión de departamentos, roles y permisos',
+    notes: 'GestiÃ³n de departamentos, roles y permisos',
   },
   {
     checklistIds: ['admin-settings'],
     section: 'checklist',
     viewFile: 'ChecklistView.tsx',
-    component: ChecklistView,
+    component: React.lazy(() => import('../components/admin/views/ChecklistView').then(m => ({ default: m.ChecklistView }))),
     isReal: true,
     notes: 'Vista del checklist / roadmap con audit integrado',
   },
@@ -152,28 +75,28 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'diseno',
     viewFile: 'DisenoView.tsx',
-    component: DisenoView,
+    component: React.lazy(() => import('../components/admin/views/DisenoView').then(m => ({ default: m.DisenoView }))),
     isReal: false,
-    notes: 'Hub de diseño y branding (tabs de navegación)',
+    notes: 'Hub de diseÃ±o y branding (tabs de navegaciÃ³n)',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // BASE DE PERSONAS
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: ['base-personas'],
     section: 'personas',
     viewFile: 'PersonasView.tsx',
-    component: PersonasView,
+    component: React.lazy(() => import('../components/admin/views/PersonasView').then(m => ({ default: m.PersonasView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'CRUD completo de personas físicas y jurídicas',
+    notes: 'CRUD completo de personas fÃ­sicas y jurÃ­dicas',
   },
   {
     checklistIds: ['base-personas'],
     section: 'organizaciones',
     viewFile: 'OrganizacionesView.tsx',
-    component: OrganizacionesView,
+    component: React.lazy(() => import('../components/admin/views/OrganizacionesView').then(m => ({ default: m.OrganizacionesView }))),
     isReal: true,
     hasSupabase: true,
     notes: 'CRUD completo de empresas y organizaciones',
@@ -182,37 +105,37 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: ['base-personas'],
     section: 'clientes',
     viewFile: 'ClientesView.tsx',
-    component: ClientesView,
+    component: React.lazy(() => import('../components/admin/views/ClientesView').then(m => ({ default: m.ClientesView }))),
     isReal: true,
     hasSupabase: true,
     notes: 'Vista filtrada de personas/organizaciones con rol cliente',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // eCOMMERCE
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [],
     section: 'ecommerce',
     viewFile: 'EcommerceView.tsx',
-    component: EcommerceView,
+    component: React.lazy(() => import('../components/admin/views/EcommerceView').then(m => ({ default: m.EcommerceView }))),
     isReal: false,
-    notes: 'Hub de navegación eCommerce (cards a sub-módulos)',
+    notes: 'Hub de navegaciÃ³n eCommerce (cards a sub-mÃ³dulos)',
   },
   {
     checklistIds: ['ecommerce-pedidos'],
     section: 'pedidos',
     viewFile: 'PedidosView.tsx',
-    component: PedidosView,
+    component: React.lazy(() => import('../components/admin/views/PedidosView').then(m => ({ default: m.PedidosView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'CRUD de pedidos con estados, filtros y árbol madre/hijos',
+    notes: 'CRUD de pedidos con estados, filtros y Ã¡rbol madre/hijos',
   },
   {
     checklistIds: ['ecommerce-pedidos'],
     section: 'pagos',
     viewFile: 'PagosView.tsx',
-    component: PagosView,
+    component: React.lazy(() => import('../components/admin/views/PagosView').then(m => ({ default: m.PagosView }))),
     isReal: true,
     hasSupabase: true,
     notes: 'Transacciones y estados de pago operativos',
@@ -221,155 +144,155 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: ['ecommerce-metodos-pago'],
     section: 'metodos-pago',
     viewFile: 'MetodosPagoView.tsx',
-    component: MetodosPagoView,
+    component: React.lazy(() => import('../components/admin/views/MetodosPagoView').then(m => ({ default: m.MetodosPagoView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Configuración de pasarelas y métodos de pago',
+    notes: 'ConfiguraciÃ³n de pasarelas y mÃ©todos de pago',
   },
   {
     checklistIds: ['ecommerce-metodos-envio'],
     section: 'metodos-envio',
     viewFile: 'MetodosEnvioView.tsx',
-    component: MetodosEnvioView,
+    component: React.lazy(() => import('../components/admin/views/MetodosEnvioView').then(m => ({ default: m.MetodosEnvioView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Configuración de métodos de envío y tarifas',
+    notes: 'ConfiguraciÃ³n de mÃ©todos de envÃ­o y tarifas',
   },
 
-  // ══════════════════════════════════════════════════════
-  // LOGÍSTICA
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // LOGÃSTICA
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: ['logistics-hub'],
     section: 'logistica',
     viewFile: 'LogisticaView.tsx',
-    component: LogisticaView,
+    component: React.lazy(() => import('../components/admin/views/LogisticaView').then(m => ({ default: m.LogisticaView }))),
     isReal: false,
-    notes: 'Hub con diagrama de flujo logístico 7 pasos y cards a todos los sub-módulos',
+    notes: 'Hub con diagrama de flujo logÃ­stico 7 pasos y cards a todos los sub-mÃ³dulos',
   },
   {
     checklistIds: ['logistics-shipping'],
     section: 'envios',
     viewFile: 'EnviosView.tsx',
-    component: EnviosView,
+    component: React.lazy(() => import('../components/admin/views/EnviosView').then(m => ({ default: m.EnviosView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Vista árbol PedidoMadre→EnvíosHijos · estados · multi-tramo · panel detalle + timeline',
+    notes: 'Vista Ã¡rbol PedidoMadreâ†’EnvÃ­osHijos Â· estados Â· multi-tramo Â· panel detalle + timeline',
   },
   {
     checklistIds: ['logistics-carriers'],
     section: 'transportistas',
     viewFile: 'TransportistasView.tsx',
-    component: TransportistasView,
+    component: React.lazy(() => import('../components/admin/views/TransportistasView').then(m => ({ default: m.TransportistasView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Catálogo carriers · tramos y zonas · simulador de tarifas',
+    notes: 'CatÃ¡logo carriers Â· tramos y zonas Â· simulador de tarifas',
   },
   {
     checklistIds: ['logistics-routes'],
     section: 'rutas',
     viewFile: 'RutasView.tsx',
-    component: RutasView,
+    component: React.lazy(() => import('../components/admin/views/RutasView').then(m => ({ default: m.RutasView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Rutas standard y por proyecto · vista detalle con paradas · progreso de entrega',
+    notes: 'Rutas standard y por proyecto Â· vista detalle con paradas Â· progreso de entrega',
   },
   {
     checklistIds: ['logistics-fulfillment'],
     section: 'fulfillment',
     viewFile: 'FulfillmentView.tsx',
-    component: FulfillmentView,
+    component: React.lazy(() => import('../components/admin/views/FulfillmentView').then(m => ({ default: m.FulfillmentView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Wave picking · lotes · cola de órdenes · empaque · materiales de packaging',
+    notes: 'Wave picking Â· lotes Â· cola de Ã³rdenes Â· empaque Â· materiales de packaging',
   },
   {
     checklistIds: ['logistics-production'],
     section: 'produccion',
     viewFile: 'ProduccionView.tsx',
-    component: ProduccionView,
+    component: React.lazy(() => import('../components/admin/views/ProduccionView').then(m => ({ default: m.ProduccionView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'BOM · órdenes de armado · catálogo de kits / canastas / combos / packs',
+    notes: 'BOM Â· Ã³rdenes de armado Â· catÃ¡logo de kits / canastas / combos / packs',
   },
   {
     checklistIds: ['logistics-supply'],
     section: 'abastecimiento',
     viewFile: 'AbastecimientoView.tsx',
-    component: AbastecimientoView,
+    component: React.lazy(() => import('../components/admin/views/AbastecimientoView').then(m => ({ default: m.AbastecimientoView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Alertas de stock · OC sugeridas · MRP con cálculo de componentes necesarios',
+    notes: 'Alertas de stock Â· OC sugeridas Â· MRP con cÃ¡lculo de componentes necesarios',
   },
   {
     checklistIds: ['logistics-map'],
     section: 'mapa-envios',
     viewFile: 'MapaEnviosView.tsx',
-    component: MapaEnviosView,
+    component: React.lazy(() => import('../components/admin/views/MapaEnviosView').then(m => ({ default: m.MapaEnviosView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Mapa SVG de Argentina con puntos de envíos activos · filtro por estado · tooltip detalle',
+    notes: 'Mapa SVG de Argentina con puntos de envÃ­os activos Â· filtro por estado Â· tooltip detalle',
   },
   {
     checklistIds: ['logistics-tracking'],
     section: 'tracking-publico',
     viewFile: 'TrackingPublicoView.tsx',
-    component: TrackingPublicoView,
+    component: React.lazy(() => import('../components/admin/views/TrackingPublicoView').then(m => ({ default: m.TrackingPublicoView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Búsqueda por número de envío · timeline de estados · link público para destinatarios',
+    notes: 'BÃºsqueda por nÃºmero de envÃ­o Â· timeline de estados Â· link pÃºblico para destinatarios',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // MARKETING
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [],
     section: 'marketing',
     viewFile: 'MarketingView.tsx',
-    component: MarketingView,
+    component: React.lazy(() => import('../components/admin/views/MarketingView').then(m => ({ default: m.MarketingView }))),
     isReal: false,
-    notes: 'Hub de navegación Marketing (cards a sub-módulos)',
+    notes: 'Hub de navegaciÃ³n Marketing (cards a sub-mÃ³dulos)',
   },
   {
     checklistIds: ['marketing-campaigns'],
     section: 'google-ads',
     viewFile: 'GoogleAdsView.tsx',
-    component: GoogleAdsView,
+    component: React.lazy(() => import('../components/admin/views/GoogleAdsView').then(m => ({ default: m.GoogleAdsView }))),
     isReal: true,
-    notes: 'Dashboard Google Ads con charts recharts, KPIs y tabla de campañas',
+    notes: 'Dashboard Google Ads con charts recharts, KPIs y tabla de campaÃ±as',
   },
   {
     checklistIds: ['marketing-email', 'marketing-email-bulk'],
     section: 'mailing',
     viewFile: 'MailingView.tsx',
-    component: MailingView,
+    component: React.lazy(() => import('../components/admin/views/MailingView').then(m => ({ default: m.MailingView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'UI completa (5 tabs: Campañas, Suscriptores, Segmentación, A/B Testing, Analíticas) — MOCK DATA. Resend API no conectada aún.',
+    notes: 'UI completa (5 tabs: CampaÃ±as, Suscriptores, SegmentaciÃ³n, A/B Testing, AnalÃ­ticas) â€” MOCK DATA. Resend API no conectada aÃºn.',
   },
   {
     checklistIds: ['marketing-seo'],
     section: 'seo',
     viewFile: 'SEOView.tsx',
-    component: SEOView,
+    component: React.lazy(() => import('../components/admin/views/SEOView').then(m => ({ default: m.SEOView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Dashboard SEO · Keywords + rankings · análisis on-page de páginas · backlinks · salud SEO · sugerencias IA',
+    notes: 'Dashboard SEO Â· Keywords + rankings Â· anÃ¡lisis on-page de pÃ¡ginas Â· backlinks Â· salud SEO Â· sugerencias IA',
   },
   {
     checklistIds: ['marketing-loyalty'],
     section: 'fidelizacion',
     viewFile: 'FidelizacionView.tsx',
-    component: FidelizacionView,
+    component: React.lazy(() => import('../components/admin/views/FidelizacionView').then(m => ({ default: m.FidelizacionView }))),
     isReal: true,
-    notes: 'Programa de fidelización con niveles y charts',
+    notes: 'Programa de fidelizaciÃ³n con niveles y charts',
   },
   {
     checklistIds: ['marketing-loyalty'],
     section: 'rueda-sorteos',
     viewFile: 'RuedaSorteosView.tsx',
-    component: RuedaSorteosView,
+    component: React.lazy(() => import('../components/admin/views/RuedaSorteosView').then(m => ({ default: m.RuedaSorteosView }))),
     isReal: true,
     notes: 'Rueda de sorteos interactiva con premios configurables',
   },
@@ -377,163 +300,163 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: ['rrss-centro-operativo'],
     section: 'redes-sociales',
     viewFile: 'RedesSocialesView.tsx',
-    component: RedesSocialesView,
+    component: React.lazy(() => import('../components/admin/views/RedesSocialesView').then(m => ({ default: m.RedesSocialesView }))),
     isReal: true,
-    notes: 'Centro Operativo RRSS — métricas, programación de posts y análisis de audiencia',
+    notes: 'Centro Operativo RRSS â€” mÃ©tricas, programaciÃ³n de posts y anÃ¡lisis de audiencia',
   },
   {
     checklistIds: ['rrss-migracion'],
     section: 'migracion-rrss',
     viewFile: 'MigracionRRSSView.tsx',
-    component: MigracionRRSSView,
+    component: React.lazy(() => import('../components/admin/views/MigracionRRSSView').then(m => ({ default: m.MigracionRRSSView }))),
     isReal: true,
-    notes: 'Herramienta de migración/rebranding Instagram + Facebook',
+    notes: 'Herramienta de migraciÃ³n/rebranding Instagram + Facebook',
   },
   {
     checklistIds: ['marketing-etiqueta-emotiva'],
     section: 'etiqueta-emotiva',
     viewFile: 'EtiquetaEmotivaView.tsx',
-    component: EtiquetaEmotivaView,
+    component: React.lazy(() => import('../components/admin/views/EtiquetaEmotivaView').then(m => ({ default: m.EtiquetaEmotivaView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Mensajes personalizados con QR para envíos · Supabase + QR real',
+    notes: 'Mensajes personalizados con QR para envÃ­os Â· Supabase + QR real',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // RRSS
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [],
     section: 'rrss',
     viewFile: 'RRSSHubView.tsx',
-    component: RRSSHubView,
+    component: React.lazy(() => import('../components/admin/views/RRSSHubView').then(m => ({ default: m.RRSSHubView }))),
     isReal: false,
-    notes: 'Hub de navegación RRSS — Centro Operativo + Migración RRSS',
+    notes: 'Hub de navegaciÃ³n RRSS â€” Centro Operativo + MigraciÃ³n RRSS',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // HERRAMIENTAS
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [],
     section: 'herramientas',
     viewFile: 'HerramientasView.tsx',
-    component: HerramientasView,
+    component: React.lazy(() => import('../components/admin/views/HerramientasView').then(m => ({ default: m.HerramientasView }))),
     isReal: false,
-    notes: 'Hub de navegación — 6 workspace tools + 3 herramientas rápidas',
+    notes: 'Hub de navegaciÃ³n â€” 6 workspace tools + 3 herramientas rÃ¡pidas',
   },
   {
     checklistIds: ['tools-library'],
     section: 'biblioteca',
     viewFile: 'BibliotecaWorkspace.tsx',
-    component: BibliotecaWorkspace,
+    component: React.lazy(() => import('../components/admin/views/BibliotecaWorkspace').then(m => ({ default: m.BibliotecaWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Biblioteca de assets — upload drag&drop, colecciones, tags, grid/lista, export',
+    notes: 'Biblioteca de assets â€” upload drag&drop, colecciones, tags, grid/lista, export',
   },
   {
     checklistIds: ['tools-image-editor'],
     section: 'editor-imagenes',
     viewFile: 'EditorImagenesWorkspace.tsx',
-    component: EditorImagenesWorkspace,
+    component: React.lazy(() => import('../components/admin/views/EditorImagenesWorkspace').then(m => ({ default: m.EditorImagenesWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Editor de imágenes — filtros CSS, rotación, flip, 8 presets, export PNG/JPG',
+    notes: 'Editor de imÃ¡genes â€” filtros CSS, rotaciÃ³n, flip, 8 presets, export PNG/JPG',
   },
   {
     checklistIds: ['tools-documents'],
     section: 'gen-documentos',
     viewFile: 'GenDocumentosWorkspace.tsx',
-    component: GenDocumentosWorkspace,
+    component: React.lazy(() => import('../components/admin/views/GenDocumentosWorkspace').then(m => ({ default: m.GenDocumentosWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Generador de documentos WYSIWYG — 8 tipos de bloque, A4, export PDF',
+    notes: 'Generador de documentos WYSIWYG â€” 8 tipos de bloque, A4, export PDF',
   },
   {
     checklistIds: ['tools-quotes'],
     section: 'gen-presupuestos',
     viewFile: 'GenPresupuestosWorkspace.tsx',
-    component: GenPresupuestosWorkspace,
+    component: React.lazy(() => import('../components/admin/views/GenPresupuestosWorkspace').then(m => ({ default: m.GenPresupuestosWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Generador de presupuestos — ítems, IVA, descuentos, multi-moneda, export PDF',
+    notes: 'Generador de presupuestos â€” Ã­tems, IVA, descuentos, multi-moneda, export PDF',
   },
   {
     checklistIds: ['tools-ocr'],
     section: 'ocr',
     viewFile: 'OCRWorkspace.tsx',
-    component: OCRWorkspace,
+    component: React.lazy(() => import('../components/admin/views/OCRWorkspace').then(m => ({ default: m.OCRWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'OCR con Tesseract.js — 100% browser, sin API key, Español/Inglés/PT, export TXT',
+    notes: 'OCR con Tesseract.js â€” 100% browser, sin API key, EspaÃ±ol/InglÃ©s/PT, export TXT',
   },
   {
     checklistIds: ['tools-print'],
     section: 'impresion',
     viewFile: 'ImpresionWorkspace.tsx',
-    component: ImpresionWorkspace,
+    component: React.lazy(() => import('../components/admin/views/ImpresionWorkspace').then(m => ({ default: m.ImpresionWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Módulo de impresión — cola de trabajos, A4 preview, papel/orientación/color/calidad',
+    notes: 'MÃ³dulo de impresiÃ³n â€” cola de trabajos, A4 preview, papel/orientaciÃ³n/color/calidad',
   },
   {
     checklistIds: ['tools-qr'],
     section: 'qr-generator',
     viewFile: 'QrGeneratorView.tsx',
-    component: QrGeneratorView,
+    component: React.lazy(() => import('../components/admin/views/QrGeneratorView').then(m => ({ default: m.QrGeneratorView }))),
     isReal: true,
-    notes: 'Generador QR — sin APIs externas, genera PNG y SVG vectorial',
+    notes: 'Generador QR â€” sin APIs externas, genera PNG y SVG vectorial',
   },
   {
     checklistIds: ['tools-ideas-board'],
     section: 'ideas-board',
     viewFile: 'IdeasBoardView.tsx',
-    component: IdeasBoardView,
+    component: React.lazy(() => import('../components/admin/views/IdeasBoardView').then(m => ({ default: m.IdeasBoardView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Canvas visual de módulos e ideas — stickers, conectores, canvases jerárquicos, lamparita en Mi Vista',
+    notes: 'Canvas visual de mÃ³dulos e ideas â€” stickers, conectores, canvases jerÃ¡rquicos, lamparita en Mi Vista',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // ERP
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [],
     section: 'gestion',
     viewFile: 'GestionView.tsx',
-    component: GestionView,
+    component: React.lazy(() => import('../components/admin/views/GestionView').then(m => ({ default: m.GestionView }))),
     isReal: false,
-    notes: 'Hub de navegación ERP (cards a Inventario, Facturación, Compras, CRM, etc.)',
+    notes: 'Hub de navegaciÃ³n ERP (cards a Inventario, FacturaciÃ³n, Compras, CRM, etc.)',
   },
   {
     checklistIds: ['erp-inventory'],
     section: 'erp-inventario',
     viewFile: 'ERPInventarioView.tsx',
-    component: ERPInventarioView,
+    component: React.lazy(() => import('../components/admin/views/ERPInventarioView').then(m => ({ default: m.ERPInventarioView }))),
     isReal: true,
-    notes: 'Inventario con tabs: Artículos, Stock, Movimientos, Alertas',
+    notes: 'Inventario con tabs: ArtÃ­culos, Stock, Movimientos, Alertas',
   },
   {
     checklistIds: ['erp-invoicing'],
     section: 'erp-facturacion',
     viewFile: 'ERPFacturacionView.tsx',
-    component: ERPFacturacionView,
+    component: React.lazy(() => import('../components/admin/views/ERPFacturacionView').then(m => ({ default: m.ERPFacturacionView }))),
     isReal: true,
-    notes: 'Facturación con tabs: Facturas, Tickets, Nueva factura',
+    notes: 'FacturaciÃ³n con tabs: Facturas, Tickets, Nueva factura',
   },
   {
     checklistIds: ['erp-purchasing'],
     section: 'erp-compras',
     viewFile: 'ERPComprasView.tsx',
-    component: ERPComprasView,
+    component: React.lazy(() => import('../components/admin/views/ERPComprasView').then(m => ({ default: m.ERPComprasView }))),
     isReal: true,
-    notes: 'Compras con tabs: Órdenes, Proveedores, Nueva orden',
+    notes: 'Compras con tabs: Ã“rdenes, Proveedores, Nueva orden',
   },
   {
     checklistIds: ['crm-contacts', 'crm-opportunities', 'crm-activities'],
     section: 'erp-crm',
     viewFile: 'ERPCRMView.tsx',
-    component: ERPCRMView,
+    component: React.lazy(() => import('../components/admin/views/ERPCRMView').then(m => ({ default: m.ERPCRMView }))),
     isReal: true,
     notes: 'CRM completo: Contactos, Pipeline de oportunidades, Actividades y seguimiento',
   },
@@ -541,7 +464,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: ['erp-accounting'],
     section: 'erp-contabilidad',
     viewFile: 'ERPContabilidadView.tsx',
-    component: ERPContabilidadView,
+    component: React.lazy(() => import('../components/admin/views/ERPContabilidadView').then(m => ({ default: m.ERPContabilidadView }))),
     isReal: true,
     notes: 'Contabilidad: Plan de cuentas, Asientos, Cobrar/Pagar, Bancos',
   },
@@ -549,46 +472,46 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: ['erp-hr'],
     section: 'erp-rrhh',
     viewFile: 'ERPRRHHView.tsx',
-    component: ERPRRHHView,
+    component: React.lazy(() => import('../components/admin/views/ERPRRHHView').then(m => ({ default: m.ERPRRHHView }))),
     isReal: true,
-    notes: 'RRHH: Empleados, Asistencia y Nómina',
+    notes: 'RRHH: Empleados, Asistencia y NÃ³mina',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // PROYECTOS
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: ['projects-management', 'projects-tasks', 'projects-time'],
     section: 'proyectos',
     viewFile: 'ProyectosView.tsx',
-    component: ProyectosView,
+    component: React.lazy(() => import('../components/admin/views/ProyectosView').then(m => ({ default: m.ProyectosView }))),
     isReal: true,
     notes: 'Proyectos con Gantt simplificado y tablero Kanban',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // MARKETPLACE
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: ['marketplace-secondhand', 'marketplace-secondhand-mediacion'],
     section: 'secondhand',
     viewFile: 'SecondHandView.tsx',
-    component: SecondHandView,
+    component: React.lazy(() => import('../components/admin/views/SecondHandView').then(m => ({ default: m.SecondHandView }))),
     isReal: true,
-    notes: 'Marketplace Segunda Mano: Estadísticas, Moderación, Publicaciones y ⚖️ Mediación de disputas',
+    notes: 'Marketplace Segunda Mano: EstadÃ­sticas, ModeraciÃ³n, Publicaciones y âš–ï¸ MediaciÃ³n de disputas',
   },
   {
     checklistIds: ['marketplace-storefront'],
     section: 'storefront',
     viewFile: 'StorefrontAdminView.tsx',
-    component: null, // StorefrontAdminView no está importado en AdminDashboard, se omite por ahora
+    component: null, // StorefrontAdminView no estÃ¡ importado en AdminDashboard, se omite por ahora
     isReal: true,
-    notes: 'Panel de acceso rápido al storefront público con stats y links',
+    notes: 'Panel de acceso rÃ¡pido al storefront pÃºblico con stats y links',
   },
 
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   // INTEGRACIONES
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [
       'integrations-mercadolibre',
@@ -601,55 +524,55 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     ],
     section: 'integraciones',
     viewFile: 'IntegracionesView.tsx',
-    component: IntegracionesView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesView').then(m => ({ default: m.IntegracionesView }))),
     isReal: true,
-    notes: 'Hub de 5 módulos de integración — Uruguay first, Latam progresivo',
+    notes: 'Hub de 5 mÃ³dulos de integraciÃ³n â€” Uruguay first, Latam progresivo',
   },
   {
     checklistIds: ['integrations-plexo', 'integrations-mercadopago', 'integrations-paypal', 'integrations-stripe'],
     section: 'integraciones-pagos',
     viewFile: 'IntegracionesPagosView.tsx',
-    component: IntegracionesPagosView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesPagosView').then(m => ({ default: m.IntegracionesPagosView }))),
     isReal: true,
-    notes: '💳 Pasarela de pagos — Plexo, OCA, Abitab, RedPagos, MP, PayPal, Stripe',
+    notes: 'ðŸ’³ Pasarela de pagos â€” Plexo, OCA, Abitab, RedPagos, MP, PayPal, Stripe',
   },
   {
     checklistIds: ['integrations-logistics'],
     section: 'integraciones-logistica',
     viewFile: 'IntegracionesLogisticaView.tsx',
-    component: IntegracionesLogisticaView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesLogisticaView').then(m => ({ default: m.IntegracionesLogisticaView }))),
     isReal: true,
-    notes: '🚚 Logística — Carriers con y sin API. URL de tracking configurable para carriers sin API',
+    notes: 'ðŸšš LogÃ­stica â€” Carriers con y sin API. URL de tracking configurable para carriers sin API',
   },
   {
     checklistIds: ['integrations-mercadolibre'],
     section: 'integraciones-tiendas',
     viewFile: 'IntegracionesTiendasView.tsx',
-    component: IntegracionesTiendasView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesTiendasView').then(m => ({ default: m.IntegracionesTiendasView }))),
     isReal: true,
-    notes: '🏪 Tiendas — ML, TiendaNube, WooCommerce, Shopify, VTEX, Magento',
+    notes: 'ðŸª Tiendas â€” ML, TiendaNube, WooCommerce, Shopify, VTEX, Magento',
   },
   {
     checklistIds: ['integrations-meta'],
     section: 'integraciones-rrss',
     viewFile: 'IntegracionesRRSSView.tsx',
-    component: IntegracionesRRSSView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesRRSSView').then(m => ({ default: m.IntegracionesRRSSView }))),
     isReal: true,
-    notes: '📱 Redes Sociales — Meta, Instagram Shopping, WhatsApp, Facebook Shops, TikTok, Pinterest',
+    notes: 'ðŸ“± Redes Sociales â€” Meta, Instagram Shopping, WhatsApp, Facebook Shops, TikTok, Pinterest',
   },
   {
     checklistIds: ['integrations-twilio'],
     section: 'integraciones-servicios',
     viewFile: 'IntegracionesServiciosView.tsx',
-    component: IntegracionesServiciosView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesServiciosView').then(m => ({ default: m.IntegracionesServiciosView }))),
     isReal: true,
-    notes: '⚙️ Servicios — Twilio, Resend, SendGrid, GA4, GTM, Zapier, n8n',
+    notes: 'âš™ï¸ Servicios â€” Twilio, Resend, SendGrid, GA4, GTM, Zapier, n8n',
   },
   {
     checklistIds: [],
     section: 'integraciones-marketplace',
     viewFile: 'IntegracionesMarketplaceView.tsx',
-    component: IntegracionesMarketplaceView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesMarketplaceView').then(m => ({ default: m.IntegracionesMarketplaceView }))),
     isReal: true,
     notes: 'Marketplace integrations',
   },
@@ -657,15 +580,15 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'integraciones-comunicacion',
     viewFile: 'IntegracionesComunicacionView.tsx',
-    component: IntegracionesComunicacionView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesComunicacionView').then(m => ({ default: m.IntegracionesComunicacionView }))),
     isReal: true,
-    notes: 'Comunicación integrations',
+    notes: 'ComunicaciÃ³n integrations',
   },
   {
     checklistIds: [],
     section: 'integraciones-identidad',
     viewFile: 'IntegracionesIdentidadView.tsx',
-    component: IntegracionesIdentidadView,
+    component: React.lazy(() => import('../components/admin/views/IntegracionesIdentidadView').then(m => ({ default: m.IntegracionesIdentidadView }))),
     isReal: true,
     notes: 'Identidad integrations',
   },
@@ -673,7 +596,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'integraciones-api-keys',
     viewFile: 'APIKeysView.tsx',
-    component: APIKeysView,
+    component: React.lazy(() => import('../components/admin/views/APIKeysView').then(m => ({ default: m.APIKeysView }))),
     isReal: true,
     notes: 'API Keys management',
   },
@@ -681,58 +604,58 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'integraciones-webhooks',
     viewFile: 'WebhooksView.tsx',
-    component: WebhooksView,
+    component: React.lazy(() => import('../components/admin/views/WebhooksView').then(m => ({ default: m.WebhooksView }))),
     isReal: true,
     notes: 'Webhooks management',
   },
-  // ══════════════════════════════════════════════════════
-  // AUDITORÍA & DIAGNÓSTICO
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // AUDITORÃA & DIAGNÃ“STICO
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: ['audit-hub'],
     section: 'auditoria',
     viewFile: 'AuditoriaHubView.tsx',
-    component: AuditoriaHubView,
+    component: React.lazy(() => import('../components/admin/views/AuditoriaHubView').then(m => ({ default: m.AuditoriaHubView }))),
     isReal: true,
     hasSupabase: false,
-    notes: '🔍 Hub Auditoría — métricas de estado, diagnóstico rápido y acceso a todas las herramientas',
+    notes: 'ðŸ” Hub AuditorÃ­a â€” mÃ©tricas de estado, diagnÃ³stico rÃ¡pido y acceso a todas las herramientas',
   },
   {
     checklistIds: ['audit-health'],
     section: 'auditoria-health',
     viewFile: 'HealthMonitorView.tsx',
-    component: HealthMonitorView,
+    component: React.lazy(() => import('../components/admin/views/HealthMonitorView').then(m => ({ default: m.HealthMonitorView }))),
     isReal: true,
     hasSupabase: true,
-    notes: '💚 Health Monitor — verifica en tiempo real Supabase DB/Auth/Edge/KV/Storage + APIs externas',
+    notes: 'ðŸ’š Health Monitor â€” verifica en tiempo real Supabase DB/Auth/Edge/KV/Storage + APIs externas',
   },
   {
     checklistIds: ['audit-logs'],
     section: 'auditoria-logs',
     viewFile: 'SystemLogsView.tsx',
-    component: SystemLogsView,
+    component: React.lazy(() => import('../components/admin/views/SystemLogsView').then(m => ({ default: m.SystemLogsView }))),
     isReal: true,
     hasSupabase: false,
-    notes: '📜 Logs del Sistema — registro de actividad, errores y eventos con filtros y export TXT',
+    notes: 'ðŸ“œ Logs del Sistema â€” registro de actividad, errores y eventos con filtros y export TXT',
   },
   {
     checklistIds: ['audit-apis-repo'],
     section: 'integraciones-apis',
     viewFile: 'RepositorioAPIsView.tsx',
-    component: RepositorioAPIsView,
+    component: React.lazy(() => import('../components/admin/views/RepositorioAPIsView').then(m => ({ default: m.RepositorioAPIsView }))),
     isReal: true,
     hasSupabase: false,
-    notes: '📡 Repositorio centralizado — 23 APIs con estado, credenciales, docs y test de conexión',
+    notes: 'ðŸ“¡ Repositorio centralizado â€” 23 APIs con estado, credenciales, docs y test de conexiÃ³n',
   },
 
-  // ══════════════════════════════════════════════════════
-  // MÓDULOS ADICIONALES
-  // ══════════════════════════════════════════════════════
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // MÃ“DULOS ADICIONALES
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
   {
     checklistIds: [],
     section: 'pos',
     viewFile: 'POSView.tsx',
-    component: POSView,
+    component: React.lazy(() => import('../components/admin/views/POSView').then(m => ({ default: m.POSView }))),
     isReal: true,
     notes: 'Punto de Venta',
   },
@@ -740,7 +663,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: ['admin-settings'],
     section: 'roadmap',
     viewFile: 'ChecklistView.tsx',
-    component: ChecklistView,
+    component: React.lazy(() => import('../components/admin/views/ChecklistView').then(m => ({ default: m.ChecklistView }))),
     isReal: true,
     notes: 'Roadmap (alias de checklist)',
   },
@@ -748,23 +671,23 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'constructor',
     viewFile: 'ConstructorView.tsx',
-    component: ConstructorView,
+    component: React.lazy(() => import('../components/admin/views/ConstructorView').then(m => ({ default: m.ConstructorView }))),
     isReal: true,
-    notes: 'Constructor de módulos',
+    notes: 'Constructor de mÃ³dulos',
   },
   {
     checklistIds: [],
     section: 'auth-registro',
     viewFile: 'AuthRegistroView.tsx',
-    component: AuthRegistroView,
+    component: React.lazy(() => import('../components/admin/views/AuthRegistroView').then(m => ({ default: m.AuthRegistroView }))),
     isReal: true,
-    notes: 'Autenticación y registro',
+    notes: 'AutenticaciÃ³n y registro',
   },
   {
     checklistIds: [],
     section: 'carga-masiva',
     viewFile: 'CargaMasivaView.tsx',
-    component: CargaMasivaView,
+    component: React.lazy(() => import('../components/admin/views/CargaMasivaView').then(m => ({ default: m.CargaMasivaView }))),
     isReal: true,
     notes: 'Carga masiva de datos',
   },
@@ -772,7 +695,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'meta-business',
     viewFile: 'MetaBusinessView.tsx',
-    component: MetaBusinessView,
+    component: React.lazy(() => import('../components/admin/views/MetaBusinessView').then(m => ({ default: m.MetaBusinessView }))),
     isReal: true,
     notes: 'Meta Business integration',
   },
@@ -780,7 +703,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'unified-workspace',
     viewFile: 'UnifiedWorkspaceView.tsx',
-    component: UnifiedWorkspaceView,
+    component: React.lazy(() => import('../components/admin/views/UnifiedWorkspaceView').then(m => ({ default: m.UnifiedWorkspaceView }))),
     isReal: true,
     notes: 'Workspace unificado',
   },
@@ -788,15 +711,15 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'dashboard-admin',
     viewFile: 'AdminDashboardView.tsx',
-    component: AdminDashboardView,
+    component: React.lazy(() => import('../components/admin/views/AdminDashboardView').then(m => ({ default: m.AdminDashboardView }))),
     isReal: true,
-    notes: 'Dashboard de administración',
+    notes: 'Dashboard de administraciÃ³n',
   },
   {
     checklistIds: [],
     section: 'dashboard-usuario',
     viewFile: 'UserDashboardView.tsx',
-    component: UserDashboardView,
+    component: React.lazy(() => import('../components/admin/views/UserDashboardView').then(m => ({ default: m.UserDashboardView }))),
     isReal: true,
     notes: 'Dashboard de usuario',
   },
@@ -804,46 +727,46 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     checklistIds: [],
     section: 'config-vistas',
     viewFile: 'ConfigVistasPorRolView.tsx',
-    component: ConfigVistasPorRolView,
+    component: React.lazy(() => import('../components/admin/views/ConfigVistasPorRolView').then(m => ({ default: m.ConfigVistasPorRolView }))),
     isReal: true,
-    notes: 'Configuración de vistas por rol',
+    notes: 'ConfiguraciÃ³n de vistas por rol',
   },
   {
     checklistIds: [],
     section: 'documentacion',
     viewFile: 'DocumentacionView.tsx',
-    component: DocumentacionView,
+    component: React.lazy(() => import('../components/admin/views/DocumentacionView').then(m => ({ default: m.DocumentacionView }))),
     isReal: true,
-    notes: 'Documentación del sistema',
+    notes: 'DocumentaciÃ³n del sistema',
   },
   {
     checklistIds: [],
     section: 'metamap-config',
     viewFile: 'MetaMapView.tsx',
-    component: MetaMapView,
+    component: React.lazy(() => import('../components/admin/views/MetaMapView').then(m => ({ default: m.MetaMapView }))),
     isReal: true,
-    notes: 'Configuración Meta Map',
+    notes: 'ConfiguraciÃ³n Meta Map',
   },
   {
     checklistIds: [],
     section: 'google-maps-test',
     viewFile: 'GoogleMapsTestView.tsx',
-    component: GoogleMapsTestView,
+    component: React.lazy(() => import('../components/admin/views/GoogleMapsTestView').then(m => ({ default: m.GoogleMapsTestView }))),
     isReal: true,
     notes: 'Test de Google Maps',
   },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HELPERS (consumidos por moduleRegistry y AuditPanel)
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /** Set de todos los checklistIds cubiertos por vistas reales */
 export const REAL_CHECKLIST_IDS = new Set<string>(
   MODULE_MANIFEST.filter(e => e.isReal).flatMap(e => e.checklistIds)
 );
 
-/** Map sección → entry del manifest */
+/** Map secciÃ³n â†’ entry del manifest */
 export const MANIFEST_BY_SECTION = new Map<MainSection, ManifestEntry>(
   MODULE_MANIFEST.map(e => [e.section, e])
 );

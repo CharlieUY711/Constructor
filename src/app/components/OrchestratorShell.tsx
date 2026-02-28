@@ -43,10 +43,28 @@ export function OrchestratorShell({ activeSection, onNavigate }: OrchestratorShe
   // GoogleMapsTestView no acepta onNavigate
   if (activeSection === 'google-maps-test') {
     const ComponentNoProps = Component as React.ComponentType<{}>;
-    return <ComponentNoProps />;
+    return (
+      <React.Suspense fallback={
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', 
+                      height:'100%', color:'#888', fontSize:'14px' }}>
+          Cargando módulo...
+        </div>
+      }>
+        <ComponentNoProps />
+      </React.Suspense>
+    );
   }
   
   // Todos los demás componentes aceptan onNavigate
   const ComponentWithProps = Component as React.ComponentType<{ onNavigate: (s: MainSection) => void }>;
-  return <ComponentWithProps onNavigate={onNavigate} />;
+  return (
+    <React.Suspense fallback={
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', 
+                    height:'100%', color:'#888', fontSize:'14px' }}>
+        Cargando módulo...
+      </div>
+    }>
+      <ComponentWithProps onNavigate={onNavigate} />
+    </React.Suspense>
+  );
 }
