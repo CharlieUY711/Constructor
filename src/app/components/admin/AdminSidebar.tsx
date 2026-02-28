@@ -8,6 +8,7 @@ import {
   Search, Blocks,
 } from 'lucide-react';
 import type { MainSection } from '../../AdminDashboard';
+import { useOrchestrator } from '../../../shells/DashboardShell/app/providers/OrchestratorProvider';
 
 const ORANGE    = '#FF6835';
 const ACTIVE_BG = 'rgba(255,255,255,0.22)';
@@ -38,15 +39,30 @@ interface Props {
 }
 
 export function AdminSidebar({ activeSection, onNavigate }: Props) {
+  const { config } = useOrchestrator();
+  
+  // Obtener valores de la configuración con fallbacks
+  // Soporta tanto config.nombre como config.clienteNombre
+  const clienteNombre = (config as any)?.nombre ?? config?.clienteNombre ?? 'Charlie';
+  // Soporta tanto config.tokens.colorPrimario como config.theme.primary
+  const colorPrimario = (config as any)?.tokens?.colorPrimario ?? config?.theme?.primary ?? '#FF6B35';
+  const modulosConfig = config?.modulos ?? [];
+  
+  // Filtrar NAV_ITEMS basado en config.modulos
+  // Si modulosConfig está vacío, mostrar todos los módulos (comportamiento por defecto)
+  const navItems = modulosConfig.length > 0
+    ? NAV_ITEMS.filter(item => modulosConfig.includes(item.id))
+    : NAV_ITEMS;
+  
   /* resolve which top-level hub "owns" the current section */
-  const activeHub = (NAV_ITEMS.find(n => n.id === activeSection)?.id ?? activeSection) as MainSection;
+  const activeHub = (navItems.find(n => n.id === activeSection)?.id ?? activeSection) as MainSection;
 
   return (
     <aside
       style={{
         width: '200px',
         height: '100vh',
-        backgroundColor: ORANGE,
+        backgroundColor: colorPrimario,
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
@@ -73,7 +89,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
             textAlign: 'justify',
             textAlignLast: 'justify',
           }}>
-            Charlie
+            {clienteNombre}
           </span>
           <p style={{
             color: '#000',
@@ -111,7 +127,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
 
       {/* ── Nav ── */}
       <nav style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
-        {NAV_ITEMS.map(item => {
+        {navItems.map(item => {
           const isActive = activeSection === item.id || activeHub === item.id;
           return (
             <button
@@ -227,7 +243,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
           gap: '7px',
           padding: '9px 0',
           backgroundColor: '#fff',
-          color: ORANGE,
+          color: colorPrimario,
           borderRadius: '10px',
           textDecoration: 'none',
           fontSize: '0.8rem',
