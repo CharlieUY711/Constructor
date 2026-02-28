@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../../../utils/supabase/client';
 import {
   Activity, CheckCircle2, XCircle, AlertCircle, Clock, RefreshCw,
   Database, Server, Globe, Zap, Shield, Cpu, ArrowLeft,
@@ -60,7 +60,7 @@ export function HealthMonitorView({ onNavigate }: Props) {
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const [checking, setChecking] = useState(false);
 
-  const API_URL = projectId ? `https://${projectId}.supabase.co/functions/v1/api` : null;
+  const API_URL = apiUrl || null;
 
   const runChecks = useCallback(async () => {
     setChecking(true);

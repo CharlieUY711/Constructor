@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Zap } from 'lucide-react';
-import { projectId, publicAnonKey } from '../../../utils/supabase/info';
+import { supabase, apiUrl, publicAnonKey } from '../../../utils/supabase/client';
 
 interface Props {
   size?: number;
@@ -17,7 +17,8 @@ export function ConnectionStatusIcon({ size = 17, style }: Props) {
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!projectId || !publicAnonKey) {
+    // Usar el cliente de Supabase importado y sus valores exportados
+    if (!apiUrl || !publicAnonKey) {
       setIsConnected(false);
       return;
     }
@@ -25,7 +26,7 @@ export function ConnectionStatusIcon({ size = 17, style }: Props) {
     // Verificar conexión haciendo un ping al backend
     const checkConnection = async () => {
       try {
-        const res = await fetch(`https://${projectId}.supabase.co/functions/v1/api/roadmap/modules`, {
+        const res = await fetch(`${apiUrl}/roadmap/modules`, {
           method: 'GET',
           headers: { 
             'Authorization': `Bearer ${publicAnonKey}`,
