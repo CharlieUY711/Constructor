@@ -4,6 +4,8 @@
  * Compatible hacia atrás: misma API, cero cambios en las vistas.
  */
 import React from 'react';
+import { Lightbulb, MapPin } from 'lucide-react';
+import { ConnectionStatusIcon } from './ConnectionStatusIcon';
 
 const ORANGE = '#FF6835';
 
@@ -20,15 +22,22 @@ interface Props {
   rightSlot?: React.ReactNode;
   /** Icono Lucide a mostrar en el badge naranja izquierdo */
   icon?: React.ElementType;
+  /** Callback para el icono de lamparita (ideas) */
+  onIdeaClick?: () => void;
+  /** Callback para el icono de geolocalización (mapas) */
+  onMapClick?: () => void;
+  /** Función de navegación - si está disponible, los iconos siempre aparecen */
+  onNavigate?: (section: string) => void;
 }
 
-export function OrangeHeader({ title, subtitle, actions, rightSlot, icon: Icon }: Props) {
+export function OrangeHeader({ title, subtitle, actions, rightSlot, icon: Icon, onIdeaClick, onMapClick, onNavigate }: Props) {
   return (
     <header
       style={{
         backgroundColor: '#FFFFFF',
         borderBottom: '1px solid #E9ECEF',
-        padding: '18px 28px',
+        padding: '0 28px',
+        height: '88px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -93,9 +102,68 @@ export function OrangeHeader({ title, subtitle, actions, rightSlot, icon: Icon }
         </div>
       </div>
 
-      {/* ── Derecha: slot libre + botones ── */}
+      {/* ── Derecha: slot libre + iconos de estado + botones ── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
         {rightSlot}
+        
+        {/* Botón Ideas - siempre visible */}
+        <button
+          onClick={onIdeaClick || (onNavigate ? () => onNavigate('ideas-board') : undefined)}
+          disabled={!onNavigate && !onIdeaClick}
+          title={onNavigate || onIdeaClick ? "Nueva Idea / Ideas Board" : "Ideas Board (no disponible)"}
+          style={{
+            width: 38, height: 38, borderRadius: '50%',
+            border: `2px solid ${ORANGE}40`,
+            backgroundColor: (onNavigate || onIdeaClick) ? `${ORANGE}08` : `${ORANGE}04`,
+            opacity: (onNavigate || onIdeaClick) ? 1 : 0.5,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: (onNavigate || onIdeaClick) ? 'pointer' : 'not-allowed',
+            transition: 'all 0.15s', flexShrink: 0,
+          }}
+          onMouseEnter={e => {
+            if (onNavigate || onIdeaClick) {
+              e.currentTarget.style.backgroundColor = `${ORANGE}20`;
+            }
+          }}
+          onMouseLeave={e => {
+            if (onNavigate || onIdeaClick) {
+              e.currentTarget.style.backgroundColor = `${ORANGE}08`;
+            }
+          }}
+        >
+          <Lightbulb size={17} color={ORANGE} strokeWidth={2.2} />
+        </button>
+        
+        {/* Botón Google Maps - siempre visible */}
+        <button
+          onClick={onMapClick || (onNavigate ? () => onNavigate('google-maps-test') : undefined)}
+          disabled={!onNavigate && !onMapClick}
+          title={onNavigate || onMapClick ? "Prueba Google Maps" : "Google Maps (no disponible)"}
+          style={{
+            width: 38, height: 38, borderRadius: '50%',
+            border: '2px solid #10B98140',
+            backgroundColor: (onNavigate || onMapClick) ? '#10B98108' : '#10B98104',
+            opacity: (onNavigate || onMapClick) ? 1 : 0.5,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: (onNavigate || onMapClick) ? 'pointer' : 'not-allowed',
+            transition: 'all 0.15s', flexShrink: 0,
+          }}
+          onMouseEnter={e => {
+            if (onNavigate || onMapClick) {
+              e.currentTarget.style.backgroundColor = '#10B98120';
+            }
+          }}
+          onMouseLeave={e => {
+            if (onNavigate || onMapClick) {
+              e.currentTarget.style.backgroundColor = '#10B98108';
+            }
+          }}
+        >
+          <MapPin size={17} color="#10B981" strokeWidth={2.2} />
+        </button>
+        
+        {/* Estado de conexión con backend */}
+        <ConnectionStatusIcon size={17} />
 
         {actions && actions.map((action, i) => (
           <button

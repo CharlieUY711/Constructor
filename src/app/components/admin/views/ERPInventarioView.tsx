@@ -78,11 +78,17 @@ export function ERPInventarioView({ onNavigate }: Props) {
     setError(null);
     try {
       const res = await fetch(`${BASE}/productos/market`, { headers: HEADERS });
+      if (!res.ok) {
+        throw new Error(`Error HTTP: ${res.status} ${res.statusText}`);
+      }
       const json = await res.json();
       if (json.error) throw new Error(json.error);
-      setProducts(json.data ?? []);
+      const productos = json.data ?? [];
+      setProducts(productos);
     } catch (e: any) {
+      console.error('Error al cargar productos:', e);
       setError(e.message ?? 'Error al cargar productos');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -188,11 +194,16 @@ export function ERPInventarioView({ onNavigate }: Props) {
     }
   };
 
-  const categories = ['all', ...Array.from(new Set(products.map(p => p.departamento).filter(Boolean)))];
+  const categories = ['all', ...Array.from(new Set(products.map(p => p.departamento || p.departamento_id).filter(Boolean)))];
 
   const filtered = products.filter(p => {
-    if (catFilter !== 'all' && p.departamento !== catFilter) return false;
-    if (search && !p.nombre.toLowerCase().includes(search.toLowerCase())) return false;
+    // Filtro por categoría/departamento
+    if (catFilter !== 'all') {
+      const dept = p.departamento || p.departamento_id;
+      if (dept !== catFilter) return false;
+    }
+    // Filtro por búsqueda
+    if (search && !p.nombre?.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
@@ -281,14 +292,30 @@ export function ERPInventarioView({ onNavigate }: Props) {
                   <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite' }} />
                   <p style={{ marginTop: '12px' }}>Cargando productos...</p>
                 </div>
-              ) : filtered.length === 0 ? (
+              ) : products.length === 0 ? (
                 <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '60px', textAlign: 'center', color: '#9CA3AF' }}>
-                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>ðŸ“¦</p>
-                  <p style={{ margin: '0 0 16px', fontWeight: '600', color: '#374151' }}>No hay productos todavÃ­a</p>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>📦</p>
+                  <p style={{ margin: '0 0 16px', fontWeight: '600', color: '#374151' }}>No hay productos todavía</p>
                   <button onClick={() => { setSelectedProduct(null); setShowModal(true); }}
                     style={{ padding: '10px 20px', backgroundColor: ORANGE, color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
                     + Cargar primer producto
                   </button>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '60px', textAlign: 'center', color: '#9CA3AF' }}>
+                  <p style={{ fontSize: '2rem', margin: '0 0 12px' }}>🔍</p>
+                  <p style={{ margin: '0 0 8px', fontWeight: '600', color: '#374151' }}>No se encontraron productos</p>
+                  <p style={{ margin: '0 0 16px', fontSize: '0.875rem', color: '#6B7280' }}>
+                    {search || catFilter !== 'all' 
+                      ? 'Intenta ajustar los filtros de búsqueda o categoría'
+                      : 'Hay productos pero no coinciden con los filtros aplicados'}
+                  </p>
+                  {(search || catFilter !== 'all') && (
+                    <button onClick={() => { setSearch(''); setCatFilter('all'); }}
+                      style={{ padding: '10px 20px', backgroundColor: '#6B7280', color: '#FFF', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
+                      Limpiar filtros
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', overflow: 'hidden' }}>

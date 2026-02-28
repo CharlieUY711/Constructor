@@ -25,11 +25,20 @@ export type ModulePriority = 'critical' | 'high' | 'medium' | 'low';
 
 export interface RoadmapModule {
   id: string;
+  name?: string;
+  category?: string;
+  description?: string;
   status: ModuleStatus;
   priority: ModulePriority;
   execOrder?: number;
   estimatedHours?: number;
   notas?: string;
+  submodules?: Array<{
+    id: string;
+    name: string;
+    status: ModuleStatus;
+    estimatedHours?: number;
+  }>;
   tiene_view?: boolean;
   tiene_backend?: boolean;
   endpoint_ok?: boolean;
@@ -183,7 +192,15 @@ async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }>
 
 export async function getModules(): Promise<RoadmapModule[]> {
   const res = await apiGet<{ modules: RoadmapModule[]; count: number }>('/modules');
-  if (!res.ok || !res.data) return [];
+  if (!res.ok) {
+    console.error('[roadmapApi] Error en getModules:', res.error);
+    return [];
+  }
+  if (!res.data) {
+    console.warn('[roadmapApi] getModules: respuesta sin data');
+    return [];
+  }
+  console.log('[roadmapApi] Módulos recibidos:', res.data.modules?.length || 0);
   return res.data.modules || [];
 }
 

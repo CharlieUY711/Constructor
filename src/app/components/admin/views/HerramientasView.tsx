@@ -102,6 +102,9 @@ export function HerramientasView({ onNavigate }: Props) {
     { icon: Zap,       label: 'Contratos con IA',   desc: 'Generación de contratos inteligentes' },
   ];
 
+  // Combinar todas las tarjetas en una sola sección sin labels
+  const allCards = [...workspaceCards, ...quickCards];
+
   return (
     <HubView
       hubIcon={Wrench}
@@ -109,16 +112,7 @@ export function HerramientasView({ onNavigate }: Props) {
       subtitle="6 workspaces especializados · 3 herramientas rápidas · Export nativo · Sin APIs externas"
       sections={[
         {
-          label: 'Workspace Suite',
-          count: '6 herramientas',
-          subtitle: 'Comparten el mismo layout profesional con panel izquierdo, derecho y barra de herramientas',
-          cards: workspaceCards,
-        },
-        {
-          label: 'Herramientas Rápidas',
-          count: '5 herramientas',
-          subtitle: 'Utilitarios ligeros · Carga masiva de archivos · Workspace unificado',
-          cards: quickCards,
+          cards: allCards,
         },
       ]}
       hideSeleccionar

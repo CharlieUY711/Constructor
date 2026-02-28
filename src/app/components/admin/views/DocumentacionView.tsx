@@ -370,9 +370,9 @@ Deploy:      Vercel / Netlify (frontend) + Supabase (backend)
 
 ## Base de datos
 
-- **Tabla principal**: \`kv_store_75638143\` (key-value store flexible)
+- **Tabla principal**: \`kv_store\` (key-value store flexible)
 - **Auth tables**: Gestionadas por Supabase Auth (no tocar directamente)
-- **Storage buckets**: Prefijo \`make-75638143\`
+- **Storage buckets**: Supabase Storage Buckets
 `,
   },
   {

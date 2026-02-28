@@ -1530,7 +1530,13 @@ export function IdeasBoardView({ onNavigate }: Props) {
         icon={Lightbulb}
         title="Registro de Ideas"
         subtitle={`Canvas visual de modulos e ideas - ${canvases.length} canvas${canvases.length !== 1 ? 'es' : ''}`}
+        onNavigate={onNavigate}
         actions={[
+          {
+            label: 'Checklist & Roadmap',
+            onClick: () => onNavigate('checklist'),
+            primary: true,
+          },
           {
             label: '← Herramientas',
             onClick: () => onNavigate('herramientas'),

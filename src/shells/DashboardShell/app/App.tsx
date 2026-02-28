@@ -8,9 +8,9 @@
  */
 import React from 'react';
 import { RouterProvider } from 'react-router';
-import { OrchestratorProvider } from '../shells/DashboardShell/app/providers/OrchestratorProvider';
-import { ThemeProvider } from '../shells/DashboardShell/app/providers/ThemeProvider';
-import { router } from './routes';
+import { OrchestratorProvider } from './providers/OrchestratorProvider';
+import { ThemeProvider } from './providers/ThemeProvider';
+import { router } from '../../../app/routes';
 
 export default function App() {
   return (

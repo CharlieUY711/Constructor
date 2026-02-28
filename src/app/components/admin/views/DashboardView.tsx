@@ -6,6 +6,7 @@ import {
 import { HubCardGrid, HubCardDef } from '../HubView';
 import type { MainSection } from '../../../AdminDashboard';
 import { IdeaQuickModal } from '../IdeaQuickModal';
+import { ConnectionStatusIcon } from '../ConnectionStatusIcon';
 import {
   LayoutDashboard, ShoppingCart, Megaphone, Database,
   Truck, Wrench, Settings, Lightbulb, TrendingUp,
@@ -114,7 +115,7 @@ export function DashboardView({ onNavigate }: Props) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', backgroundColor: '#F8F9FA' }}>
 
       {/* ── Header blanco ── */}
-      <div style={{ padding: '22px 32px 18px', backgroundColor: '#fff', borderBottom: '1px solid #E9ECEF', flexShrink: 0 }}>
+      <div style={{ padding: '0 32px', height: '88px', backgroundColor: '#fff', borderBottom: '1px solid #E9ECEF', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '40px', height: '40px', borderRadius: '10px',
@@ -161,6 +162,8 @@ export function DashboardView({ onNavigate }: Props) {
           >
             <MapPin size={17} color="#10B981" strokeWidth={2.2} />
           </button>
+          {/* Estado de conexión con backend */}
+          <ConnectionStatusIcon size={17} />
         </div>
       </div>
 

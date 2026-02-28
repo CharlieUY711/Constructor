@@ -1,11 +1,6 @@
 /**
  * Envíos API — Gestión de envíos y tracking
- * Tabla: envios, envios_eventos
- * 
- * TABLA MIGRADA: envios_75638143 → envios (Feb 2026)
- * La tabla con sufijo puede eliminarse desde el SQL Editor de Supabase
- * una vez verificado que no hay referencias activas.
- */
+ * Tabla: envios, envios_eventos`n */
 
 import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";

@@ -155,8 +155,6 @@
 | `envios_eventos` | ❌ | `supabase/functions/api/envios.tsx` | 18, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195, 200, 205, 210, 215, 220, 225, 230, 235, 240, 245, 250, 255, 260, 265, 270, 275, 280, 285, 290, 295, 300, 304 | ✅ Sin sufijo (correcto) |
 | `carrito` | ❌ | `supabase/functions/api/ordenes.tsx` | 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165, 170, 175 | ✅ Sin sufijo (correcto) |
 
-**Resumen:** Todas las tablas referenciadas en el código **NO tienen sufijos** (`_75638143`), lo cual es **correcto** según la convención del proyecto.
-
 ---
 
 ## PASO 4 — Auditoría de URLs de API

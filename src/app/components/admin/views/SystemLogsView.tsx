@@ -54,10 +54,10 @@ const LOGS: LogEntry[] = [
   // recent
   { id: 'l001', ts: mins(1),   level: 'success', module: 'edge',          message: '[Edge] Hono server respondió correctamente',                         duration: 42  },
   { id: 'l002', ts: mins(1),   level: 'info',    module: 'roadmap',       message: '[Roadmap] GET /modules → 67 módulos cargados desde KV',              duration: 38  },
-  { id: 'l003', ts: mins(2),   level: 'success', module: 'database',      message: '[DB] kv_store_75638143 — lectura OK',                                duration: 18  },
+  { id: 'l003', ts: mins(2),   level: 'success', module: 'database',      message: '[DB] kv_store — lectura OK',                                duration: 18  },
   { id: 'l004', ts: mins(3),   level: 'info',    module: 'system',        message: '[System] Módulo Checklist sincronizado — 6 herramientas workspace actualizadas a ui-only', detail: 'applyBuiltStatus() detectó diff entre manifest y KV — resync automático ejecutado' },
   { id: 'l005', ts: mins(5),   level: 'info',    module: 'roadmap',       message: '[Roadmap] POST /modules-bulk → 67 módulos guardados',                duration: 95  },
-  { id: 'l006', ts: mins(7),   level: 'success', module: 'storage',       message: '[Storage] Bucket make-75638143-module-files — acceso OK',            duration: 55  },
+  { id: 'l006', ts: mins(7),   level: 'success', module: 'storage',       message: '[Storage] Bucket module-files — acceso OK',            duration: 55  },
   { id: 'l007', ts: mins(8),   level: 'warn',    module: 'api',           message: '[API] Plexo UV — sin credenciales (PLEXO_API_KEY no configurado)',     detail: 'Variables de entorno requeridas: PLEXO_API_KEY, PLEXO_MERCHANT_ID' },
   { id: 'l008', ts: mins(9),   level: 'warn',    module: 'api',           message: '[API] MercadoPago — MP_ACCESS_TOKEN no encontrado',                   detail: 'Configurar en Supabase → Edge Functions → Secrets' },
   { id: 'l009', ts: mins(10),  level: 'warn',    module: 'api',           message: '[API] Twilio — TWILIO_ACCOUNT_SID no configurado',                   },
@@ -67,16 +67,16 @@ const LOGS: LogEntry[] = [
   { id: 'l013', ts: mins(22),  level: 'info',    module: 'herramientas',  message: '[Herramientas] EditorImagenesWorkspace montado',                      },
   { id: 'l014', ts: mins(24),  level: 'info',    module: 'herramientas',  message: '[Herramientas] OCRWorkspace montado — Tesseract.js disponible',       },
   { id: 'l015', ts: mins(30),  level: 'info',    module: 'ecommerce',     message: '[eCommerce] PedidosView: 12 pedidos cargados desde Supabase',          duration: 124 },
-  { id: 'l016', ts: mins(35),  level: 'info',    module: 'database',      message: '[DB] pedidos_75638143 — query completada en 124ms',                   duration: 124 },
+  { id: 'l016', ts: mins(35),  level: 'info',    module: 'database',      message: '[DB] pedidos — query completada en 124ms',                   duration: 124 },
   { id: 'l017', ts: mins(40),  level: 'success', module: 'integraciones', message: '[Integraciones] Hub cargado — 5 módulos + Repositorio de APIs',       },
   { id: 'l018', ts: mins(45),  level: 'debug',   module: 'system',        message: '[System] APP_INIT — AdminDashboard montado correctamente',            duration: 210 },
   { id: 'l019', ts: mins(48),  level: 'debug',   module: 'system',        message: '[System] moduleRegistry compilado — 56 secciones registradas',        },
-  { id: 'l020', ts: mins(60),  level: 'info',    module: 'storage',       message: '[Storage] Bucket make-75638143-etiquetas — bucket verificado',        duration: 67  },
+  { id: 'l020', ts: mins(60),  level: 'info',    module: 'storage',       message: '[Storage] Bucket etiquetas — bucket verificado',        duration: 67  },
   { id: 'l021', ts: mins(65),  level: 'warn',    module: 'api',           message: '[API] Resend — RESEND_API_KEY no configurado, emails transaccionales deshabilitados' },
   { id: 'l022', ts: mins(70),  level: 'info',    module: 'edge',          message: '[Edge] Ruta /etiquetas registrada — 5 endpoints activos',             },
   { id: 'l023', ts: mins(75),  level: 'info',    module: 'edge',          message: '[Edge] Ruta /roadmap registrada — 6 endpoints activos',               },
   { id: 'l024', ts: mins(80),  level: 'info',    module: 'edge',          message: '[Edge] Ruta /ideas-board registrada',                                 },
-  { id: 'l025', ts: mins(90),  level: 'success', module: 'database',      message: '[DB] ideas_75638143 — tabla verificada, 0 canvases activos',          duration: 31  },
+  { id: 'l025', ts: mins(90),  level: 'success', module: 'database',      message: '[DB] ideas — tabla verificada, 0 canvases activos',          duration: 31  },
 ];
 
 function fmt(d: Date) {

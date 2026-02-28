@@ -29,6 +29,10 @@ import {
   Paperclip,
   RefreshCw,
   X,
+  Lightbulb,
+  Check,
+  XCircle,
+  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -186,9 +190,10 @@ type ViewMode = "list" | "kanban" | "stats" | "queue";
 
 interface Props {
   hideHeader?: boolean;
+  onNavigate?: (section: string) => void;
 }
 
-export function ChecklistRoadmap({ hideHeader = false }: Props) {
+export function ChecklistRoadmap({ hideHeader = false, onNavigate }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ModuleCategory | "all">("all");
@@ -209,6 +214,7 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditProgress, setAuditProgress] = useState({ current: 0, total: 0 });
+  const [allExpanded, setAllExpanded] = useState(false);
   
   // Mapa de endpoints y tablas por m�dulo para auditor�a
   const AUDIT_MAP: Record<string, { endpointUrl?: string; tableName?: string }> = {
@@ -231,6 +237,13 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
     loadModules();
     loadIdeasPromovidas();
   }, []);
+
+  // Recargar ideas cuando se abre el panel
+  useEffect(() => {
+    if (showIdeasTab) {
+      loadIdeasPromovidas();
+    }
+  }, [showIdeasTab]);
 
   const loadIdeasPromovidas = async () => {
     if (!projectId) return;
@@ -263,7 +276,26 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
       
       if (savedModules && savedModules.length > 0) {
         // Aplicar cascade de BUILT_MODULE_IDS a los m�dulos de la API
-        const processed = savedModules.map((m) => applyBuiltStatus(m as Module));
+        const processed = savedModules.map((m) => {
+          const module: Module = {
+            id: m.id,
+            name: m.name || m.id,
+            category: (m.category as ModuleCategory) || 'admin',
+            description: m.description || '',
+            status: m.status,
+            priority: m.priority,
+            execOrder: m.execOrder,
+            estimatedHours: m.estimatedHours,
+            notas: m.notas,
+            submodules: m.submodules?.map(sub => ({
+              id: sub.id,
+              name: sub.name,
+              status: sub.status,
+              estimatedHours: sub.estimatedHours,
+            })),
+          };
+          return applyBuiltStatus(module);
+        });
         setModules(processed);
       } else {
         // SQL vac�o ? no hay m�dulos
@@ -411,11 +443,15 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
     });
   };
 
-  const expandAllCategories = () =>
-    setExpandedCategories(new Set(Object.keys(CATEGORY_INFO)));
-
-  const collapseAllCategories = () =>
-    setExpandedCategories(new Set());
+  const toggleExpandCollapse = () => {
+    if (allExpanded) {
+      setExpandedCategories(new Set());
+      setAllExpanded(false);
+    } else {
+      setExpandedCategories(new Set(Object.keys(CATEGORY_INFO)));
+      setAllExpanded(true);
+    }
+  };
 
   // -- Tasks --------------------------------------------------------------------
   const loadTasks = async (moduleId: string) => {
@@ -613,6 +649,149 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
           <AuditPanel modules={modules} onClose={() => setShowAudit(false)} />
         )}
       </AnimatePresence>
+      {/* ── Ideas Promovidas Panel ─────────────────────── */}
+      <AnimatePresence>
+        {showIdeasTab && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={() => setShowIdeasTab(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card rounded-xl border border-border shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                    <Lightbulb className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">Ideas Promovidas</h2>
+                    <p className="text-xs text-muted-foreground">
+                      {ideasPromovidas.length} idea{ideasPromovidas.length !== 1 ? 's' : ''} pendiente{ideasPromovidas.length !== 1 ? 's' : ''} de aprobación
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={loadIdeasPromovidas}
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
+                    title="Recargar ideas"
+                  >
+                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                  <button
+                    onClick={() => setShowIdeasTab(false)}
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
+                  >
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-5">
+                {ideasPromovidas.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                    <p className="text-sm font-semibold text-muted-foreground">No hay ideas pendientes</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Las ideas promovidas desde Ideas Board aparecerán aquí
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {ideasPromovidas.map((idea) => (
+                      <motion.div
+                        key={idea.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="bg-background rounded-lg border border-border p-4"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                                {idea.idea_area || 'General'}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(idea.created_at).toLocaleDateString('es-AR')}
+                              </span>
+                            </div>
+                            <p className="text-sm text-foreground mb-2">{idea.idea_texto}</p>
+                            {idea.notas && (
+                              <p className="text-xs text-muted-foreground italic mb-2">
+                                📝 {idea.notas}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleResolverIdea(idea.id, 'aprobada')}
+                              className="p-2 hover:bg-green-50 rounded-lg transition-colors border border-green-200"
+                              title="Aprobar idea"
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                const moduleId = prompt('ID del módulo (opcional):');
+                                if (moduleId) {
+                                  handleResolverIdea(idea.id, 'convertida', moduleId);
+                                }
+                              }}
+                              className="p-2 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200"
+                              title="Convertir a módulo"
+                            >
+                              <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                            </button>
+                            <button
+                              onClick={() => handleResolverIdea(idea.id, 'rechazada')}
+                              className="p-2 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
+                              title="Rechazar idea"
+                            >
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-5 border-t border-border bg-background/50">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    💡 Crea y promueve ideas desde <strong>Ideas Board</strong>
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (onNavigate) {
+                        onNavigate('ideas-board');
+                      } else {
+                        window.location.href = '#/admin?section=ideas-board';
+                      }
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-orange-600 hover:bg-orange-50 rounded-lg border border-orange-200 transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Ir a Ideas Board
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* ── Header standalone ─────────────────────────── */}
       {!hideHeader && (
         <div className="mb-8">
@@ -624,6 +803,43 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
                   <CheckCircle2 className="h-4 w-4" /> Sincronizado
                 </span>
               )}
+              <button
+                onClick={() => setShowIdeasTab(!showIdeasTab)}
+                disabled={ideasPromovidas.length === 0}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-sm font-bold transition-colors ${
+                  ideasPromovidas.length > 0
+                    ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 cursor-pointer'
+                    : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
+                }`}
+                title={
+                  ideasPromovidas.length > 0
+                    ? `Ver ${ideasPromovidas.length} idea${ideasPromovidas.length !== 1 ? 's' : ''} promovida${ideasPromovidas.length !== 1 ? 's' : ''} desde Ideas Board`
+                    : 'No hay ideas promovidas pendientes. Crea ideas en Ideas Board y promuévelas para verlas aquí.'
+                }
+              >
+                <Inbox className="h-3.5 w-3.5" />
+                {ideasPromovidas.length > 0 ? (
+                  <>
+                    {ideasPromovidas.length} idea{ideasPromovidas.length !== 1 ? 's' : ''} pendiente{ideasPromovidas.length !== 1 ? 's' : ''}
+                  </>
+                ) : (
+                  'Ideas Promovidas'
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  if (onNavigate) {
+                    onNavigate('ideas-board');
+                  } else {
+                    window.location.href = '#/admin?section=ideas-board';
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 text-teal-700 border border-teal-300 text-sm font-bold hover:bg-teal-200 transition-colors"
+                title="Abrir Ideas Board para crear y gestionar ideas"
+              >
+                <Lightbulb className="h-3.5 w-3.5" />
+                Ideas Board
+              </button>
               {modules.filter(m => m.status === "spec-ready").length > 0 && (
                 <button
                   onClick={() => setViewMode("queue")}
@@ -631,15 +847,6 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
                 >
                   <ListOrdered className="h-3.5 w-3.5" />
                   {modules.filter(m => m.status === "spec-ready").length} en cola
-                </button>
-              )}
-              {ideasPromovidas.length > 0 && (
-                <button
-                  onClick={() => setShowIdeasTab(!showIdeasTab)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-700 border border-orange-300 text-sm font-bold hover:bg-orange-200 transition-colors"
-                >
-                  <Inbox className="h-3.5 w-3.5" />
-                  {ideasPromovidas.length} idea{ideasPromovidas.length !== 1 ? 's' : ''} pendiente{ideasPromovidas.length !== 1 ? 's' : ''}
                 </button>
               )}
             </div>
@@ -690,37 +897,78 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
       {/* ── Toolbar (modo embebido) ─────────────────── */}
       {hideHeader && (
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            {!hasUnsavedChanges && !isSaving && (
-              <span className="text-sm text-green-600 flex items-center gap-1">
-                <CheckCircle2 className="h-4 w-4" /> Sincronizado
-              </span>
-            )}
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={() => setShowIdeasTab(!showIdeasTab)}
+              disabled={ideasPromovidas.length === 0}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-sm font-bold transition-colors flex-shrink-0 ${
+                ideasPromovidas.length > 0
+                  ? 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 cursor-pointer'
+                  : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-60'
+              }`}
+              title={
+                ideasPromovidas.length > 0
+                  ? `Ver ${ideasPromovidas.length} idea${ideasPromovidas.length !== 1 ? 's' : ''} promovida${ideasPromovidas.length !== 1 ? 's' : ''} desde Ideas Board`
+                  : 'No hay ideas promovidas pendientes. Crea ideas en Ideas Board y promuévelas para verlas aquí.'
+              }
+            >
+              <Inbox className="h-3.5 w-3.5" />
+              {ideasPromovidas.length > 0 ? (
+                <>
+                  {ideasPromovidas.length} idea{ideasPromovidas.length !== 1 ? 's' : ''} pendiente{ideasPromovidas.length !== 1 ? 's' : ''}
+                </>
+              ) : (
+                'Ideas Promovidas'
+              )}
+            </button>
+            <button
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate('ideas-board');
+                } else {
+                  window.location.href = '#/admin?section=ideas-board';
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 text-teal-700 border border-teal-300 text-sm font-bold hover:bg-teal-200 transition-colors flex-shrink-0"
+              title="Abrir Ideas Board para crear y gestionar ideas"
+            >
+              <Lightbulb className="h-3.5 w-3.5" />
+              Ideas Board
+            </button>
             {hasUnsavedChanges && (
               <button onClick={saveAllProgress} disabled={isSaving}
                 className="px-4 py-2 bg-[#FF6835] text-white rounded-lg hover:bg-[#FF6835]/90 transition-colors flex items-center gap-2 text-sm disabled:opacity-50">
                 {isSaving ? <><Loader2 className="h-4 w-4 animate-spin" />Guardando...</> : <><Save className="h-4 w-4" />Guardar Cambios</>}
               </button>
             )}
-            {modules.filter(m => m.status === "spec-ready").length > 0 && (
-              <button
-                onClick={() => setViewMode("queue")}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-300 text-sm font-bold hover:bg-violet-200 transition-colors"
-              >
-                <ListOrdered className="h-3.5 w-3.5" />
-                {modules.filter(m => m.status === "spec-ready").length} en cola
-              </button>
-            )}
+            {(() => {
+              const queueCount = modules.filter(m => m.status === "spec-ready").length;
+              return queueCount > 0 ? (
+                <button
+                  onClick={() => setViewMode("queue")}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-300 text-sm font-bold hover:bg-violet-200 transition-colors"
+                >
+                  <ListOrdered className="h-3.5 w-3.5" />
+                  Tareas en cola {queueCount}
+                </button>
+              ) : null;
+            })()}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={forceResyncFromManifest}
               disabled={isSyncing}
               title="Resincroniza estad�sticas desde el manifest � corrige estados stale del backend"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors disabled:opacity-50"
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border font-semibold transition-colors disabled:opacity-50 ${
+                !hasUnsavedChanges && !isSaving
+                  ? 'border-green-200 bg-green-50 hover:bg-green-100 text-green-700'
+                  : hasUnsavedChanges
+                  ? 'border-red-200 bg-red-50 hover:bg-red-100 text-red-700'
+                  : 'border-yellow-200 bg-yellow-50 hover:bg-yellow-100 text-yellow-700'
+              }`}
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-              {isSyncing ? "Sincronizando..." : "Resync"}
+              <CheckCircle2 className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              {isSyncing ? "Sincronizando..." : "Sincronizado"}
             </button>
             <button
               onClick={() => setShowAudit(true)}
@@ -729,53 +977,34 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
               <ScanSearch className="h-3.5 w-3.5" /> Auditor�a
             </button>
             <button
-              onClick={runAudit}
-              disabled={isAuditing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold transition-colors disabled:opacity-50"
+              onClick={toggleExpandCollapse}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs bg-card border border-border rounded-lg hover:bg-accent transition-colors ${
+                allExpanded ? 'text-muted-foreground' : 'text-muted-foreground'
+              }`}
             >
-              {isAuditing ? (
+              {allExpanded ? (
                 <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  {auditProgress.current}/{auditProgress.total}
+                  <ChevronsDownUp className="h-3.5 w-3.5" /> Colapsar
                 </>
               ) : (
                 <>
-                  <RefreshCw className="h-3.5 w-3.5" /> Auditar
+                  <ChevronsUpDown className="h-3.5 w-3.5" /> Expandir
                 </>
               )}
             </button>
-            <button onClick={expandAllCategories}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-card border border-border rounded-lg hover:bg-accent transition-colors text-muted-foreground">
-              <ChevronsUpDown className="h-3.5 w-3.5" /> Expandir todo
-            </button>
-            <button onClick={collapseAllCategories}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-card border border-border rounded-lg hover:bg-accent transition-colors text-muted-foreground">
-              <ChevronsDownUp className="h-3.5 w-3.5" /> Colapsar todo
-            </button>
-            {([
-              { mode: "queue"  as ViewMode, Icon: ListOrdered },
-              { mode: "stats"  as ViewMode, Icon: BarChart3   },
-              { mode: "list"   as ViewMode, Icon: List        },
-              { mode: "kanban" as ViewMode, Icon: Kanban      },
-            ] as const).map(({ mode, Icon }) => (
-              <button key={mode} onClick={() => setViewMode(mode)}
-                className={`p-2 rounded-lg transition-colors ${
-                  viewMode === mode
-                    ? mode === "queue" ? "bg-violet-600 text-white" : "bg-[#FF6835] text-white"
-                    : "bg-card text-muted-foreground hover:bg-accent"
-                }`}>
-                <Icon className="h-5 w-5" />
-              </button>
-            ))}
           </div>
         </div>
       )}
 
-      {/* ── Stats Cards ───────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {/* Progreso Total */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
-          className="bg-card rounded-xl p-5 border border-border">
+      {/* ── Modal de Estadísticas y Controles (similar a Auditoría) ───────────────────────────────── */}
+      <div className="bg-card rounded-xl p-5 border border-border mb-6" style={{
+        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+      }}>
+        {/* ── 6 Tarjetas de Estadísticas ───────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
+          {/* Progreso Total */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
+            className="bg-background rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">Progreso Total</span>
             <TrendingUp className="h-4 w-4 text-[#FF6835]" />
@@ -790,9 +1019,9 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
           </div>
         </motion.div>
 
-        {/* Completados con DB */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
-          className="bg-card rounded-xl p-5 border border-border">
+          {/* Completados con DB */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+            className="bg-background rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">Completados</span>
             <CheckCircle2 className="h-4 w-4 text-[#FF6835]" />
@@ -815,9 +1044,9 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
           </div>
         </motion.div>
 
-        {/* UI Lista / En Progreso */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
-          className="bg-card rounded-xl p-5 border border-border">
+          {/* UI Lista / En Progreso */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
+            className="bg-background rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">UI Lista / En Progreso</span>
             <Monitor className="h-4 w-4 text-blue-500" />
@@ -831,9 +1060,9 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
           )}
         </motion.div>
 
-        {/* Horas Restantes */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}
-          className="bg-card rounded-xl p-5 border border-border">
+          {/* Horas Restantes */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.24 }}
+            className="bg-background rounded-xl p-4 border border-border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted-foreground">Horas Restantes</span>
             <AlertCircle className="h-4 w-4 text-[#FF6835]" />
@@ -844,12 +1073,94 @@ export function ChecklistRoadmap({ hideHeader = false }: Props) {
             <div className="bg-green-500 h-1.5 rounded-full transition-all duration-700"
               style={{ width: `${Math.round((stats.completedHours / Math.max(stats.totalHours, 1)) * 100)}%` }} />
           </div>
-        </motion.div>
-      </div>
+          </motion.div>
 
-      {/* ── Filters ───────────────────────────────────── */}
-      <div className="bg-card rounded-xl p-4 border border-border mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {/* Checklist */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}
+            className="bg-background rounded-xl p-4 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Checklist</span>
+              <FileCheck2 className="h-4 w-4 text-[#FF6835]" />
+            </div>
+            <div className="text-2xl font-bold text-foreground mb-1">{stats.total}</div>
+            <div className="text-xs text-muted-foreground">módulos totales</div>
+            <div className="text-xs text-muted-foreground mt-1">{stats.inProgress} en progreso</div>
+          </motion.div>
+
+          {/* Roadmap */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.40 }}
+            className="bg-background rounded-xl p-4 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Roadmap</span>
+              <BarChart3 className="h-4 w-4 text-[#FF6835]" />
+            </div>
+            <div className="text-2xl font-bold text-foreground mb-1">{stats.specReady}</div>
+            <div className="text-xs text-muted-foreground">módulos en cola</div>
+            <div className="text-xs text-muted-foreground mt-1">{stats.notStarted} pendientes</div>
+          </motion.div>
+        </div>
+
+        {/* ── Barra de Botones ───────────────────────────────── */}
+        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border flex-wrap">
+          <button
+            onClick={() => {
+              if (onNavigate) {
+                onNavigate('ideas-board');
+              } else {
+                window.location.href = '#/admin?section=ideas-board';
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700 text-sm font-semibold transition-colors"
+          >
+            <Lightbulb className="h-3.5 w-3.5" />
+            Ideas
+          </button>
+          <button
+            onClick={() => setViewMode("list")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold transition-colors"
+          >
+            <Monitor className="h-3.5 w-3.5" />
+            Desarrollo
+          </button>
+          <button
+            onClick={forceResyncFromManifest}
+            disabled={isSyncing}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-50 ${
+              !hasUnsavedChanges && !isSaving
+                ? 'border-green-200 bg-green-50 hover:bg-green-100 text-green-700'
+                : hasUnsavedChanges
+                ? 'border-red-200 bg-red-50 hover:bg-red-100 text-red-700'
+                : 'border-yellow-200 bg-yellow-50 hover:bg-yellow-100 text-yellow-700'
+            }`}
+          >
+            <CheckCircle2 className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+            {isSyncing ? "Sincronizando..." : "Sincronizado"}
+          </button>
+          <button
+            onClick={() => setShowAudit(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FF6835]/30 bg-orange-50 hover:bg-orange-100 text-[#FF6835] text-sm font-semibold transition-colors"
+          >
+            <ScanSearch className="h-3.5 w-3.5" />
+            Auditoría
+          </button>
+          <button
+            onClick={toggleExpandCollapse}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-accent text-muted-foreground text-sm font-semibold transition-colors"
+          >
+            {allExpanded ? (
+              <>
+                <ChevronsDownUp className="h-3.5 w-3.5" /> Colapsar
+              </>
+            ) : (
+              <>
+                <ChevronsUpDown className="h-3.5 w-3.5" /> Expandir
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* ── Buscador y Filtros ───────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input type="text" placeholder="Buscar m�dulo..." value={searchTerm}

@@ -28,11 +28,11 @@ interface ServiceCheck {
 }
 
 const initialServices: ServiceCheck[] = [
-  { id: 'supabase-db',    name: 'Supabase Database',    description: 'PostgreSQL + kv_store_75638143',      category: 'Backend',  icon: Database, color: '#059669', status: 'checking' },
+  { id: 'supabase-db',    name: 'Supabase Database',    description: 'PostgreSQL',      category: 'Backend',  icon: Database, color: '#059669', status: 'checking' },
   { id: 'supabase-auth',  name: 'Supabase Auth',        description: 'Autenticación y sesiones',             category: 'Backend',  icon: Shield,   color: '#059669', status: 'checking' },
   { id: 'supabase-edge',  name: 'Edge Functions (Hono)',description: 'Servidor /api',        category: 'Backend',  icon: Server,   color: '#059669', status: 'checking' },
   { id: 'kv-store',       name: 'KV Store',             description: 'Tabla clave-valor persistente',        category: 'Backend',  icon: Cpu,      color: '#059669', status: 'checking' },
-  { id: 'storage',        name: 'Supabase Storage',     description: 'Buckets make-75638143-*',              category: 'Backend',  icon: Database, color: '#059669', status: 'checking' },
+  { id: 'storage',        name: 'Supabase Storage',     description: 'Supabase Storage Buckets',              category: 'Backend',  icon: Database, color: '#059669', status: 'checking' },
   { id: 'plexo',          name: 'Plexo UV',             description: 'API de pagos Uruguay',                 category: 'Pagos',    icon: Globe,    color: '#6B7280', status: 'pending' },
   { id: 'mercadopago',    name: 'MercadoPago',          description: 'Pasarela Latam',                       category: 'Pagos',    icon: Globe,    color: '#6B7280', status: 'pending' },
   { id: 'twilio',         name: 'Twilio',               description: 'SMS / WhatsApp',                       category: 'Comms',    icon: Globe,    color: '#6B7280', status: 'pending' },
@@ -110,7 +110,7 @@ export function HealthMonitorView({ onNavigate }: Props) {
       if (s.id === 'supabase-edge') return { ...s, status: edgeOk ? 'ok' : API_URL ? 'error' : 'unknown', latency: edgeLatency, checkedAt: new Date(), message: edgeOk ? 'Respondió correctamente' : API_URL ? 'No respondió' : 'Sin configurar' };
       if (s.id === 'supabase-db')   return { ...s, status: edgeOk ? 'ok' : API_URL ? 'error' : 'unknown', latency: edgeLatency > 0 ? Math.round(edgeLatency * 0.3) : 0, checkedAt: new Date(), message: edgeOk ? 'Conexión activa' : 'Sin conexión' };
       if (s.id === 'supabase-auth') return { ...s, status: edgeOk ? 'ok' : 'unknown', latency: edgeLatency > 0 ? Math.round(edgeLatency * 0.2) : 0, checkedAt: new Date(), message: 'Supabase Auth activo' };
-      if (s.id === 'kv-store')      return { ...s, status: kvOk ? 'ok' : edgeOk ? 'error' : 'unknown', latency: kvLatency, checkedAt: new Date(), message: kvOk ? 'kv_store_75638143 OK' : 'No se pudo verificar' };
+      if (s.id === 'kv-store')      return { ...s, status: kvOk ? 'ok' : edgeOk ? 'error' : 'unknown', latency: kvLatency, checkedAt: new Date(), message: kvOk ? 'kv_store OK' : 'No se pudo verificar' };
       if (s.id === 'storage')       return { ...s, status: edgeOk ? 'ok' : 'unknown', latency: Math.round(totalLatency * 0.1), checkedAt: new Date(), message: edgeOk ? 'Buckets accesibles' : 'Sin verificar' };
       return s;
     }));

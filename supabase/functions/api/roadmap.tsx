@@ -10,6 +10,7 @@ import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
 import { createClient } from "npm:@supabase/supabase-js";
 import * as kv from "./kv_store.tsx";
+import { MODULES_DATA, MODULES_DATA_MAP } from "./modulesData.ts";
 
 const roadmap = new Hono();
 
@@ -54,31 +55,63 @@ const getSupabase = () =>
    MÓDULOS — estado del roadmap (SQL)
 ===================================================== */
 
-/** GET /modules — carga todos los estados desde SQL */
+/** GET /modules — carga todos los estados desde SQL y combina con datos base */
 roadmap.get("/modules", async (c) => {
   try {
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    const { data: sqlData, error } = await supabase
       .from("roadmap_modules")
       .select("*")
       .order("exec_order", { ascending: true, nullsFirst: false });
     
     if (error) throw error;
     
-    // Convertir a formato esperado por el frontend
-    const modules = (data ?? []).map((row: any) => ({
-      id: row.id,
-      status: row.status,
-      priority: row.priority,
-      execOrder: row.exec_order,
-      estimatedHours: row.estimated_hours,
-      notas: row.notas,
-      tiene_view: row.tiene_view,
-      tiene_backend: row.tiene_backend,
-      endpoint_ok: row.endpoint_ok,
-      tiene_datos: row.tiene_datos,
-      updated_at: row.updated_at,
-    }));
+    // Crear mapa de estado desde SQL (id → estado)
+    const stateMap = new Map<string, any>();
+    (sqlData ?? []).forEach((row: any) => {
+      stateMap.set(row.id, {
+        status: row.status,
+        priority: row.priority,
+        execOrder: row.exec_order,
+        estimatedHours: row.estimated_hours,
+        notas: row.notas,
+        tiene_view: row.tiene_view,
+        tiene_backend: row.tiene_backend,
+        endpoint_ok: row.endpoint_ok,
+        tiene_datos: row.tiene_datos,
+        updated_at: row.updated_at,
+      });
+    });
+    
+    // Combinar datos base con estado de SQL
+    // Si SQL está vacío, usar datos base con estados por defecto
+    const modules = MODULES_DATA.map((base) => {
+      const state = stateMap.get(base.id);
+      
+      // Si hay estado en SQL, combinar; si no, usar valores por defecto
+      return {
+        id: base.id,
+        name: base.name,
+        category: base.category,
+        description: base.description,
+        status: state?.status ?? "not-started",
+        priority: state?.priority ?? "medium",
+        execOrder: state?.execOrder ?? undefined,
+        estimatedHours: state?.estimatedHours ?? base.estimatedHours ?? undefined,
+        notas: state?.notas ?? undefined,
+        submodules: base.submodules?.map(sub => ({
+          id: sub.id,
+          name: sub.name,
+          status: state?.status ?? "not-started", // Los submódulos heredan el estado del padre por defecto
+          estimatedHours: sub.estimatedHours,
+        })),
+        tiene_view: state?.tiene_view ?? false,
+        tiene_backend: state?.tiene_backend ?? false,
+        endpoint_ok: state?.endpoint_ok ?? false,
+        tiene_datos: state?.tiene_datos ?? false,
+        updated_at: state?.updated_at ?? undefined,
+      };
+    });
     
     return c.json({ modules, count: modules.length });
   } catch (err) {
