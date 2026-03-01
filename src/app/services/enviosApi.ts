@@ -1,14 +1,6 @@
-﻿/* =====================================================
-   EnvÃ­os API Service â€” Frontend â†” Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+﻿import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/envios`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-  'apikey': publicAnonKey,
-};
+const TENANT = 'oddy';
 
 export type EstadoEnvio =
   | 'creado' | 'despachado' | 'en_transito' | 'en_deposito'
@@ -92,117 +84,7 @@ export interface EnvioInput {
   metadata?: any;
 }
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const url = `${BASE}${path}`;
-    console.log(`[enviosApi] GET ${url}`);
-    const res = await fetch(url, { headers: HEADERS });
-    
-    // Si la respuesta no es JSON (ej: 404, 500 sin JSON)
-    let json: any;
-    const contentType = res.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      json = await res.json();
-    } else {
-      const text = await res.text();
-      console.error(`[enviosApi] Respuesta no JSON: ${res.status} ${text}`);
-      return { ok: false, error: `Error ${res.status}: ${text || 'Respuesta invÃ¡lida'}` };
-    }
-    
-    if (!res.ok) {
-      console.error(`[enviosApi] Error ${res.status}:`, json);
-      // Extraer mensaje de error de forma segura
-      let errorMsg = `Error ${res.status}: ${res.statusText || 'Error en la peticiÃ³n'}`;
-      
-      // El servidor puede devolver el error directamente como string o en un campo 'error'
-      if (typeof json === 'string') {
-        errorMsg = json;
-      } else if (json && typeof json === 'object') {
-        // Prioridad: json.error (string) > json.error.message > json.message > json.details
-        if (typeof json.error === 'string') {
-          errorMsg = json.error;
-        } else if (json.error && typeof json.error === 'object') {
-          errorMsg = json.error.message || json.error.details || json.error.hint || JSON.stringify(json.error);
-        } else if (json.message) {
-          errorMsg = json.message;
-        } else if (json.details) {
-          errorMsg = json.details;
-        } else if (Object.keys(json).length > 0) {
-          // Si es un objeto con propiedades, intentar extraer informaciÃ³n Ãºtil
-          errorMsg = JSON.stringify(json);
-        }
-      }
-      
-      return { ok: false, error: errorMsg };
-    }
-    return { ok: true, data: json };
-  } catch (err) {
-    console.error(`[enviosApi] Error en GET ${path}:`, err);
-    // Manejar errores de red (CORS, timeout, etc.)
-    if (err instanceof TypeError && err.message.includes('fetch')) {
-      return { ok: false, error: 'Error de conexiÃ³n. Verifica tu conexiÃ³n a internet o contacta al administrador.' };
-    }
-    return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido al cargar datos' };
-  }
-}
-
-async function apiPost<T>(path: string, body: any): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: JSON.stringify(body),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      // Extraer mensaje de error de forma segura
-      let errorMsg = 'Error en la peticiÃ³n';
-      if (typeof json.error === 'string') {
-        errorMsg = json.error;
-      } else if (json.error && typeof json.error === 'object') {
-        errorMsg = json.error.message || json.error.error || JSON.stringify(json.error);
-      } else if (json.message) {
-        errorMsg = json.message;
-      }
-      return { ok: false, error: errorMsg };
-    }
-    return { ok: true, data: json };
-  } catch (err) {
-    console.error(`Envios API POST ${path}:`, err);
-    return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido' };
-  }
-}
-
-async function apiPut<T>(path: string, body: any): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: JSON.stringify(body),
-    });
-    const json = await res.json();
-    if (!res.ok) {
-      // Extraer mensaje de error de forma segura
-      let errorMsg = 'Error en la peticiÃ³n';
-      if (typeof json.error === 'string') {
-        errorMsg = json.error;
-      } else if (json.error && typeof json.error === 'object') {
-        errorMsg = json.error.message || json.error.error || JSON.stringify(json.error);
-      } else if (json.message) {
-        errorMsg = json.message;
-      }
-      return { ok: false, error: errorMsg };
-    }
-    return { ok: true, data: json };
-  } catch (err) {
-    console.error(`Envios API PUT ${path}:`, err);
-    return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido' };
-  }
-}
-
-// â”€â”€ Funciones principales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Funciones principales ──────────────────────────────────────────────────
 
 export async function getEnvios(filters?: {
   pedido_madre_id?: string;
@@ -210,48 +92,124 @@ export async function getEnvios(filters?: {
   carrier?: string;
   tramo?: Tramo;
 }): Promise<{ envios: Envio[]; eventos: EventoTracking[] }> {
-  const params = new URLSearchParams();
-  if (filters?.pedido_madre_id) params.append('pedido_madre_id', filters.pedido_madre_id);
-  if (filters?.estado) params.append('estado', filters.estado);
-  if (filters?.carrier) params.append('carrier', filters.carrier);
-  if (filters?.tramo) params.append('tramo', filters.tramo);
+  let query = supabase
+    .from('envios')
+    .select('*')
+    .order('fecha_creacion', { ascending: false });
   
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const res = await apiGet<{ envios: Envio[]; eventos: EventoTracking[]; count: number }>(query);
-  
-  console.log('[enviosApi] getEnvios response:', { ok: res.ok, error: res.error, data: res.data });
-  
-  if (!res.ok) {
-    console.error('[enviosApi] Error en getEnvios:', res.error);
-    throw new Error(res.error || 'Error cargando envÃ­os');
+  if (filters?.pedido_madre_id) {
+    query = query.eq('pedido_madre_id', filters.pedido_madre_id);
+  }
+  if (filters?.estado) {
+    query = query.eq('estado', filters.estado);
+  }
+  if (filters?.carrier) {
+    query = query.eq('carrier', filters.carrier);
+  }
+  if (filters?.tramo) {
+    query = query.eq('tramo', filters.tramo);
   }
   
-  if (!res.data) {
-    console.warn('[enviosApi] getEnvios: res.data es null/undefined');
-    return { envios: [], eventos: [] };
+  const { data: envios, error } = await query;
+  
+  if (error) {
+    console.error('[enviosApi] Error obteniendo envíos:', error);
+    throw new Error(error.message || 'Error cargando envíos');
   }
   
-  console.log('[enviosApi] getEnvios: envÃ­os encontrados:', res.data.envios?.length || 0, 'eventos:', res.data.eventos?.length || 0);
+  // Obtener eventos de tracking
+  const envioIds = envios?.map(e => e.id) || [];
+  let eventos: EventoTracking[] = [];
   
-  return { envios: res.data.envios || [], eventos: res.data.eventos || [] };
+  if (envioIds.length > 0) {
+    const { data: eventosData, error: eventosError } = await supabase
+      .from('envios_eventos')
+      .select('*')
+      .in('envio_id', envioIds)
+      .order('fecha', { ascending: false });
+    
+    if (!eventosError && eventosData) {
+      eventos = eventosData as EventoTracking[];
+    }
+  }
+  
+  return { envios: envios || [], eventos };
 }
 
 export async function getEnvio(id: string): Promise<{ envio: Envio; eventos: EventoTracking[] } | null> {
-  const res = await apiGet<{ envio: Envio; eventos: EventoTracking[] }>(`/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: envio, error } = await supabase
+    .from('envios')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[enviosApi] Error obteniendo envío:', error);
+    return null;
+  }
+  
+  if (!envio) return null;
+  
+  // Obtener eventos de tracking
+  const { data: eventos, error: eventosError } = await supabase
+    .from('envios_eventos')
+    .select('*')
+    .eq('envio_id', id)
+    .order('fecha', { ascending: false });
+  
+  if (eventosError) {
+    console.error('[enviosApi] Error obteniendo eventos:', eventosError);
+  }
+  
+  return {
+    envio: envio as Envio,
+    eventos: (eventos || []) as EventoTracking[]
+  };
 }
 
 export async function getEnviosByPedido(pedidoId: string): Promise<Envio[]> {
-  const res = await apiGet<{ envios: Envio[] }>(`/pedido/${pedidoId}`);
-  if (!res.ok || !res.data) return [];
-  return res.data.envios || [];
+  const { data, error } = await supabase
+    .from('envios')
+    .select('*')
+    .eq('pedido_madre_id', pedidoId)
+    .order('fecha_creacion', { ascending: false });
+  
+  if (error) {
+    console.error('[enviosApi] Error obteniendo envíos por pedido:', error);
+    return [];
+  }
+  
+  return (data || []) as Envio[];
 }
 
 export async function createEnvio(data: EnvioInput): Promise<Envio> {
-  const res = await apiPost<{ envio: Envio }>('/', data);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error creando envÃ­o');
-  return res.data.envio;
+  if (!data.origen || !data.destino || !data.destinatario || !data.carrier) {
+    throw new Error('origen, destino, destinatario y carrier son requeridos');
+  }
+  
+  // Generar número de envío único
+  const numero = `ENV-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  const { data: result, error } = await supabase
+    .from('envios')
+    .insert({
+      ...data,
+      numero,
+      estado: data.estado || 'creado',
+      tramo: data.tramo || 'local',
+      peso: data.peso || 0,
+      bultos: data.bultos || 1,
+      fecha_creacion: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[enviosApi] Error creando envío:', error);
+    throw new Error(error.message || 'Error creando envío');
+  }
+  
+  return result as Envio;
 }
 
 export async function updateEnvio(id: string, data: Partial<EnvioInput> & {
@@ -259,9 +217,35 @@ export async function updateEnvio(id: string, data: Partial<EnvioInput> & {
   ubicacion?: string;
   origen_evento?: 'sistema' | 'carrier' | 'manual';
 }): Promise<Envio> {
-  const res = await apiPut<{ envio: Envio }>(`/${id}`, data);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error actualizando envÃ­o');
-  return res.data.envio;
+  const { descripcion_evento, ubicacion, origen_evento, ...updateData } = data;
+  
+  // Actualizar envío
+  const { data: result, error } = await supabase
+    .from('envios')
+    .update({
+      ...updateData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[enviosApi] Error actualizando envío:', error);
+    throw new Error(error.message || 'Error actualizando envío');
+  }
+  
+  // Si se proporcionó un evento, crearlo
+  if (descripcion_evento && result) {
+    await addEvento(id, {
+      estado: (updateData.estado || result.estado) as EstadoEnvio,
+      descripcion: descripcion_evento,
+      ubicacion,
+      origen: origen_evento || 'manual',
+    });
+  }
+  
+  return result as Envio;
 }
 
 export async function addEvento(id: string, evento: {
@@ -272,9 +256,43 @@ export async function addEvento(id: string, evento: {
   lng?: number;
   origen?: 'sistema' | 'carrier' | 'manual';
 }): Promise<EventoTracking> {
-  const res = await apiPost<{ evento: EventoTracking }>(`/${id}/evento`, evento);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error agregando evento');
-  return res.data.evento;
+  // Obtener el envío para actualizar su estado
+  const { data: envio } = await supabase
+    .from('envios')
+    .select('estado')
+    .eq('id', id)
+    .single();
+  
+  // Crear el evento
+  const { data: result, error } = await supabase
+    .from('envios_eventos')
+    .insert({
+      envio_id: id,
+      estado: evento.estado,
+      descripcion: evento.descripcion,
+      ubicacion: evento.ubicacion,
+      lat: evento.lat,
+      lng: evento.lng,
+      origen: evento.origen || 'manual',
+      fecha: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[enviosApi] Error agregando evento:', error);
+    throw new Error(error.message || 'Error agregando evento');
+  }
+  
+  // Actualizar el estado del envío si cambió
+  if (envio && envio.estado !== evento.estado) {
+    await supabase
+      .from('envios')
+      .update({ estado: evento.estado, updated_at: new Date().toISOString() })
+      .eq('id', id);
+  }
+  
+  return result as EventoTracking;
 }
 
 export async function registrarAcuse(id: string, acuse: {
@@ -282,8 +300,33 @@ export async function registrarAcuse(id: string, acuse: {
   firma_url?: string;
   ubicacion?: string;
 }): Promise<Envio> {
-  const res = await apiPost<{ envio: Envio }>(`/${id}/acuse`, acuse);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error registrando acuse');
-  return res.data.envio;
+  const { data: result, error } = await supabase
+    .from('envios')
+    .update({
+      acuse_recibido: true,
+      acuse_fecha: new Date().toISOString(),
+      acuse_firmado_por: acuse.firmado_por,
+      acuse_firma_url: acuse.firma_url,
+      estado: 'entregado',
+      fecha_entrega: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[enviosApi] Error registrando acuse:', error);
+    throw new Error(error.message || 'Error registrando acuse');
+  }
+  
+  // Crear evento de entrega
+  await addEvento(id, {
+    estado: 'entregado',
+    descripcion: `Acuse de recibo firmado por ${acuse.firmado_por}`,
+    ubicacion: acuse.ubicacion,
+    origen: 'manual',
+  });
+  
+  return result as Envio;
 }
-

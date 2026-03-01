@@ -1,17 +1,8 @@
-﻿/* =====================================================
-   Transportistas API Service â€” Dashboard â†” Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+﻿import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/transportistas`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-  'apikey': publicAnonKey,
-  'x-tenant-id': 'oddy',
-};
+const TENANT = 'oddy';
 
-// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Types ──────────────────────────────────────────────────────────────────
 export interface Transportista {
   id: string;
   nombre: string;
@@ -83,70 +74,132 @@ export interface TramoInput {
   activo?: boolean;
 }
 
-// â”€â”€â”€ CRUD Transportistas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── CRUD Transportistas ────────────────────────────────────────────────────
 
 export async function getTransportistas(): Promise<Transportista[]> {
-  const res = await fetch(`${BASE}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  const { data, error } = await supabase
+    .from('transportistas')
+    .select('*')
+    .order('nombre');
+  
+  if (error) {
+    console.error('[transportistasApi] Error obteniendo transportistas:', error);
+    throw new Error(error.message || 'Error cargando transportistas');
+  }
+  
+  return (data || []) as Transportista[];
 }
 
 export async function getTransportistaById(id: string): Promise<Transportista> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('transportistas')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[transportistasApi] Error obteniendo transportista:', error);
+    throw new Error(error.message || 'Error cargando transportista');
+  }
+  
+  if (!data) {
+    throw new Error('Transportista no encontrado');
+  }
+  
+  return data as Transportista;
 }
 
 export async function createTransportista(data: TransportistaInput): Promise<Transportista> {
-  const res = await fetch(`${BASE}`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  if (!data.nombre || !data.tipo) {
+    throw new Error('nombre y tipo son requeridos');
+  }
+  
+  const { data: result, error } = await supabase
+    .from('transportistas')
+    .insert({
+      ...data,
+      estado: data.estado || 'activo',
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[transportistasApi] Error creando transportista:', error);
+    throw new Error(error.message || 'Error creando transportista');
+  }
+  
+  return result as Transportista;
 }
 
 export async function updateTransportista(id: string, data: Partial<TransportistaInput>): Promise<Transportista> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('transportistas')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[transportistasApi] Error actualizando transportista:', error);
+    throw new Error(error.message || 'Error actualizando transportista');
+  }
+  
+  return result as Transportista;
 }
 
 export async function deleteTransportista(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('transportistas')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[transportistasApi] Error eliminando transportista:', error);
+    throw new Error(error.message || 'Error eliminando transportista');
+  }
 }
 
-// â”€â”€â”€ CRUD Tramos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── CRUD Tramos ────────────────────────────────────────────────────────────
 
 export async function getTramos(transportistaId: string): Promise<Tramo[]> {
-  const res = await fetch(`${BASE}/${transportistaId}/tramos`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  const { data, error } = await supabase
+    .from('tramos')
+    .select('*')
+    .eq('transportista_id', transportistaId)
+    .order('origen');
+  
+  if (error) {
+    console.error('[transportistasApi] Error obteniendo tramos:', error);
+    throw new Error(error.message || 'Error cargando tramos');
+  }
+  
+  return (data || []) as Tramo[];
 }
 
 export async function createTramo(transportistaId: string, data: TramoInput): Promise<Tramo> {
-  const res = await fetch(`${BASE}/${transportistaId}/tramos`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  if (!data.origen || !data.destino || !data.tipo) {
+    throw new Error('origen, destino y tipo son requeridos');
+  }
+  
+  const { data: result, error } = await supabase
+    .from('tramos')
+    .insert({
+      ...data,
+      transportista_id: transportistaId,
+      estado: data.estado || 'activo',
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[transportistasApi] Error creando tramo:', error);
+    throw new Error(error.message || 'Error creando tramo');
+  }
+  
+  return result as Tramo;
 }
-
