@@ -1,5 +1,5 @@
-/* =====================================================
-   Transportistas API Service — Dashboard ↔ Backend
+﻿/* =====================================================
+   Transportistas API Service â€” Dashboard â†” Backend
    ===================================================== */
 import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
@@ -7,9 +7,11 @@ const BASE = `${apiUrl}/transportistas`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,
+  'apikey': publicAnonKey,
+  'x-tenant-id': 'oddy',
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface Transportista {
   id: string;
   nombre: string;
@@ -81,7 +83,7 @@ export interface TramoInput {
   activo?: boolean;
 }
 
-// ─── CRUD Transportistas ───────────────────────────────────────────────────
+// â”€â”€â”€ CRUD Transportistas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function getTransportistas(): Promise<Transportista[]> {
   const res = await fetch(`${BASE}`, { headers: HEADERS });
@@ -128,7 +130,7 @@ export async function deleteTransportista(id: string): Promise<void> {
   if (json.error) throw new Error(json.error);
 }
 
-// ─── CRUD Tramos ───────────────────────────────────────────────────────────
+// â”€â”€â”€ CRUD Tramos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function getTramos(transportistaId: string): Promise<Tramo[]> {
   const res = await fetch(`${BASE}/${transportistaId}/tramos`, { headers: HEADERS });
@@ -147,3 +149,4 @@ export async function createTramo(transportistaId: string, data: TramoInput): Pr
   if (json.error) throw new Error(json.error);
   return json.data;
 }
+
