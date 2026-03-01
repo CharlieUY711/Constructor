@@ -58,7 +58,7 @@ export interface OrdenArmadoInput {
 
 export async function getArticulosProduccion(activo?: boolean): Promise<ArticuloCompuesto[]> {
   let query = supabase
-    .from('articulos_compuestos')
+    .from('produccion_articulos')
     .select('*');
   
   if (activo !== undefined) {
@@ -77,7 +77,7 @@ export async function getArticulosProduccion(activo?: boolean): Promise<Articulo
 
 export async function getArticuloProduccionById(id: string): Promise<ArticuloCompuesto> {
   const { data, error } = await supabase
-    .from('articulos_compuestos')
+    .from('produccion_articulos')
     .select('*')
     .eq('id', id)
     .single();
@@ -92,7 +92,7 @@ export async function getArticuloProduccionById(id: string): Promise<ArticuloCom
 
 export async function createArticuloProduccion(data: ArticuloCompuestoInput): Promise<ArticuloCompuesto> {
   const { data: result, error } = await supabase
-    .from('articulos_compuestos')
+    .from('produccion_articulos')
     .insert({
       ...data,
       activo: data.activo ?? true,
@@ -110,7 +110,7 @@ export async function createArticuloProduccion(data: ArticuloCompuestoInput): Pr
 
 export async function updateArticuloProduccion(id: string, data: Partial<ArticuloCompuestoInput>): Promise<ArticuloCompuesto> {
   const { data: result, error } = await supabase
-    .from('articulos_compuestos')
+    .from('produccion_articulos')
     .update({
       ...data,
       updated_at: new Date().toISOString(),
@@ -129,7 +129,7 @@ export async function updateArticuloProduccion(id: string, data: Partial<Articul
 
 export async function deleteArticuloProduccion(id: string): Promise<void> {
   const { error } = await supabase
-    .from('articulos_compuestos')
+    .from('produccion_articulos')
     .delete()
     .eq('id', id);
   
@@ -141,7 +141,7 @@ export async function deleteArticuloProduccion(id: string): Promise<void> {
 
 export async function getOrdenesArmado(estado?: string): Promise<OrdenArmado[]> {
   let query = supabase
-    .from('ordenes_armado')
+    .from('produccion_ordenes_armado')
     .select('*');
   
   if (estado) {
@@ -160,7 +160,7 @@ export async function getOrdenesArmado(estado?: string): Promise<OrdenArmado[]> 
 
 export async function getOrdenArmadoById(id: string): Promise<OrdenArmado> {
   const { data, error } = await supabase
-    .from('ordenes_armado')
+    .from('produccion_ordenes_armado')
     .select('*')
     .eq('id', id)
     .single();
@@ -175,7 +175,7 @@ export async function getOrdenArmadoById(id: string): Promise<OrdenArmado> {
 
 export async function createOrdenArmado(data: OrdenArmadoInput): Promise<OrdenArmado> {
   const { data: result, error } = await supabase
-    .from('ordenes_armado')
+    .from('produccion_ordenes_armado')
     .insert({
       ...data,
       estado: data.estado ?? 'pendiente',
@@ -193,7 +193,7 @@ export async function createOrdenArmado(data: OrdenArmadoInput): Promise<OrdenAr
 
 export async function updateOrdenArmado(id: string, data: Partial<OrdenArmadoInput>): Promise<OrdenArmado> {
   const { data: result, error } = await supabase
-    .from('ordenes_armado')
+    .from('produccion_ordenes_armado')
     .update({
       ...data,
       updated_at: new Date().toISOString(),
@@ -212,7 +212,7 @@ export async function updateOrdenArmado(id: string, data: Partial<OrdenArmadoInp
 
 export async function deleteOrdenArmado(id: string): Promise<void> {
   const { error } = await supabase
-    .from('ordenes_armado')
+    .from('produccion_ordenes_armado')
     .delete()
     .eq('id', id);
   

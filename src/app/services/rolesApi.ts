@@ -14,7 +14,7 @@ export interface Rol {
 
 export async function getRoles(params?: { persona_id?: string; organizacion_id?: string; rol?: string; activo?: boolean }): Promise<Rol[]> {
   let query = supabase
-    .from('roles')
+    .from('roles_contextuales')
     .select('*, persona:personas(id, nombre, apellido, email, tipo, telefono), organizacion:organizaciones(id, nombre, tipo)');
   
   if (params?.persona_id) {
@@ -42,7 +42,7 @@ export async function getRoles(params?: { persona_id?: string; organizacion_id?:
 
 export async function getRol(id: string): Promise<Rol | null> {
   const { data, error } = await supabase
-    .from('roles')
+    .from('roles_contextuales')
     .select('*, persona:personas(id, nombre, apellido, email, tipo, telefono), organizacion:organizaciones(id, nombre, tipo)')
     .eq('id', id)
     .single();
@@ -57,7 +57,7 @@ export async function getRol(id: string): Promise<Rol | null> {
 
 export async function createRol(data: Partial<Rol>): Promise<Rol | null> {
   const { data: result, error } = await supabase
-    .from('roles')
+    .from('roles_contextuales')
     .insert({
       ...data,
       activo: data.activo ?? true,
@@ -75,7 +75,7 @@ export async function createRol(data: Partial<Rol>): Promise<Rol | null> {
 
 export async function updateRol(id: string, data: Partial<Rol>): Promise<Rol | null> {
   const { data: result, error } = await supabase
-    .from('roles')
+    .from('roles_contextuales')
     .update(data)
     .eq('id', id)
     .select()
@@ -91,7 +91,7 @@ export async function updateRol(id: string, data: Partial<Rol>): Promise<Rol | n
 
 export async function deleteRol(id: string): Promise<boolean> {
   const { error } = await supabase
-    .from('roles')
+    .from('roles_contextuales')
     .delete()
     .eq('id', id);
   

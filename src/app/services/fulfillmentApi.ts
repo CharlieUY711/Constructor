@@ -63,7 +63,7 @@ export interface WaveInput {
 
 export async function getOrdenesFulfillment(estado?: string): Promise<OrdenFulfillment[]> {
   let query = supabase
-    .from('ordenes_fulfillment')
+    .from('fulfillment_ordenes')
     .select('*');
   
   if (estado) {
@@ -82,7 +82,7 @@ export async function getOrdenesFulfillment(estado?: string): Promise<OrdenFulfi
 
 export async function getOrdenFulfillmentById(id: string): Promise<OrdenFulfillment> {
   const { data, error } = await supabase
-    .from('ordenes_fulfillment')
+    .from('fulfillment_ordenes')
     .select('*')
     .eq('id', id)
     .single();
@@ -97,7 +97,7 @@ export async function getOrdenFulfillmentById(id: string): Promise<OrdenFulfillm
 
 export async function createOrdenFulfillment(data: OrdenFulfillmentInput): Promise<OrdenFulfillment> {
   const { data: result, error } = await supabase
-    .from('ordenes_fulfillment')
+    .from('fulfillment_ordenes')
     .insert({
       ...data,
       estado: data.estado ?? 'pendiente',
@@ -115,7 +115,7 @@ export async function createOrdenFulfillment(data: OrdenFulfillmentInput): Promi
 
 export async function updateOrdenFulfillment(id: string, data: Partial<OrdenFulfillmentInput>): Promise<OrdenFulfillment> {
   const { data: result, error } = await supabase
-    .from('ordenes_fulfillment')
+    .from('fulfillment_ordenes')
     .update({
       ...data,
       updated_at: new Date().toISOString(),
@@ -134,7 +134,7 @@ export async function updateOrdenFulfillment(id: string, data: Partial<OrdenFulf
 
 export async function deleteOrdenFulfillment(id: string): Promise<void> {
   const { error } = await supabase
-    .from('ordenes_fulfillment')
+    .from('fulfillment_ordenes')
     .delete()
     .eq('id', id);
   
@@ -146,7 +146,7 @@ export async function deleteOrdenFulfillment(id: string): Promise<void> {
 
 export async function getWaves(estado?: string): Promise<Wave[]> {
   let query = supabase
-    .from('waves')
+    .from('fulfillment_waves')
     .select('*');
   
   if (estado) {
@@ -165,7 +165,7 @@ export async function getWaves(estado?: string): Promise<Wave[]> {
 
 export async function createWave(data: WaveInput): Promise<Wave> {
   const { data: result, error } = await supabase
-    .from('waves')
+    .from('fulfillment_waves')
     .insert({
       ...data,
       estado: data.estado ?? 'abierta',
@@ -183,7 +183,7 @@ export async function createWave(data: WaveInput): Promise<Wave> {
 
 export async function updateWave(id: string, data: Partial<WaveInput>): Promise<Wave> {
   const { data: result, error } = await supabase
-    .from('waves')
+    .from('fulfillment_waves')
     .update({
       ...data,
       updated_at: new Date().toISOString(),
@@ -202,7 +202,7 @@ export async function updateWave(id: string, data: Partial<WaveInput>): Promise<
 
 export async function deleteWave(id: string): Promise<void> {
   const { error } = await supabase
-    .from('waves')
+    .from('fulfillment_waves')
     .delete()
     .eq('id', id);
   
