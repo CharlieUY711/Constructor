@@ -1,5 +1,5 @@
-/* =====================================================
-   AdminSidebar — navegación plana, sin sub-menús, sin scroll
+﻿/* =====================================================
+   AdminSidebar â€” navegaciÃ³n plana, sin sub-menÃºs, sin scroll
    ===================================================== */
 import React from 'react';
 import {
@@ -23,14 +23,14 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard',     icon: LayoutDashboard, label: 'Dashboard'           },
   { id: 'ecommerce',     icon: ShoppingCart,    label: 'eCommerce'           },
-  { id: 'logistica',     icon: Truck,           label: 'Logística'           },
+  { id: 'logistica',     icon: Truck,           label: 'LogÃ­stica'           },
   { id: 'marketing',     icon: Megaphone,       label: 'Marketing'           },
   { id: 'rrss',          icon: Rss,             label: 'RRSS'                },
   { id: 'herramientas',  icon: Wrench,          label: 'Herramientas'        },
-  { id: 'gestion',       icon: Database,        label: 'Gestión'             },
+  { id: 'gestion',       icon: Database,        label: 'GestiÃ³n'             },
   { id: 'sistema',       icon: Monitor,         label: 'Sistema'             },
   { id: 'integraciones', icon: Plug,            label: 'Integraciones'       },
-  { id: 'auditoria',     icon: Search,          label: 'Auditoría'           },
+  { id: 'auditoria',     icon: Search,          label: 'AuditorÃ­a'           },
 ];
 
 interface Props {
@@ -41,15 +41,15 @@ interface Props {
 export function AdminSidebar({ activeSection, onNavigate }: Props) {
   const { config } = useOrchestrator();
   
-  // Obtener valores de la configuración con fallbacks
+  // Obtener valores de la configuraciÃ³n con fallbacks
   // Soporta tanto config.nombre como config.clienteNombre
-  const clienteNombre = (config as any)?.nombre ?? config?.clienteNombre ?? 'Charlie';
+  const clienteNombre = config?.theme?.nombre ?? 'Charlie';
   // Soporta tanto config.tokens.colorPrimario como config.theme.primary
-  const colorPrimario = (config as any)?.tokens?.colorPrimario ?? config?.theme?.primary ?? '#FF6B35';
+  const colorPrimario = config?.theme?.primary ?? '#FF6B35';
   const modulosConfig = config?.modulos ?? [];
   
   // Filtrar NAV_ITEMS basado en config.modulos
-  // Si modulosConfig está vacío, mostrar todos los módulos (comportamiento por defecto)
+  // Si modulosConfig estÃ¡ vacÃ­o, mostrar todos los mÃ³dulos (comportamiento por defecto)
   const navItems = modulosConfig.length > 0
     ? NAV_ITEMS.filter(item => modulosConfig.includes(item.id))
     : NAV_ITEMS;
@@ -71,7 +71,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         overflow: 'hidden',          /* sin scroll */
       }}
     >
-      {/* ── Logo ── */}
+      {/* â”€â”€ Logo â”€â”€ */}
       <div style={{
         height: '88px',
         display: 'flex',
@@ -106,7 +106,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         </div>
       </div>
 
-      {/* ── User ── */}
+      {/* â”€â”€ User â”€â”€ */}
       <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.18)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{
@@ -125,7 +125,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         </div>
       </div>
 
-      {/* ── Nav ── */}
+      {/* â”€â”€ Nav â”€â”€ */}
       <nav style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
         {navItems.map(item => {
           const isActive = activeSection === item.id || activeHub === item.id;
@@ -166,13 +166,13 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
           );
         })}
 
-        {/* ── Divisor Constructor ── */}
+        {/* â”€â”€ Divisor Constructor â”€â”€ */}
         <div style={{
           margin: '8px 14px',
           borderTop: '1px solid rgba(255,255,255,0.25)',
         }} />
 
-        {/* ── Constructor ── */}
+        {/* â”€â”€ Constructor â”€â”€ */}
         {(() => {
           const isActive = activeSection === 'constructor';
           return (
@@ -213,7 +213,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         })()}
       </nav>
 
-      {/* ── Tip ── */}
+      {/* â”€â”€ Tip â”€â”€ */}
       <div style={{
         margin: '0 10px 10px',
         padding: '10px',
@@ -223,14 +223,14 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
           <Sparkles size={12} color="#fff" />
-          <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.72rem' }}>Tip del día</span>
+          <span style={{ color: '#fff', fontWeight: '700', fontSize: '0.72rem' }}>Tip del dÃ­a</span>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.82)', fontSize: '0.67rem', margin: 0, lineHeight: '1.4' }}>
-          Usá la IA para optimizar descripciones de productos automáticamente
+          UsÃ¡ la IA para optimizar descripciones de productos automÃ¡ticamente
         </p>
       </div>
 
-      {/* ── Ver Tienda ── */}
+      {/* â”€â”€ Ver Tienda â”€â”€ */}
       <a
         href="/"
         target="_blank"
