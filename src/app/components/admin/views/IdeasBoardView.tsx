@@ -327,7 +327,7 @@ function StickerNode({ id, data, selected }: NodeProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {d.status === 'idea' && d.ideaId && (
               <button
-                onClick={(e) => { e.stopPropagation(); setShowPromoteModal(true); }}
+                onMouseDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowPromoteModal(true); }}
                 title="Promover a módulo"
                 style={{
                   background: 'none',
