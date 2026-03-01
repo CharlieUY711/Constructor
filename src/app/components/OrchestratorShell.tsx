@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { useOrchestrator } from '../../shells/DashboardShell/app/providers/OrchestratorProvider';
 import type { MainSection } from '../AdminDashboard';
 import { MODULE_MANIFEST } from '../utils/moduleManifest';
 
@@ -16,6 +17,10 @@ interface OrchestratorShellProps {
 }
 
 export function OrchestratorShell({ activeSection, onNavigate }: OrchestratorShellProps) {
+  const { config } = useOrchestrator();
+  const modulos = config?.modulos ?? [];
+  const moduloActivo = modulos.length === 0 || modulos.includes(activeSection);
+  if (!moduloActivo) { onNavigate('dashboard'); return null; }
   const entry = MODULE_MANIFEST.find(e => e.section === activeSection);
 
   if (!entry || !entry.component) {
