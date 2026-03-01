@@ -206,6 +206,7 @@ export function ChecklistRoadmap({ hideHeader = false, onNavigate }: Props) {
   const [tasksByModule, setTasksByModule] = useState<Record<string, roadmapApi.RoadmapTask[]>>({});
   const [ideasPromovidas, setIdeasPromovidas] = useState<roadmapApi.IdeaPromovida[]>([]);
   const [showIdeasTab, setShowIdeasTab] = useState(false);
+  const [showRoadmapPanel, setShowRoadmapPanel] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -792,6 +793,106 @@ export function ChecklistRoadmap({ hideHeader = false, onNavigate }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
+      {/* ── Roadmap Panel ─────────────────────── */}
+      <AnimatePresence>
+        {showRoadmapPanel && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={() => setShowRoadmapPanel(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card rounded-xl border border-border shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 border-b border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground">Roadmap — Próximamente</h2>
+                    <p className="text-xs text-muted-foreground">
+                      {modules.filter(m => m.status === 'spec-ready' || m.status === 'not-started').length} módulo{modules.filter(m => m.status === 'spec-ready' || m.status === 'not-started').length !== 1 ? 's' : ''} pendiente{modules.filter(m => m.status === 'spec-ready' || m.status === 'not-started').length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowRoadmapPanel(false)}
+                  className="p-2 hover:bg-accent rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-5">
+                {(() => {
+                  const roadmapModules = modules
+                    .filter(m => m.status === 'spec-ready' || m.status === 'not-started')
+                    .sort((a, b) => {
+                      const priorityOrder: Record<ModulePriority, number> = {
+                        critical: 0,
+                        high: 1,
+                        medium: 2,
+                        low: 3,
+                      };
+                      return priorityOrder[a.priority] - priorityOrder[b.priority];
+                    });
+
+                  if (roadmapModules.length === 0) {
+                    return (
+                      <div className="text-center py-12">
+                        <Inbox className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
+                        <p className="text-sm font-semibold text-muted-foreground">No hay módulos en roadmap</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Los módulos con estado "Definición Lista" o "No Iniciado" aparecerán aquí
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-3">
+                      {roadmapModules.map((module) => (
+                        <motion.div
+                          key={module.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="bg-background rounded-lg border border-border p-4"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className="text-sm font-semibold text-foreground">{module.name}</span>
+                                <span className={`text-xs px-1.5 py-0.5 rounded border flex-shrink-0 ${PRIORITY_INFO[module.priority].color}`}>
+                                  {PRIORITY_INFO[module.priority].label}
+                                </span>
+                                <span className={`text-xs px-1.5 py-0.5 rounded border flex-shrink-0 ${STATUS_INFO[module.status].color} border-current/20`}>
+                                  {STATUS_INFO[module.status].label}
+                                </span>
+                              </div>
+                              {module.description && (
+                                <p className="text-xs text-muted-foreground">{module.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* ── Header standalone ─────────────────────────── */}
       {!hideHeader && (
         <div className="mb-8">
@@ -839,6 +940,13 @@ export function ChecklistRoadmap({ hideHeader = false, onNavigate }: Props) {
               >
                 <Lightbulb className="h-3.5 w-3.5" />
                 Ideas Board
+              </button>
+              <button
+                onClick={() => setShowRoadmapPanel(!showRoadmapPanel)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-300 text-sm font-bold hover:bg-violet-200 transition-colors"
+              >
+                <TrendingUp className="h-3.5 w-3.5" />
+                Roadmap
               </button>
               {modules.filter(m => m.status === "spec-ready").length > 0 && (
                 <button
@@ -932,9 +1040,16 @@ export function ChecklistRoadmap({ hideHeader = false, onNavigate }: Props) {
               className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 text-teal-700 border border-teal-300 text-sm font-bold hover:bg-teal-200 transition-colors flex-shrink-0"
               title="Abrir Ideas Board para crear y gestionar ideas"
             >
-              <Lightbulb className="h-3.5 w-3.5" />
-              Ideas Board
-            </button>
+                <Lightbulb className="h-3.5 w-3.5" />
+                Ideas Board
+              </button>
+              <button
+                onClick={() => setShowRoadmapPanel(!showRoadmapPanel)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-300 text-sm font-bold hover:bg-violet-200 transition-colors"
+              >
+                <TrendingUp className="h-3.5 w-3.5" />
+                Roadmap
+              </button>
             {hasUnsavedChanges && (
               <button onClick={saveAllProgress} disabled={isSaving}
                 className="px-4 py-2 bg-[#FF6835] text-white rounded-lg hover:bg-[#FF6835]/90 transition-colors flex items-center gap-2 text-sm disabled:opacity-50">
