@@ -1,13 +1,4 @@
-/* =====================================================
-   Métodos de Envío API Service — Frontend ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/metodos-envio`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
+import { supabase } from '../../utils/supabase/client';
 
 export interface MetodoEnvio {
   id: string;
@@ -22,90 +13,81 @@ export interface MetodoEnvio {
   created_at: string;
 }
 
-/* ── Helpers ── */
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Métodos Envío API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPost<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string } & Record<string, unknown>> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Métodos Envío API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPut<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Métodos Envío API PUT ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Métodos Envío API DELETE ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-/* ── Public API ── */
-
-/** Get all métodos de envío with optional filters */
 export async function getMetodosEnvio(params?: { activo?: boolean }): Promise<MetodoEnvio[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.activo !== undefined) queryParams.set('activo', String(params.activo));
+  let query = supabase
+    .from('metodos_envio')
+    .select('*');
   
-  const res = await apiGet<MetodoEnvio[]>(queryParams.toString() ? `?${queryParams}` : '');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  if (params?.activo !== undefined) {
+    query = query.eq('activo', params.activo);
+  }
+  
+  const { data, error } = await query.order('orden', { ascending: true });
+  
+  if (error) {
+    console.error('[metodosEnvioApi] Error obteniendo métodos de envío:', error);
+    throw new Error(error.message || 'Error cargando métodos de envío');
+  }
+  
+  return data || [];
 }
 
-/** Get a single método de envío by ID */
 export async function getMetodoEnvio(id: string): Promise<MetodoEnvio | null> {
-  const res = await apiGet<MetodoEnvio>(`/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data, error } = await supabase
+    .from('metodos_envio')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[metodosEnvioApi] Error obteniendo método de envío:', error);
+    return null;
+  }
+  
+  return data;
 }
 
-/** Create a new método de envío */
 export async function createMetodoEnvio(data: Partial<MetodoEnvio>): Promise<MetodoEnvio | null> {
-  const res = await apiPost<MetodoEnvio>('', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('metodos_envio')
+    .insert(data)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[metodosEnvioApi] Error creando método de envío:', error);
+    throw new Error(error.message || 'Error creando método de envío');
+  }
+  
+  return result;
 }
 
-/** Update a método de envío */
 export async function updateMetodoEnvio(id: string, data: Partial<MetodoEnvio>): Promise<MetodoEnvio | null> {
-  const res = await apiPut<MetodoEnvio>(`/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('metodos_envio')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[metodosEnvioApi] Error actualizando método de envío:', error);
+    throw new Error(error.message || 'Error actualizando método de envío');
+  }
+  
+  return result;
 }
 
-/** Delete a método de envío */
 export async function deleteMetodoEnvio(id: string): Promise<boolean> {
-  const res = await apiDelete(`/${id}`);
-  return res.ok;
+  const { error } = await supabase
+    .from('metodos_envio')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[metodosEnvioApi] Error eliminando método de envío:', error);
+    return false;
+  }
+  
+  return true;
 }

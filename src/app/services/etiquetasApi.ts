@@ -1,13 +1,4 @@
-/* =====================================================
-   Etiquetas API Service — Frontend ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/etiquetas`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
+import { supabase } from '../../utils/supabase/client';
 
 export interface Etiqueta {
   token: string;
@@ -29,66 +20,60 @@ export interface Etiqueta {
   created_at: string;
 }
 
-/* ── Helpers ── */
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Etiquetas API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPost<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string } & Record<string, unknown>> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Etiquetas API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Etiquetas API DELETE ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-/* ── Public API ── */
-
-/** Get all etiquetas */
 export async function getEtiquetas(): Promise<Etiqueta[]> {
-  const res = await apiGet<Etiqueta[]>('');
-  if (!res.ok || !res.data) return [];
-  return Array.isArray(res.data) ? res.data : [];
+  const { data, error } = await supabase
+    .from('etiquetas')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[etiquetasApi] Error obteniendo etiquetas:', error);
+    throw new Error(error.message || 'Error cargando etiquetas');
+  }
+  
+  return data || [];
 }
 
-/** Get a single etiqueta by token */
 export async function getEtiqueta(token: string): Promise<Etiqueta | null> {
-  const res = await apiGet<Etiqueta>(`/${token}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data, error } = await supabase
+    .from('etiquetas')
+    .select('*')
+    .eq('token', token)
+    .single();
+  
+  if (error) {
+    console.error('[etiquetasApi] Error obteniendo etiqueta:', error);
+    return null;
+  }
+  
+  return data;
 }
 
-/** Create a new etiqueta */
 export async function createEtiqueta(data: Partial<Etiqueta>): Promise<Etiqueta | null> {
-  const res = await apiPost<Etiqueta>('', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('etiquetas')
+    .insert(data)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[etiquetasApi] Error creando etiqueta:', error);
+    throw new Error(error.message || 'Error creando etiqueta');
+  }
+  
+  return result;
 }
 
-/** Delete an etiqueta */
 export async function deleteEtiqueta(token: string): Promise<boolean> {
-  const res = await apiDelete(`/${token}`);
-  return res.ok;
+  const { error } = await supabase
+    .from('etiquetas')
+    .delete()
+    .eq('token', token);
+  
+  if (error) {
+    console.error('[etiquetasApi] Error eliminando etiqueta:', error);
+    return false;
+  }
+  
+  return true;
 }

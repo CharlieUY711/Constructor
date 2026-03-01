@@ -4,14 +4,13 @@ import type { MainSection } from '../../../AdminDashboard';
 import { Plus, Search, Edit2, Trash2, AlertTriangle, Package, TrendingDown, BarChart2, Upload, Download, RefreshCw } from 'lucide-react';
 import { ProductModal } from '../ProductModal';
 import type { ProductFormData } from '../ProductModal';
+import { supabase } from '../../../../utils/supabase/client';
 import { projectId, publicAnonKey } from '../../../../utils/supabase/info';
 
 interface Props { onNavigate: (section: MainSection) => void; }
 
 const ORANGE = '#FF6835';
-const BASE = `https://${projectId}.supabase.co/functions/v1/api`;
 const STORAGE = `https://${projectId}.supabase.co/storage/v1`;
-const HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${publicAnonKey}` };
 
 // Sanitiza un string para usarlo como nombre de archivo seguro
 function sanitizarNombre(s: string): string {
@@ -77,14 +76,16 @@ export function ERPInventarioView({ onNavigate }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${BASE}/productos/market`, { headers: HEADERS });
-      if (!res.ok) {
-        throw new Error(`Error HTTP: ${res.status} ${res.statusText}`);
+      const { data, error } = await supabase
+        .from('productos_market')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw new Error(error.message || 'Error cargando productos');
       }
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      const productos = json.data ?? [];
-      setProducts(productos);
+      
+      setProducts(data || []);
     } catch (e: any) {
       console.error('Error al cargar productos:', e);
       setError(e.message ?? 'Error al cargar productos');
@@ -151,23 +152,20 @@ export function ERPInventarioView({ onNavigate }: Props) {
 
       if (selectedProduct?.id) {
         // Editar
-        const res = await fetch(`${BASE}/productos/market/${selectedProduct.id}`, {
-          method: 'PUT',
-          headers: HEADERS,
-          body: JSON.stringify(body),
-        });
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
+        const { error } = await supabase
+          .from('productos_market')
+          .update(body)
+          .eq('id', selectedProduct.id);
+        
+        if (error) throw new Error(error.message || 'Error actualizando producto');
         showSuccess('Producto actualizado correctamente');
       } else {
         // Crear
-        const res = await fetch(`${BASE}/productos/market`, {
-          method: 'POST',
-          headers: HEADERS,
-          body: JSON.stringify(body),
-        });
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
+        const { error } = await supabase
+          .from('productos_market')
+          .insert(body);
+        
+        if (error) throw new Error(error.message || 'Error creando producto');
         showSuccess('Producto creado correctamente');
       }
 
@@ -182,11 +180,14 @@ export function ERPInventarioView({ onNavigate }: Props) {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    if (!window.confirm(`Â¿Eliminar "${nombre}"?`)) return;
+    if (!window.confirm(`¿Eliminar "${nombre}"?`)) return;
     try {
-      const res = await fetch(`${BASE}/productos/market/${id}`, { method: 'DELETE', headers: HEADERS });
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
+      const { error } = await supabase
+        .from('productos_market')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw new Error(error.message || 'Error eliminando producto');
       showSuccess('Producto eliminado');
       await fetchProducts();
     } catch (e: any) {

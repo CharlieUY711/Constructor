@@ -1,16 +1,5 @@
-﻿/* =====================================================
-   Departamentos API Service â€” Dashboard â†” Backend
-   Charlie Marketplace Builder v1.5
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+﻿import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/departamentos`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export interface Departamento {
   id: string;
   nombre: string;
@@ -24,7 +13,6 @@ export interface Departamento {
   alcance?: 'Local' | 'Nacional' | 'Internacional';
   created_at?: string;
   updated_at?: string;
-  // campos locales del dashboard (no persisten en DB por ahora)
   categorias?: Categoria[];
 }
 
@@ -61,49 +49,80 @@ export interface DepartamentoInput {
   alcance?: 'Local' | 'Nacional' | 'Internacional';
 }
 
-// â”€â”€ CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 export async function getDepartamentos(): Promise<Departamento[]> {
-  const res = await fetch(`${BASE}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  const { data, error } = await supabase
+    .from('departamentos')
+    .select('*')
+    .order('orden', { ascending: true, nullsFirst: false });
+  
+  if (error) {
+    console.error('[departamentosApi] Error obteniendo departamentos:', error);
+    throw new Error(error.message || 'Error cargando departamentos');
+  }
+  
+  return data || [];
 }
 
 export async function getDepartamentoById(id: string): Promise<Departamento> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('departamentos')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[departamentosApi] Error obteniendo departamento:', error);
+    throw new Error(error.message || 'Error cargando departamento');
+  }
+  
+  return data;
 }
 
 export async function createDepartamento(data: DepartamentoInput): Promise<Departamento> {
-  const res = await fetch(`${BASE}`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('departamentos')
+    .insert({
+      ...data,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[departamentosApi] Error creando departamento:', error);
+    throw new Error(error.message || 'Error creando departamento');
+  }
+  
+  return result;
 }
 
 export async function updateDepartamento(id: string, data: Partial<DepartamentoInput>): Promise<Departamento> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('departamentos')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[departamentosApi] Error actualizando departamento:', error);
+    throw new Error(error.message || 'Error actualizando departamento');
+  }
+  
+  return result;
 }
 
 export async function deleteDepartamento(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('departamentos')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[departamentosApi] Error eliminando departamento:', error);
+    throw new Error(error.message || 'Error eliminando departamento');
+  }
 }

@@ -1,15 +1,5 @@
-/* =====================================================
-   Producción API Service — Dashboard ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/produccion`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// ─── Types ────────────────────────────────────────────────────────────────
 export interface ArticuloCompuesto {
   id: string;
   nombre: string;
@@ -66,98 +56,168 @@ export interface OrdenArmadoInput {
   notas?: string;
 }
 
-// ─── CRUD Artículos ───────────────────────────────────────────────────────
-
 export async function getArticulosProduccion(activo?: boolean): Promise<ArticuloCompuesto[]> {
-  const url = activo !== undefined ? `${BASE}/articulos?activo=${activo}` : `${BASE}/articulos`;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('articulos_compuestos')
+    .select('*');
+  
+  if (activo !== undefined) {
+    query = query.eq('activo', activo);
+  }
+  
+  const { data, error } = await query.order('nombre');
+  
+  if (error) {
+    console.error('[produccionApi] Error obteniendo artículos:', error);
+    throw new Error(error.message || 'Error cargando artículos');
+  }
+  
+  return data || [];
 }
 
 export async function getArticuloProduccionById(id: string): Promise<ArticuloCompuesto> {
-  const res = await fetch(`${BASE}/articulos/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('articulos_compuestos')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[produccionApi] Error obteniendo artículo:', error);
+    throw new Error(error.message || 'Error cargando artículo');
+  }
+  
+  return data;
 }
 
 export async function createArticuloProduccion(data: ArticuloCompuestoInput): Promise<ArticuloCompuesto> {
-  const res = await fetch(`${BASE}/articulos`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('articulos_compuestos')
+    .insert({
+      ...data,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[produccionApi] Error creando artículo:', error);
+    throw new Error(error.message || 'Error creando artículo');
+  }
+  
+  return result;
 }
 
 export async function updateArticuloProduccion(id: string, data: Partial<ArticuloCompuestoInput>): Promise<ArticuloCompuesto> {
-  const res = await fetch(`${BASE}/articulos/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('articulos_compuestos')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[produccionApi] Error actualizando artículo:', error);
+    throw new Error(error.message || 'Error actualizando artículo');
+  }
+  
+  return result;
 }
 
 export async function deleteArticuloProduccion(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/articulos/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('articulos_compuestos')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[produccionApi] Error eliminando artículo:', error);
+    throw new Error(error.message || 'Error eliminando artículo');
+  }
 }
 
-// ─── CRUD Órdenes de Armado ───────────────────────────────────────────────
-
 export async function getOrdenesArmado(estado?: string): Promise<OrdenArmado[]> {
-  const url = estado ? `${BASE}/ordenes?estado=${estado}` : `${BASE}/ordenes`;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('ordenes_armado')
+    .select('*');
+  
+  if (estado) {
+    query = query.eq('estado', estado);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[produccionApi] Error obteniendo órdenes:', error);
+    throw new Error(error.message || 'Error cargando órdenes');
+  }
+  
+  return data || [];
 }
 
 export async function getOrdenArmadoById(id: string): Promise<OrdenArmado> {
-  const res = await fetch(`${BASE}/ordenes/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('ordenes_armado')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[produccionApi] Error obteniendo orden:', error);
+    throw new Error(error.message || 'Error cargando orden');
+  }
+  
+  return data;
 }
 
 export async function createOrdenArmado(data: OrdenArmadoInput): Promise<OrdenArmado> {
-  const res = await fetch(`${BASE}/ordenes`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('ordenes_armado')
+    .insert({
+      ...data,
+      estado: data.estado ?? 'pendiente',
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[produccionApi] Error creando orden:', error);
+    throw new Error(error.message || 'Error creando orden');
+  }
+  
+  return result;
 }
 
 export async function updateOrdenArmado(id: string, data: Partial<OrdenArmadoInput>): Promise<OrdenArmado> {
-  const res = await fetch(`${BASE}/ordenes/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('ordenes_armado')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[produccionApi] Error actualizando orden:', error);
+    throw new Error(error.message || 'Error actualizando orden');
+  }
+  
+  return result;
 }
 
 export async function deleteOrdenArmado(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/ordenes/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('ordenes_armado')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[produccionApi] Error eliminando orden:', error);
+    throw new Error(error.message || 'Error eliminando orden');
+  }
 }

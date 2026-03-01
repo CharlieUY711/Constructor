@@ -1,13 +1,6 @@
-﻿import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+﻿import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/vehiculos`;
 const TENANT = 'oddy';
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-  'apikey': publicAnonKey,
-  'x-tenant-id': TENANT,
-};
 
 export interface Vehiculo {
   id: string;
@@ -26,37 +19,95 @@ export interface Vehiculo {
   transportistas?: { id: string; nombre: string };
 }
 
-async function req<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: HEADERS, ...options });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json;
-}
-
 export async function getVehiculos(params?: { transportista_id?: string; activo?: boolean }): Promise<Vehiculo[]> {
-  const q = new URLSearchParams();
-  if (params?.transportista_id) q.set('transportista_id', params.transportista_id);
-  if (params?.activo !== undefined) q.set('activo', String(params.activo));
-  const res = await req<{ data: Vehiculo[] }>(q.toString() ? `?${q}` : '');
-  return res.data || [];
+  let query = supabase
+    .from('vehiculos')
+    .select('*, transportistas(id, nombre)')
+    .eq('tenant_id', TENANT);
+  
+  if (params?.transportista_id) {
+    query = query.eq('transportista_id', params.transportista_id);
+  }
+  if (params?.activo !== undefined) {
+    query = query.eq('activo', params.activo);
+  }
+  
+  const { data, error } = await query.order('patente');
+  
+  if (error) {
+    console.error('[vehiculosApi] Error obteniendo vehículos:', error);
+    throw new Error(error.message || 'Error cargando vehículos');
+  }
+  
+  return data || [];
 }
 
 export async function getVehiculo(id: string): Promise<Vehiculo | null> {
-  const res = await req<{ data: Vehiculo }>(`/${id}`);
-  return res.data || null;
+  const { data, error } = await supabase
+    .from('vehiculos')
+    .select('*, transportistas(id, nombre)')
+    .eq('id', id)
+    .eq('tenant_id', TENANT)
+    .single();
+  
+  if (error) {
+    console.error('[vehiculosApi] Error obteniendo vehículo:', error);
+    return null;
+  }
+  
+  return data;
 }
 
 export async function createVehiculo(data: Partial<Vehiculo>): Promise<Vehiculo | null> {
-  const res = await req<{ data: Vehiculo }>('', { method: 'POST', body: JSON.stringify(data) });
-  return res.data || null;
+  const { data: result, error } = await supabase
+    .from('vehiculos')
+    .insert({
+      ...data,
+      tenant_id: TENANT,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[vehiculosApi] Error creando vehículo:', error);
+    throw new Error(error.message || 'Error creando vehículo');
+  }
+  
+  return result;
 }
 
 export async function updateVehiculo(id: string, data: Partial<Vehiculo>): Promise<Vehiculo | null> {
-  const res = await req<{ data: Vehiculo }>(`/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-  return res.data || null;
+  const { data: result, error } = await supabase
+    .from('vehiculos')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('tenant_id', TENANT)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[vehiculosApi] Error actualizando vehículo:', error);
+    throw new Error(error.message || 'Error actualizando vehículo');
+  }
+  
+  return result;
 }
 
 export async function deleteVehiculo(id: string): Promise<boolean> {
-  try { await req(`/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
+  const { error } = await supabase
+    .from('vehiculos')
+    .delete()
+    .eq('id', id)
+    .eq('tenant_id', TENANT);
+  
+  if (error) {
+    console.error('[vehiculosApi] Error eliminando vehículo:', error);
+    return false;
+  }
+  
+  return true;
 }

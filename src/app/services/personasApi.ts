@@ -1,13 +1,4 @@
-/* =====================================================
-   Personas API Service — Frontend ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/personas`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
+import { supabase } from '../../utils/supabase/client';
 
 export interface Persona {
   id: string;
@@ -27,93 +18,90 @@ export interface Persona {
   created_at: string;
 }
 
-/* ── Helpers ── */
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Personas API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPost<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string } & Record<string, unknown>> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Personas API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPut<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Personas API PUT ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Personas API DELETE ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-/* ── Public API ── */
-
-/** Get all personas with optional filters */
 export async function getPersonas(params?: { tipo?: string; activo?: boolean; rol?: string; search?: string }): Promise<Persona[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.tipo) queryParams.set('tipo', params.tipo);
-  if (params?.activo !== undefined) queryParams.set('activo', String(params.activo));
-  if (params?.rol) queryParams.set('rol', params.rol);
-  if (params?.search) queryParams.set('search', params.search);
+  let query = supabase
+    .from('personas')
+    .select('*');
   
-  const res = await apiGet<Persona[]>(queryParams.toString() ? `?${queryParams}` : '');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  if (params?.tipo) {
+    query = query.eq('tipo', params.tipo);
+  }
+  if (params?.activo !== undefined) {
+    query = query.eq('activo', params.activo);
+  }
+  if (params?.search) {
+    query = query.or(`nombre.ilike.%${params.search}%,apellido.ilike.%${params.search}%,email.ilike.%${params.search}%`);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[personasApi] Error obteniendo personas:', error);
+    throw new Error(error.message || 'Error cargando personas');
+  }
+  
+  return data || [];
 }
 
-/** Get a single persona by ID */
 export async function getPersona(id: string): Promise<Persona | null> {
-  const res = await apiGet<Persona>(`/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data, error } = await supabase
+    .from('personas')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[personasApi] Error obteniendo persona:', error);
+    return null;
+  }
+  
+  return data;
 }
 
-/** Create a new persona */
 export async function createPersona(data: Partial<Persona>): Promise<Persona | null> {
-  const res = await apiPost<Persona>('', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('personas')
+    .insert({
+      ...data,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[personasApi] Error creando persona:', error);
+    throw new Error(error.message || 'Error creando persona');
+  }
+  
+  return result;
 }
 
-/** Update a persona */
 export async function updatePersona(id: string, data: Partial<Persona>): Promise<Persona | null> {
-  const res = await apiPut<Persona>(`/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('personas')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[personasApi] Error actualizando persona:', error);
+    throw new Error(error.message || 'Error actualizando persona');
+  }
+  
+  return result;
 }
 
-/** Delete a persona */
 export async function deletePersona(id: string): Promise<boolean> {
-  const res = await apiDelete(`/${id}`);
-  return res.ok;
+  const { error } = await supabase
+    .from('personas')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[personasApi] Error eliminando persona:', error);
+    return false;
+  }
+  
+  return true;
 }

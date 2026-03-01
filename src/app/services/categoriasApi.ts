@@ -1,16 +1,5 @@
-/* =====================================================
-   Categorías API Service — Dashboard ↔ Backend
-   Charlie Marketplace Builder v1.5
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/categorias`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// ── Types ──────────────────────────────────────────────────────────────────
 export interface Categoria {
   id: string;
   departamento_id: string;
@@ -43,53 +32,88 @@ export interface CategoriaInput {
   activo?: boolean;
 }
 
-// ── CRUD ───────────────────────────────────────────────────────────────────
-
 export async function getCategorias(params?: { departamento_id?: string; activo?: boolean }): Promise<Categoria[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.departamento_id) queryParams.append('departamento_id', params.departamento_id);
-  if (params?.activo !== undefined) queryParams.append('activo', String(params.activo));
-  const url = queryParams.toString() ? `${BASE}?${queryParams}` : BASE;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('categorias')
+    .select('*');
+  
+  if (params?.departamento_id) {
+    query = query.eq('departamento_id', params.departamento_id);
+  }
+  if (params?.activo !== undefined) {
+    query = query.eq('activo', params.activo);
+  }
+  
+  const { data, error } = await query.order('orden', { ascending: true, nullsFirst: false });
+  
+  if (error) {
+    console.error('[categoriasApi] Error obteniendo categorías:', error);
+    throw new Error(error.message || 'Error cargando categorías');
+  }
+  
+  return data || [];
 }
 
 export async function getCategoriaById(id: string): Promise<Categoria> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('categorias')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[categoriasApi] Error obteniendo categoría:', error);
+    throw new Error(error.message || 'Error cargando categoría');
+  }
+  
+  return data;
 }
 
 export async function createCategoria(data: CategoriaInput): Promise<Categoria> {
-  const res = await fetch(`${BASE}`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('categorias')
+    .insert({
+      ...data,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[categoriasApi] Error creando categoría:', error);
+    throw new Error(error.message || 'Error creando categoría');
+  }
+  
+  return result;
 }
 
 export async function updateCategoria(id: string, data: Partial<CategoriaInput>): Promise<Categoria> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('categorias')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[categoriasApi] Error actualizando categoría:', error);
+    throw new Error(error.message || 'Error actualizando categoría');
+  }
+  
+  return result;
 }
 
 export async function deleteCategoria(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('categorias')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[categoriasApi] Error eliminando categoría:', error);
+    throw new Error(error.message || 'Error eliminando categoría');
+  }
 }

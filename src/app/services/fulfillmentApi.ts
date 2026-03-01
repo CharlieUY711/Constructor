@@ -1,15 +1,5 @@
-/* =====================================================
-   Fulfillment API Service — Dashboard ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/fulfillment`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// ─── Types ────────────────────────────────────────────────────────────────
 export interface OrdenFulfillment {
   id: string;
   orden_externa_id?: string;
@@ -71,91 +61,153 @@ export interface WaveInput {
   fin?: string;
 }
 
-// ─── CRUD Órdenes ──────────────────────────────────────────────────────────
-
 export async function getOrdenesFulfillment(estado?: string): Promise<OrdenFulfillment[]> {
-  const url = estado ? `${BASE}/ordenes?estado=${estado}` : `${BASE}/ordenes`;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('ordenes_fulfillment')
+    .select('*');
+  
+  if (estado) {
+    query = query.eq('estado', estado);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error obteniendo órdenes de fulfillment:', error);
+    throw new Error(error.message || 'Error cargando órdenes de fulfillment');
+  }
+  
+  return data || [];
 }
 
 export async function getOrdenFulfillmentById(id: string): Promise<OrdenFulfillment> {
-  const res = await fetch(`${BASE}/ordenes/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('ordenes_fulfillment')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error obteniendo orden de fulfillment:', error);
+    throw new Error(error.message || 'Error cargando orden de fulfillment');
+  }
+  
+  return data;
 }
 
 export async function createOrdenFulfillment(data: OrdenFulfillmentInput): Promise<OrdenFulfillment> {
-  const res = await fetch(`${BASE}/ordenes`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('ordenes_fulfillment')
+    .insert({
+      ...data,
+      estado: data.estado ?? 'pendiente',
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error creando orden de fulfillment:', error);
+    throw new Error(error.message || 'Error creando orden de fulfillment');
+  }
+  
+  return result;
 }
 
 export async function updateOrdenFulfillment(id: string, data: Partial<OrdenFulfillmentInput>): Promise<OrdenFulfillment> {
-  const res = await fetch(`${BASE}/ordenes/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('ordenes_fulfillment')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error actualizando orden de fulfillment:', error);
+    throw new Error(error.message || 'Error actualizando orden de fulfillment');
+  }
+  
+  return result;
 }
 
 export async function deleteOrdenFulfillment(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/ordenes/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('ordenes_fulfillment')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error eliminando orden de fulfillment:', error);
+    throw new Error(error.message || 'Error eliminando orden de fulfillment');
+  }
 }
 
-// ─── CRUD Waves ────────────────────────────────────────────────────────────
-
 export async function getWaves(estado?: string): Promise<Wave[]> {
-  const url = estado ? `${BASE}/waves?estado=${estado}` : `${BASE}/waves`;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('waves')
+    .select('*');
+  
+  if (estado) {
+    query = query.eq('estado', estado);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error obteniendo waves:', error);
+    throw new Error(error.message || 'Error cargando waves');
+  }
+  
+  return data || [];
 }
 
 export async function createWave(data: WaveInput): Promise<Wave> {
-  const res = await fetch(`${BASE}/waves`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('waves')
+    .insert({
+      ...data,
+      estado: data.estado ?? 'abierta',
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error creando wave:', error);
+    throw new Error(error.message || 'Error creando wave');
+  }
+  
+  return result;
 }
 
 export async function updateWave(id: string, data: Partial<WaveInput>): Promise<Wave> {
-  const res = await fetch(`${BASE}/waves/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('waves')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error actualizando wave:', error);
+    throw new Error(error.message || 'Error actualizando wave');
+  }
+  
+  return result;
 }
 
 export async function deleteWave(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/waves/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('waves')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[fulfillmentApi] Error eliminando wave:', error);
+    throw new Error(error.message || 'Error eliminando wave');
+  }
 }

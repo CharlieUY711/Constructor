@@ -1,16 +1,5 @@
-/* =====================================================
-   Subcategorías API Service — Dashboard ↔ Backend
-   Charlie Marketplace Builder v1.5
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/subcategorias`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// ── Types ──────────────────────────────────────────────────────────────────
 export interface Subcategoria {
   id: string;
   categoria_id: string;
@@ -28,53 +17,88 @@ export interface SubcategoriaInput {
   activo?: boolean;
 }
 
-// ── CRUD ───────────────────────────────────────────────────────────────────
-
 export async function getSubcategorias(params?: { categoria_id?: string; activo?: boolean }): Promise<Subcategoria[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.categoria_id) queryParams.append('categoria_id', params.categoria_id);
-  if (params?.activo !== undefined) queryParams.append('activo', String(params.activo));
-  const url = queryParams.toString() ? `${BASE}?${queryParams}` : BASE;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('subcategorias')
+    .select('*');
+  
+  if (params?.categoria_id) {
+    query = query.eq('categoria_id', params.categoria_id);
+  }
+  if (params?.activo !== undefined) {
+    query = query.eq('activo', params.activo);
+  }
+  
+  const { data, error } = await query.order('orden', { ascending: true, nullsFirst: false });
+  
+  if (error) {
+    console.error('[subcategoriasApi] Error obteniendo subcategorías:', error);
+    throw new Error(error.message || 'Error cargando subcategorías');
+  }
+  
+  return data || [];
 }
 
 export async function getSubcategoriaById(id: string): Promise<Subcategoria> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('subcategorias')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[subcategoriasApi] Error obteniendo subcategoría:', error);
+    throw new Error(error.message || 'Error cargando subcategoría');
+  }
+  
+  return data;
 }
 
 export async function createSubcategoria(data: SubcategoriaInput): Promise<Subcategoria> {
-  const res = await fetch(`${BASE}`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('subcategorias')
+    .insert({
+      ...data,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[subcategoriasApi] Error creando subcategoría:', error);
+    throw new Error(error.message || 'Error creando subcategoría');
+  }
+  
+  return result;
 }
 
 export async function updateSubcategoria(id: string, data: Partial<SubcategoriaInput>): Promise<Subcategoria> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('subcategorias')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[subcategoriasApi] Error actualizando subcategoría:', error);
+    throw new Error(error.message || 'Error actualizando subcategoría');
+  }
+  
+  return result;
 }
 
 export async function deleteSubcategoria(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('subcategorias')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[subcategoriasApi] Error eliminando subcategoría:', error);
+    throw new Error(error.message || 'Error eliminando subcategoría');
+  }
 }

@@ -1,15 +1,5 @@
-/* =====================================================
-   Mapa Envíos API Service — Dashboard ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/mapa-envios`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// ─── Types ────────────────────────────────────────────────────────────────
 export interface PuntoMapa {
   id: string;
   tipo: 'origen' | 'destino' | 'hub' | 'punto_entrega' | 'deposito' | 'en_transito' | 'entregado' | 'fallido' | 'en_reparto';
@@ -47,55 +37,85 @@ export interface PuntoMapaInput {
   metadata?: Record<string, any>;
 }
 
-// ─── CRUD ─────────────────────────────────────────────────────────────────
-
 export async function getPuntosMapa(tipo?: string, estado?: string): Promise<PuntoMapa[]> {
-  let url = BASE;
-  const params = new URLSearchParams();
-  if (tipo) params.append('tipo', tipo);
-  if (estado) params.append('estado', estado);
-  if (params.toString()) url += `?${params.toString()}`;
+  let query = supabase
+    .from('puntos_mapa')
+    .select('*');
   
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  if (tipo) {
+    query = query.eq('tipo', tipo);
+  }
+  if (estado) {
+    query = query.eq('estado', estado);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[mapaEnviosApi] Error obteniendo puntos del mapa:', error);
+    throw new Error(error.message || 'Error cargando puntos del mapa');
+  }
+  
+  return data || [];
 }
 
 export async function getPuntoMapaById(id: string): Promise<PuntoMapa> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('puntos_mapa')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[mapaEnviosApi] Error obteniendo punto del mapa:', error);
+    throw new Error(error.message || 'Error cargando punto del mapa');
+  }
+  
+  return data;
 }
 
 export async function createPuntoMapa(data: PuntoMapaInput): Promise<PuntoMapa> {
-  const res = await fetch(BASE, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('puntos_mapa')
+    .insert(data)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[mapaEnviosApi] Error creando punto del mapa:', error);
+    throw new Error(error.message || 'Error creando punto del mapa');
+  }
+  
+  return result;
 }
 
 export async function updatePuntoMapa(id: string, data: Partial<PuntoMapaInput>): Promise<PuntoMapa> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('puntos_mapa')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[mapaEnviosApi] Error actualizando punto del mapa:', error);
+    throw new Error(error.message || 'Error actualizando punto del mapa');
+  }
+  
+  return result;
 }
 
 export async function deletePuntoMapa(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('puntos_mapa')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[mapaEnviosApi] Error eliminando punto del mapa:', error);
+    throw new Error(error.message || 'Error eliminando punto del mapa');
+  }
 }

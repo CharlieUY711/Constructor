@@ -1,13 +1,4 @@
-/* =====================================================
-   Productos Second Hand API Service — Frontend ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/productos/secondhand`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
+import { supabase } from '../../utils/supabase/client';
 
 export interface ProductoSecondHand {
   id: string;
@@ -23,92 +14,87 @@ export interface ProductoSecondHand {
   created_at: string;
 }
 
-/* ── Helpers ── */
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Productos Second Hand API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPost<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string } & Record<string, unknown>> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Productos Second Hand API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPut<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Productos Second Hand API PUT ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Productos Second Hand API DELETE ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-/* ── Public API ── */
-
-/** Get all productos secondhand with optional filters */
 export async function getProductosSecondHand(params?: { estado?: string; vendedor_id?: string; search?: string }): Promise<ProductoSecondHand[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.estado) queryParams.set('estado', params.estado);
-  if (params?.vendedor_id) queryParams.set('vendedor_id', params.vendedor_id);
-  if (params?.search) queryParams.set('search', params.search);
+  let query = supabase
+    .from('productos_secondhand')
+    .select('*');
   
-  const res = await apiGet<ProductoSecondHand[]>(queryParams.toString() ? `?${queryParams}` : '');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  if (params?.estado) {
+    query = query.eq('estado', params.estado);
+  }
+  if (params?.vendedor_id) {
+    query = query.eq('vendedor_id', params.vendedor_id);
+  }
+  if (params?.search) {
+    query = query.or(`nombre.ilike.%${params.search}%,descripcion.ilike.%${params.search}%`);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[productosSecondhandApi] Error obteniendo productos secondhand:', error);
+    throw new Error(error.message || 'Error cargando productos secondhand');
+  }
+  
+  return data || [];
 }
 
-/** Get a single producto secondhand by ID */
 export async function getProductoSecondHand(id: string): Promise<ProductoSecondHand | null> {
-  const res = await apiGet<ProductoSecondHand>(`/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data, error } = await supabase
+    .from('productos_secondhand')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[productosSecondhandApi] Error obteniendo producto secondhand:', error);
+    return null;
+  }
+  
+  return data;
 }
 
-/** Create a new producto secondhand */
 export async function createProductoSecondHand(data: Partial<ProductoSecondHand>): Promise<ProductoSecondHand | null> {
-  const res = await apiPost<ProductoSecondHand>('', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('productos_secondhand')
+    .insert(data)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[productosSecondhandApi] Error creando producto secondhand:', error);
+    throw new Error(error.message || 'Error creando producto secondhand');
+  }
+  
+  return result;
 }
 
-/** Update a producto secondhand */
 export async function updateProductoSecondHand(id: string, data: Partial<ProductoSecondHand>): Promise<ProductoSecondHand | null> {
-  const res = await apiPut<ProductoSecondHand>(`/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('productos_secondhand')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[productosSecondhandApi] Error actualizando producto secondhand:', error);
+    throw new Error(error.message || 'Error actualizando producto secondhand');
+  }
+  
+  return result;
 }
 
-/** Delete a producto secondhand */
 export async function deleteProductoSecondHand(id: string): Promise<boolean> {
-  const res = await apiDelete(`/${id}`);
-  return res.ok;
+  const { error } = await supabase
+    .from('productos_secondhand')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[productosSecondhandApi] Error eliminando producto secondhand:', error);
+    return false;
+  }
+  
+  return true;
 }

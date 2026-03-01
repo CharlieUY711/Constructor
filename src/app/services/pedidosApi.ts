@@ -1,13 +1,4 @@
-/* =====================================================
-   Pedidos API Service — Frontend ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/pedidos`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
+import { supabase } from '../../utils/supabase/client';
 
 export interface PedidoItem {
   producto_id?: string;
@@ -41,106 +32,128 @@ export interface Pedido {
   metodo_envio?: { id: string; nombre: string; tipo: string; precio: number };
 }
 
-/* ── Helpers ── */
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Pedidos API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPost<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string } & Record<string, unknown>> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Pedidos API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPut<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Pedidos API PUT ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Pedidos API DELETE ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-/* ── Public API ── */
-
-/** Get all pedidos with optional filters */
 export async function getPedidos(params?: { estado?: string; estado_pago?: string; search?: string }): Promise<Pedido[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.estado) queryParams.set('estado', params.estado);
-  if (params?.estado_pago) queryParams.set('estado_pago', params.estado_pago);
-  if (params?.search) queryParams.set('search', params.search);
+  let query = supabase
+    .from('pedidos')
+    .select('*, cliente_persona:personas(id, nombre, apellido, email, telefono), cliente_org:organizaciones(id, nombre, tipo), metodo_pago:metodos_pago(id, nombre, tipo, proveedor), metodo_envio:metodos_envio(id, nombre, tipo, precio)');
   
-  const res = await apiGet<Pedido[]>(queryParams.toString() ? `?${queryParams}` : '');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  if (params?.estado) {
+    query = query.eq('estado', params.estado);
+  }
+  if (params?.estado_pago) {
+    query = query.eq('estado_pago', params.estado_pago);
+  }
+  if (params?.search) {
+    query = query.or(`numero_pedido.ilike.%${params.search}%,notas.ilike.%${params.search}%`);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[pedidosApi] Error obteniendo pedidos:', error);
+    throw new Error(error.message || 'Error cargando pedidos');
+  }
+  
+  return data || [];
 }
 
-/** Get a single pedido by ID */
 export async function getPedido(id: string): Promise<Pedido | null> {
-  const res = await apiGet<Pedido>(`/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data, error } = await supabase
+    .from('pedidos')
+    .select('*, cliente_persona:personas(id, nombre, apellido, email, telefono), cliente_org:organizaciones(id, nombre, tipo), metodo_pago:metodos_pago(id, nombre, tipo, proveedor), metodo_envio:metodos_envio(id, nombre, tipo, precio)')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[pedidosApi] Error obteniendo pedido:', error);
+    return null;
+  }
+  
+  return data;
 }
 
-/** Create a new pedido */
 export async function createPedido(data: Partial<Pedido>): Promise<Pedido | null> {
-  const res = await apiPost<Pedido>('', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('pedidos')
+    .insert(data)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[pedidosApi] Error creando pedido:', error);
+    throw new Error(error.message || 'Error creando pedido');
+  }
+  
+  return result;
 }
 
-/** Update a pedido */
 export async function updatePedido(id: string, data: Partial<Pedido>): Promise<Pedido | null> {
-  const res = await apiPut<Pedido>(`/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('pedidos')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[pedidosApi] Error actualizando pedido:', error);
+    throw new Error(error.message || 'Error actualizando pedido');
+  }
+  
+  return result;
 }
 
-/** Update pedido estado */
 export async function updatePedidoEstado(id: string, nuevo_estado: string): Promise<Pedido | null> {
-  const res = await apiPut<Pedido>(`/${id}/estado`, { nuevo_estado });
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('pedidos')
+    .update({
+      estado: nuevo_estado,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[pedidosApi] Error actualizando estado del pedido:', error);
+    throw new Error(error.message || 'Error actualizando estado del pedido');
+  }
+  
+  return result;
 }
 
-/** Update pedido estado_pago */
 export async function updatePedidoEstadoPago(id: string, estado_pago: string): Promise<Pedido | null> {
-  const res = await apiPut<Pedido>(`/${id}/estado-pago`, { estado_pago });
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('pedidos')
+    .update({
+      estado_pago: estado_pago,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[pedidosApi] Error actualizando estado de pago:', error);
+    throw new Error(error.message || 'Error actualizando estado de pago');
+  }
+  
+  return result;
 }
 
-/** Delete a pedido */
 export async function deletePedido(id: string): Promise<boolean> {
-  const res = await apiDelete(`/${id}`);
-  return res.ok;
+  const { error } = await supabase
+    .from('pedidos')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[pedidosApi] Error eliminando pedido:', error);
+    return false;
+  }
+  
+  return true;
 }

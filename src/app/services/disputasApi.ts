@@ -1,16 +1,5 @@
-/* =====================================================
-   Disputas API Service — Dashboard ↔ Backend
-   Charlie Marketplace Builder v1.5
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/disputas`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
-
-// ── Types ──────────────────────────────────────────────────────────────────
 export interface Disputa {
   id: string;
   producto_id?: string;
@@ -33,53 +22,88 @@ export interface DisputaInput {
   estado?: 'abierta' | 'en_revision' | 'resuelta' | 'cerrada';
 }
 
-// ── CRUD ───────────────────────────────────────────────────────────────────
-
 export async function getDisputas(params?: { estado?: string; producto_id?: string }): Promise<Disputa[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.estado) queryParams.append('estado', params.estado);
-  if (params?.producto_id) queryParams.append('producto_id', params.producto_id);
-  const url = queryParams.toString() ? `${BASE}?${queryParams}` : BASE;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  let query = supabase
+    .from('disputas')
+    .select('*');
+  
+  if (params?.estado) {
+    query = query.eq('estado', params.estado);
+  }
+  if (params?.producto_id) {
+    query = query.eq('producto_id', params.producto_id);
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('[disputasApi] Error obteniendo disputas:', error);
+    throw new Error(error.message || 'Error cargando disputas');
+  }
+  
+  return data || [];
 }
 
 export async function getDisputaById(id: string): Promise<Disputa> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data, error } = await supabase
+    .from('disputas')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[disputasApi] Error obteniendo disputa:', error);
+    throw new Error(error.message || 'Error cargando disputa');
+  }
+  
+  return data;
 }
 
 export async function createDisputa(data: DisputaInput): Promise<Disputa> {
-  const res = await fetch(`${BASE}`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('disputas')
+    .insert({
+      ...data,
+      estado: data.estado ?? 'abierta',
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[disputasApi] Error creando disputa:', error);
+    throw new Error(error.message || 'Error creando disputa');
+  }
+  
+  return result;
 }
 
 export async function updateDisputa(id: string, data: Partial<DisputaInput & { resolucion?: string }>): Promise<Disputa> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  const { data: result, error } = await supabase
+    .from('disputas')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[disputasApi] Error actualizando disputa:', error);
+    throw new Error(error.message || 'Error actualizando disputa');
+  }
+  
+  return result;
 }
 
 export async function deleteDisputa(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const { error } = await supabase
+    .from('disputas')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[disputasApi] Error eliminando disputa:', error);
+    throw new Error(error.message || 'Error eliminando disputa');
+  }
 }

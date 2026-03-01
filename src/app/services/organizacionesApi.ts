@@ -1,13 +1,4 @@
-/* =====================================================
-   Organizaciones API Service — Frontend ↔ Backend
-   ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/organizaciones`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-};
+import { supabase } from '../../utils/supabase/client';
 
 export interface Organizacion {
   id: string;
@@ -23,92 +14,90 @@ export interface Organizacion {
   created_at: string;
 }
 
-/* ── Helpers ── */
-async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Organizaciones API GET ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPost<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string } & Record<string, unknown>> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'POST',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Organizaciones API POST ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiPut<T>(path: string, body?: unknown): Promise<{ ok: boolean; data?: T; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return await res.json();
-  } catch (err) {
-    console.error(`Organizaciones API PUT ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    const res = await fetch(`${BASE}${path}`, { method: 'DELETE', headers: HEADERS });
-    return await res.json();
-  } catch (err) {
-    console.error(`Organizaciones API DELETE ${path}:`, err);
-    return { ok: false, error: String(err) };
-  }
-}
-
-/* ── Public API ── */
-
-/** Get all organizaciones with optional filters */
 export async function getOrganizaciones(params?: { tipo?: string; activo?: boolean; search?: string }): Promise<Organizacion[]> {
-  const queryParams = new URLSearchParams();
-  if (params?.tipo) queryParams.set('tipo', params.tipo);
-  if (params?.activo !== undefined) queryParams.set('activo', String(params.activo));
-  if (params?.search) queryParams.set('search', params.search);
+  let query = supabase
+    .from('organizaciones')
+    .select('*');
   
-  const res = await apiGet<Organizacion[]>(queryParams.toString() ? `?${queryParams}` : '');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  if (params?.tipo) {
+    query = query.eq('tipo', params.tipo);
+  }
+  if (params?.activo !== undefined) {
+    query = query.eq('activo', params.activo);
+  }
+  if (params?.search) {
+    query = query.or(`nombre.ilike.%${params.search}%,email.ilike.%${params.search}%`);
+  }
+  
+  const { data, error } = await query.order('nombre');
+  
+  if (error) {
+    console.error('[organizacionesApi] Error obteniendo organizaciones:', error);
+    throw new Error(error.message || 'Error cargando organizaciones');
+  }
+  
+  return data || [];
 }
 
-/** Get a single organizacion by ID */
 export async function getOrganizacion(id: string): Promise<Organizacion | null> {
-  const res = await apiGet<Organizacion>(`/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data, error } = await supabase
+    .from('organizaciones')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('[organizacionesApi] Error obteniendo organizacion:', error);
+    return null;
+  }
+  
+  return data;
 }
 
-/** Create a new organizacion */
 export async function createOrganizacion(data: Partial<Organizacion>): Promise<Organizacion | null> {
-  const res = await apiPost<Organizacion>('', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('organizaciones')
+    .insert({
+      ...data,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[organizacionesApi] Error creando organizacion:', error);
+    throw new Error(error.message || 'Error creando organizacion');
+  }
+  
+  return result;
 }
 
-/** Update a organizacion */
 export async function updateOrganizacion(id: string, data: Partial<Organizacion>): Promise<Organizacion | null> {
-  const res = await apiPut<Organizacion>(`/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  const { data: result, error } = await supabase
+    .from('organizaciones')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[organizacionesApi] Error actualizando organizacion:', error);
+    throw new Error(error.message || 'Error actualizando organizacion');
+  }
+  
+  return result;
 }
 
-/** Delete a organizacion */
 export async function deleteOrganizacion(id: string): Promise<boolean> {
-  const res = await apiDelete(`/${id}`);
-  return res.ok;
+  const { error } = await supabase
+    .from('organizaciones')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('[organizacionesApi] Error eliminando organizacion:', error);
+    return false;
+  }
+  
+  return true;
 }
