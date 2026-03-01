@@ -17,8 +17,7 @@ import { useOrchestrator } from '../../../../shells/DashboardShell/app/providers
 interface Props { onNavigate: (s: MainSection) => void; }
 
 export function DashboardView({ onNavigate }: Props) {
-  const { config, clienteNombre } = useOrchestrator();
-  const ORANGE = config?.theme?.primary ?? '#FF6835';
+  const { config, clienteNombre } = useOrchestrator();`n  console.log('[DashboardView] clienteNombre:', clienteNombre, 'config:', config);`nconst ORANGE = config?.theme?.primary ?? '#FF6835';
   const PIE_COLORS = [ORANGE, '#1F2937', '#6B7280', '#9CA3AF'];
   const [timeRange, setTimeRange] = useState('7d');
   const [showIdeaModal, setShowIdeaModal] = useState(false);
