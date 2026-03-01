@@ -130,8 +130,10 @@ export function AbastecimientoView({ onNavigate }: Props) {
       setSugerenciasOC(adaptedOC);
       setMrpComponentes(adaptedMRP);
     } catch (err) {
+      console.error('Error cargando abastecimiento DETALLE:', JSON.stringify(err, null, 2));
+      console.error('Error message:', err instanceof Error ? err.message : String(err));
+      console.error('Error completo:', err);
       setError(err instanceof Error ? err.message : 'Error cargando datos');
-      console.error('Error cargando abastecimiento:', err);
     } finally {
       setLoading(false);
     }
