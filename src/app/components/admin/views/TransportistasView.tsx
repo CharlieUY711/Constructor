@@ -52,6 +52,9 @@ const TIPO_CFG: Record<string, { label: string; color: string; bg: string }> = {
   nacional:      { label: 'Nacional',       color: '#2563EB', bg: '#EFF6FF' },
   intercity:     { label: 'Intercity',      color: '#7C3AED', bg: '#F5F3FF' },
   internacional: { label: 'Internacional',  color: '#D97706', bg: '#FFFBEB' },
+  propio:        { label: 'Propio',         color: '#059669', bg: '#ECFDF5' },
+  tercero:       { label: 'Tercero',        color: '#2563EB', bg: '#EFF6FF' },
+  courier:       { label: 'Courier',        color: '#7C3AED', bg: '#F5F3FF' },
 };
 
 function Stars({ n }: { n: number }) {
@@ -235,7 +238,7 @@ export function TransportistasView({ onNavigate }: Props) {
           {tab === 'transportistas' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(340px,1fr))', gap: '12px' }}>
               {filteredCarriers.map(carrier => {
-                const tipoCfg = TIPO_CFG[carrier.tipo];
+                const tipoCfg = TIPO_CFG[carrier.tipo] ?? { label: carrier.tipo, color: '#6B7280', bg: '#F3F4F6' };
                 const isSelected = selected?.id === carrier.id;
                 return (
                   <div key={carrier.id}
@@ -304,7 +307,7 @@ export function TransportistasView({ onNavigate }: Props) {
                 </thead>
                 <tbody>
                   {filteredTramos.map((tramo, i) => {
-                    const tipoCfg = TIPO_CFG[tramo.tipo];
+                    const tipoCfg = TIPO_CFG[tramo.tipo] ?? { label: tramo.tipo, color: '#6B7280', bg: '#F3F4F6' };
                     return (
                       <tr key={tramo.id} style={{ borderBottom: i < filteredTramos.length - 1 ? '1px solid #F3F4F6' : 'none' }}>
                         <td style={{ padding: '12px 14px', fontSize: '13px', fontWeight: 600, color: '#374151' }}>{tramo.carrier}</td>
