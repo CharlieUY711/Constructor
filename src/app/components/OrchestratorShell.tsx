@@ -19,7 +19,14 @@ interface OrchestratorShellProps {
 export function OrchestratorShell({ activeSection, onNavigate }: OrchestratorShellProps) {
   const { config } = useOrchestrator();
   const modulos = config?.modulos ?? [];
-  const moduloActivo = modulos.length === 0 || modulos.includes(activeSection);
+  
+  const TOP_LEVEL = ['dashboard','ecommerce','logistica','marketing',
+    'herramientas','gestion','sistema','integraciones','auditoria',
+    'rrss','constructor','paginas','orquestador'];
+  
+  const esTopLevel = TOP_LEVEL.includes(activeSection);
+  const moduloActivo = !esTopLevel || modulos.length === 0 || modulos.includes(activeSection);
+  
   if (!moduloActivo) {
     return (
       <div style={{
