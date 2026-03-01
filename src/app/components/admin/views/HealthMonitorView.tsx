@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
-import { apiUrl, publicAnonKey } from '../../../../utils/supabase/client';
+import { supabase } from '../../../../utils/supabase/client';
 import {
   Activity, CheckCircle2, XCircle, AlertCircle, Clock, RefreshCw,
   Database, Server, Globe, Zap, Shield, Cpu, ArrowLeft,
@@ -60,8 +60,6 @@ export function HealthMonitorView({ onNavigate }: Props) {
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const [checking, setChecking] = useState(false);
 
-  const API_URL = apiUrl || null;
-
   const runChecks = useCallback(async () => {
     setChecking(true);
     const start = Date.now();
@@ -73,42 +71,39 @@ export function HealthMonitorView({ onNavigate }: Props) {
         : s
     ));
 
-    // 1 — Test edge function
+    // 1 — Test edge function (using supabase.from() directly)
     let edgeOk = false;
     let edgeLatency = 0;
-    if (API_URL) {
-      try {
-        const t0 = Date.now();
-        const res = await fetch(`${API_URL}/roadmap/modules`, {
-          headers: { Authorization: `Bearer ${publicAnonKey}` },
-          signal: AbortSignal.timeout(5000),
-        });
-        edgeLatency = Date.now() - t0;
-        edgeOk = res.ok;
-      } catch { edgeOk = false; }
-    }
+    try {
+      const t0 = Date.now();
+      const { error } = await supabase
+        .from('roadmap_modules')
+        .select('id')
+        .limit(1);
+      edgeLatency = Date.now() - t0;
+      edgeOk = !error;
+    } catch { edgeOk = false; }
 
-    // 2 — Test KV store
+    // 2 — Test KV store (using supabase.from() directly)
     let kvOk = false;
     let kvLatency = 0;
-    if (API_URL && edgeOk) {
+    if (edgeOk) {
       try {
         const t0 = Date.now();
-        const res = await fetch(`${API_URL}/roadmap/modules`, {
-          headers: { Authorization: `Bearer ${publicAnonKey}` },
-          signal: AbortSignal.timeout(5000),
-        });
+        const { data, error } = await supabase
+          .from('roadmap_modules')
+          .select('id')
+          .limit(10);
         kvLatency = Date.now() - t0;
-        const data = await res.json();
-        kvOk = Array.isArray(data.modules);
+        kvOk = !error && Array.isArray(data);
       } catch { kvOk = false; }
     }
 
     const totalLatency = Date.now() - start;
 
     setServices(prev => prev.map(s => {
-      if (s.id === 'supabase-edge') return { ...s, status: edgeOk ? 'ok' : API_URL ? 'error' : 'unknown', latency: edgeLatency, checkedAt: new Date(), message: edgeOk ? 'Respondió correctamente' : API_URL ? 'No respondió' : 'Sin configurar' };
-      if (s.id === 'supabase-db')   return { ...s, status: edgeOk ? 'ok' : API_URL ? 'error' : 'unknown', latency: edgeLatency > 0 ? Math.round(edgeLatency * 0.3) : 0, checkedAt: new Date(), message: edgeOk ? 'Conexión activa' : 'Sin conexión' };
+      if (s.id === 'supabase-edge') return { ...s, status: edgeOk ? 'ok' : 'error', latency: edgeLatency, checkedAt: new Date(), message: edgeOk ? 'Respondió correctamente' : 'No respondió' };
+      if (s.id === 'supabase-db')   return { ...s, status: edgeOk ? 'ok' : 'error', latency: edgeLatency > 0 ? Math.round(edgeLatency * 0.3) : 0, checkedAt: new Date(), message: edgeOk ? 'Conexión activa' : 'Sin conexión' };
       if (s.id === 'supabase-auth') return { ...s, status: edgeOk ? 'ok' : 'unknown', latency: edgeLatency > 0 ? Math.round(edgeLatency * 0.2) : 0, checkedAt: new Date(), message: 'Supabase Auth activo' };
       if (s.id === 'kv-store')      return { ...s, status: kvOk ? 'ok' : edgeOk ? 'error' : 'unknown', latency: kvLatency, checkedAt: new Date(), message: kvOk ? 'kv_store OK' : 'No se pudo verificar' };
       if (s.id === 'storage')       return { ...s, status: edgeOk ? 'ok' : 'unknown', latency: Math.round(totalLatency * 0.1), checkedAt: new Date(), message: edgeOk ? 'Buckets accesibles' : 'Sin verificar' };
@@ -117,7 +112,7 @@ export function HealthMonitorView({ onNavigate }: Props) {
 
     setLastCheck(new Date());
     setChecking(false);
-  }, [API_URL]);
+  }, []);
 
   useEffect(() => { runChecks(); }, [runChecks]);
 
