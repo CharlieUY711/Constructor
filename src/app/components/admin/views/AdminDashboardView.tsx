@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
+import { useOrchestrator } from '../../../../shells/DashboardShell/app/providers/OrchestratorProvider';
 import {
   Shield, Users, Activity, AlertTriangle, CheckCircle,
   Server, Clock, TrendingUp, Settings, Zap, Database,
@@ -107,6 +108,7 @@ function ServiceRow({ svc }: { svc: typeof services[0] }) {
 
 /* ── Componente principal ── */
 export function AdminDashboardView({ onNavigate }: Props) {
+  const { config, clienteNombre } = useOrchestrator();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -123,7 +125,7 @@ export function AdminDashboardView({ onNavigate }: Props) {
       <OrangeHeader
         icon={Shield}
         title="Dashboard de Administración"
-        subtitle="Charlie Marketplace Builder v1.5 · Sistema de Gestión"
+        subtitle={`${clienteNombre} · Sistema de Gestión`}
         actions={[
           {
             label: (
