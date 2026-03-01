@@ -1,5 +1,5 @@
-/* =====================================================
-   Envíos API Service — Frontend ↔ Backend
+﻿/* =====================================================
+   EnvÃ­os API Service â€” Frontend â†” Backend
    ===================================================== */
 import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
@@ -92,7 +92,7 @@ export interface EnvioInput {
   metadata?: any;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
   try {
@@ -108,13 +108,13 @@ async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?:
     } else {
       const text = await res.text();
       console.error(`[enviosApi] Respuesta no JSON: ${res.status} ${text}`);
-      return { ok: false, error: `Error ${res.status}: ${text || 'Respuesta inválida'}` };
+      return { ok: false, error: `Error ${res.status}: ${text || 'Respuesta invÃ¡lida'}` };
     }
     
     if (!res.ok) {
       console.error(`[enviosApi] Error ${res.status}:`, json);
       // Extraer mensaje de error de forma segura
-      let errorMsg = `Error ${res.status}: ${res.statusText || 'Error en la petición'}`;
+      let errorMsg = `Error ${res.status}: ${res.statusText || 'Error en la peticiÃ³n'}`;
       
       // El servidor puede devolver el error directamente como string o en un campo 'error'
       if (typeof json === 'string') {
@@ -130,7 +130,7 @@ async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?:
         } else if (json.details) {
           errorMsg = json.details;
         } else if (Object.keys(json).length > 0) {
-          // Si es un objeto con propiedades, intentar extraer información útil
+          // Si es un objeto con propiedades, intentar extraer informaciÃ³n Ãºtil
           errorMsg = JSON.stringify(json);
         }
       }
@@ -142,7 +142,7 @@ async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?:
     console.error(`[enviosApi] Error en GET ${path}:`, err);
     // Manejar errores de red (CORS, timeout, etc.)
     if (err instanceof TypeError && err.message.includes('fetch')) {
-      return { ok: false, error: 'Error de conexión. Verifica tu conexión a internet o contacta al administrador.' };
+      return { ok: false, error: 'Error de conexiÃ³n. Verifica tu conexiÃ³n a internet o contacta al administrador.' };
     }
     return { ok: false, error: err instanceof Error ? err.message : 'Error desconocido al cargar datos' };
   }
@@ -158,7 +158,7 @@ async function apiPost<T>(path: string, body: any): Promise<{ ok: boolean; data?
     const json = await res.json();
     if (!res.ok) {
       // Extraer mensaje de error de forma segura
-      let errorMsg = 'Error en la petición';
+      let errorMsg = 'Error en la peticiÃ³n';
       if (typeof json.error === 'string') {
         errorMsg = json.error;
       } else if (json.error && typeof json.error === 'object') {
@@ -185,7 +185,7 @@ async function apiPut<T>(path: string, body: any): Promise<{ ok: boolean; data?:
     const json = await res.json();
     if (!res.ok) {
       // Extraer mensaje de error de forma segura
-      let errorMsg = 'Error en la petición';
+      let errorMsg = 'Error en la peticiÃ³n';
       if (typeof json.error === 'string') {
         errorMsg = json.error;
       } else if (json.error && typeof json.error === 'object') {
@@ -202,7 +202,7 @@ async function apiPut<T>(path: string, body: any): Promise<{ ok: boolean; data?:
   }
 }
 
-// ── Funciones principales ──────────────────────────────────────────────────
+// â”€â”€ Funciones principales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export async function getEnvios(filters?: {
   pedido_madre_id?: string;
@@ -223,7 +223,7 @@ export async function getEnvios(filters?: {
   
   if (!res.ok) {
     console.error('[enviosApi] Error en getEnvios:', res.error);
-    throw new Error(res.error || 'Error cargando envíos');
+    throw new Error(res.error || 'Error cargando envÃ­os');
   }
   
   if (!res.data) {
@@ -231,7 +231,7 @@ export async function getEnvios(filters?: {
     return { envios: [], eventos: [] };
   }
   
-  console.log('[enviosApi] getEnvios: envíos encontrados:', res.data.envios?.length || 0, 'eventos:', res.data.eventos?.length || 0);
+  console.log('[enviosApi] getEnvios: envÃ­os encontrados:', res.data.envios?.length || 0, 'eventos:', res.data.eventos?.length || 0);
   
   return { envios: res.data.envios || [], eventos: res.data.eventos || [] };
 }
@@ -250,7 +250,7 @@ export async function getEnviosByPedido(pedidoId: string): Promise<Envio[]> {
 
 export async function createEnvio(data: EnvioInput): Promise<Envio> {
   const res = await apiPost<{ envio: Envio }>('/', data);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error creando envío');
+  if (!res.ok || !res.data) throw new Error(res.error || 'Error creando envÃ­o');
   return res.data.envio;
 }
 
@@ -260,7 +260,7 @@ export async function updateEnvio(id: string, data: Partial<EnvioInput> & {
   origen_evento?: 'sistema' | 'carrier' | 'manual';
 }): Promise<Envio> {
   const res = await apiPut<{ envio: Envio }>(`/${id}`, data);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error actualizando envío');
+  if (!res.ok || !res.data) throw new Error(res.error || 'Error actualizando envÃ­o');
   return res.data.envio;
 }
 
@@ -286,3 +286,4 @@ export async function registrarAcuse(id: string, acuse: {
   if (!res.ok || !res.data) throw new Error(res.error || 'Error registrando acuse');
   return res.data.envio;
 }
+

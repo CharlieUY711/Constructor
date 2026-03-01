@@ -1,352 +1,201 @@
-/**
- * Envíos API — Gestión de envíos y tracking
- * Tabla: envios, envios_eventos`n */
-
-import { Hono } from "npm:hono";
+﻿import { Hono } from "npm:hono";
 import { cors } from "npm:hono/cors";
-import { createClient } from "npm:@supabase/supabase-js";
+import { getSupabase, getTenant, errMsg, corsHeaders } from "./_shared.ts";
 
 const envios = new Hono();
+envios.use("/*", cors(corsHeaders));
+envios.options("/*", (c) => c.text("", 204));
 
-envios.use('/*', cors({
-  origin: [
-    'https://app.oddy.com.uy', 
-    'https://web.oddy.com.uy',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000',
-  ],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'apikey', 'x-client-info'],
-  maxAge: 86400,
-}));
-
-// Handler explícito para OPTIONS (preflight)
-envios.options('/*', (c) => {
-  return c.text('', 204);
-});
-
-const getSupabase = () => {
-  const url = Deno.env.get("SUPABASE_URL");
-  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  
-  if (!url || !key) {
-    throw new Error("SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no están configurados");
-  }
-  
-  return createClient(url, key);
-};
-
-// GET /envios — lista todos los envíos (con filtros opcionales) + eventos
+// GET /envios
 envios.get("/", async (c) => {
   try {
-    const { pedido_madre_id, estado, carrier, tramo } = c.req.query();
     const supabase = getSupabase();
-    
-    console.log(`[envios] GET / - Filtros:`, { pedido_madre_id, estado, carrier, tramo });
-    
+    const tenant = getTenant(c);
+    const { estado, courier_id, transportista_id, route_id, desde, hasta, page, limit } = c.req.query();
+    const pageNum = parseInt(page ?? "1");
+    const limitNum = parseInt(limit ?? "50");
+    const from = (pageNum - 1) * limitNum;
+
     let query = supabase
       .from("envios")
-      .select("*")
-      .order("fecha_creacion", { ascending: false });
-    
-    if (pedido_madre_id) query = query.eq("pedido_madre_id", pedido_madre_id);
-    if (estado) query = query.eq("estado", estado);
-    if (carrier) query = query.eq("carrier", carrier);
-    if (tramo) query = query.eq("tramo", tramo);
-    
-    const { data: envios, error } = await query;
-    
-    if (error) {
-      console.error(`[envios] GET / - Error en query:`, JSON.stringify(error, null, 2));
-      // Serializar el error de Supabase antes de lanzarlo
-      const errorDetails = {
-        message: error.message || 'Error desconocido en la consulta',
-        details: error.details || null,
-        hint: error.hint || null,
-        code: error.code || null,
-      };
-      throw new Error(JSON.stringify(errorDetails));
-    }
-    
-    console.log(`[envios] GET / - Envíos encontrados: ${envios?.length ?? 0}`);
-    
-    // Cargar eventos para todos los envíos en una sola query
-    const envioIds = (envios ?? []).map(e => e.id);
-    let eventos: any[] = [];
-    
-    if (envioIds.length > 0) {
-      const { data: eventosData, error: eventosErr } = await supabase
-        .from("envios_eventos")
-        .select("*")
-        .in("envio_id", envioIds)
-        .order("fecha", { ascending: false });
-      
-      if (eventosErr) {
-        console.error(`[envios] GET / - Error cargando eventos:`, eventosErr);
-      } else {
-        eventos = eventosData ?? [];
-        console.log(`[envios] GET / - Eventos encontrados: ${eventos.length}`);
-      }
-    }
-    
-    return c.json({ 
-      envios: envios ?? [], 
-      eventos: eventos,
-      count: envios?.length ?? 0 
-    });
-  } catch (err) {
-    console.error(`[envios] GET / error:`, err);
-    // Serializar error de forma segura - manejar errores de Supabase (PostgError)
-    let errorMsg = 'Error desconocido al cargar envíos';
-    
-    try {
-      if (err instanceof Error) {
-        // Si el mensaje es JSON, intentar parsearlo
-        try {
-          const parsed = JSON.parse(err.message);
-          if (parsed.message) {
-            errorMsg = parsed.message;
-            if (parsed.details) errorMsg += ` - ${parsed.details}`;
-            if (parsed.code) errorMsg = `[${parsed.code}] ${errorMsg}`;
-          } else {
-            errorMsg = err.message;
-          }
-        } catch {
-          errorMsg = err.message;
-        }
-      } else if (typeof err === 'object' && err !== null) {
-        // Errores de Supabase tienen estructura específica
-        const errorObj = err as any;
-        if (errorObj.message) {
-          errorMsg = errorObj.message;
-          if (errorObj.details) errorMsg += ` - ${errorObj.details}`;
-          if (errorObj.code) errorMsg = `[${errorObj.code}] ${errorMsg}`;
-        } else if (errorObj.details) {
-          errorMsg = errorObj.details;
-        } else if (errorObj.hint) {
-          errorMsg = errorObj.hint;
-        } else {
-          errorMsg = JSON.stringify(err);
-        }
-      } else {
-        errorMsg = String(err);
-      }
-    } catch (parseErr) {
-      errorMsg = `Error al procesar el error: ${String(parseErr)}`;
-    }
-    
-    return c.json({ error: errorMsg }, 500);
+      .select("*, routes(id, name, date, status), transportistas(id, nombre), couriers(id, name)", { count: "exact" })
+      .eq("tenant_id", tenant)
+      .order("created_at", { ascending: false })
+      .range(from, from + limitNum - 1);
+
+    if (estado)           query = query.eq("estado", estado);
+    if (courier_id)       query = query.eq("courier_id", courier_id);
+    if (transportista_id) query = query.eq("transportista_id", transportista_id);
+    if (route_id)         query = query.eq("route_id", route_id);
+    if (desde)            query = query.gte("created_at", desde);
+    if (hasta)            query = query.lte("created_at", hasta);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+    return c.json({ data: data ?? [], count: count ?? 0, page: pageNum, limit: limitNum });
+  } catch (e) {
+    console.error("[envios] GET /", e);
+    return c.json({ error: errMsg(e) }, 500);
   }
 });
 
-// GET /envios/:id — obtiene un envío con sus eventos
+// GET /envios/tracking/:numero — publico
+envios.get("/tracking/:numero", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const numero = c.req.param("numero");
+    const { data: envio, error } = await supabase
+      .from("envios")
+      .select("id, numero, tracking, estado, origen, destino, destinatario, fecha_estimada, fecha_entrega")
+      .or(`numero.eq.${numero},tracking.eq.${numero}`)
+      .single();
+    if (error || !envio) return c.json({ error: "Envio no encontrado" }, 404);
+    const { data: eventos } = await supabase
+      .from("tracking_eventos")
+      .select("estado, descripcion, ubicacion, lat, lng, created_at")
+      .eq("envio_id", envio.id)
+      .order("created_at", { ascending: false });
+    return c.json({ data: envio, eventos: eventos ?? [] });
+  } catch (e) {
+    return c.json({ error: errMsg(e) }, 500);
+  }
+});
+
+// GET /envios/:id
 envios.get("/:id", async (c) => {
   try {
-    const id = c.req.param("id");
     const supabase = getSupabase();
-    
-    const { data: envio, error: envioErr } = await supabase
+    const tenant = getTenant(c);
+    const id = c.req.param("id");
+    const { data: envio, error } = await supabase
       .from("envios")
-      .select("*")
+      .select("*, routes(id, name, date), transportistas(id, nombre, telefono), couriers(id, name)")
       .eq("id", id)
+      .eq("tenant_id", tenant)
       .single();
-    
-    if (envioErr) throw envioErr;
-    
-    const { data: eventos, error: eventosErr } = await supabase
-      .from("envios_eventos")
+    if (error) throw error;
+    if (!envio) return c.json({ error: "Envio no encontrado" }, 404);
+    const { data: tracking } = await supabase
+      .from("tracking_eventos")
       .select("*")
       .eq("envio_id", id)
-      .order("fecha", { ascending: false });
-    
-    if (eventosErr) throw eventosErr;
-    
-    return c.json({ envio, eventos: eventos ?? [] });
-  } catch (err) {
-    console.log(`[envios] GET /:id error: ${err}`);
-    return c.json({ error: `Error cargando envío: ${err}` }, 500);
-  }
-});
-
-// GET /envios/pedido/:pedidoId — envíos de un pedido madre
-envios.get("/pedido/:pedidoId", async (c) => {
-  try {
-    const pedidoId = c.req.param("pedidoId");
-    const supabase = getSupabase();
-    
-    const { data, error } = await supabase
-      .from("envios")
+      .order("created_at", { ascending: false });
+    const { data: entrega } = await supabase
+      .from("entregas")
       .select("*")
-      .eq("pedido_madre_id", pedidoId)
-      .order("fecha_creacion", { ascending: false });
-    
-    if (error) throw error;
-    
-    return c.json({ envios: data ?? [] });
-  } catch (err) {
-    console.log(`[envios] GET /pedido/:pedidoId error: ${err}`);
-    return c.json({ error: `Error cargando envíos del pedido: ${err}` }, 500);
+      .eq("envio_id", id)
+      .maybeSingle();
+    return c.json({ data: envio, tracking: tracking ?? [], entrega });
+  } catch (e) {
+    return c.json({ error: errMsg(e) }, 500);
   }
 });
 
-// POST /envios — crear nuevo envío
+// POST /envios
 envios.post("/", async (c) => {
   try {
-    const body = await c.req.json();
     const supabase = getSupabase();
-    
-    // Generar número de envío si no viene
-    if (!body.numero) {
-      const { count } = await supabase
-        .from("envios")
-        .select("id", { count: "exact", head: true });
-      body.numero = `ENV-${15000 + (count ?? 0)}-${String((count ?? 0) + 1).padStart(3, '0')}`;
+    const tenant = getTenant(c);
+    const body = await c.req.json();
+    if (!body.origen || !body.destino || !body.destinatario) {
+      return c.json({ error: "origen, destino y destinatario son requeridos" }, 400);
     }
-    
+    const { count } = await supabase
+      .from("envios")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenant);
+    const numero = `ENV-${String((count ?? 0) + 1).padStart(6, "0")}`;
     const { data, error } = await supabase
       .from("envios")
-      .insert({
-        ...body,
-        fecha_creacion: new Date().toISOString(),
-      })
+      .insert({ ...body, tenant_id: tenant, numero, estado: body.estado ?? "pendiente" })
       .select()
       .single();
-    
     if (error) throw error;
-    
-    // Crear evento inicial
-    await supabase.from("envios_eventos").insert({
-      envio_id: data.id,
-      estado: body.estado || "creado",
-      descripcion: "Envío creado",
-      ubicacion: "Sistema",
-      origen: "sistema",
+    await supabase.from("tracking_eventos").insert({
+      tenant_id: tenant, envio_id: data.id,
+      estado: "pendiente", descripcion: "Envio creado en el sistema",
     });
-    
-    return c.json({ envio: data }, 201);
-  } catch (err) {
-    console.log(`[envios] POST / error: ${err}`);
-    return c.json({ error: `Error creando envío: ${err}` }, 500);
+    return c.json({ data }, 201);
+  } catch (e) {
+    return c.json({ error: errMsg(e) }, 500);
   }
 });
 
-// PUT /envios/:id — actualizar envío
+// POST /envios/bulk
+envios.post("/bulk", async (c) => {
+  try {
+    const supabase = getSupabase();
+    const tenant = getTenant(c);
+    const { items } = await c.req.json();
+    if (!Array.isArray(items) || items.length === 0) {
+      return c.json({ error: "items debe ser un array no vacio" }, 400);
+    }
+    const { count: baseCount } = await supabase
+      .from("envios").select("id", { count: "exact", head: true }).eq("tenant_id", tenant);
+    const errores: { fila: number; error: string }[] = [];
+    const creados: any[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (!item.origen || !item.destino || !item.destinatario) {
+        errores.push({ fila: i + 1, error: "origen, destino y destinatario son requeridos" });
+        continue;
+      }
+      const numero = `ENV-${String((baseCount ?? 0) + creados.length + 1).padStart(6, "0")}`;
+      const { data, error } = await supabase
+        .from("envios")
+        .insert({ ...item, tenant_id: tenant, numero, estado: "pendiente" })
+        .select().single();
+      if (error) errores.push({ fila: i + 1, error: errMsg(error) });
+      else creados.push(data);
+    }
+    return c.json({ creados: creados.length, errores, data: creados }, errores.length === items.length ? 400 : 201);
+  } catch (e) {
+    return c.json({ error: errMsg(e) }, 500);
+  }
+});
+
+// PUT /envios/:id
 envios.put("/:id", async (c) => {
   try {
+    const supabase = getSupabase();
+    const tenant = getTenant(c);
     const id = c.req.param("id");
     const body = await c.req.json();
-    const supabase = getSupabase();
-    
-    // Si cambió el estado, crear evento
     if (body.estado) {
-      const { data: existing } = await supabase
-        .from("envios")
-        .select("estado")
-        .eq("id", id)
-        .single();
-      
-      if (existing && existing.estado !== body.estado) {
-        await supabase.from("envios_eventos").insert({
-          envio_id: id,
-          estado: body.estado,
-          descripcion: body.descripcion_evento || `Estado cambiado a ${body.estado}`,
-          ubicacion: body.ubicacion || "Sistema",
-          origen: body.origen_evento || "manual",
+      const { data: actual } = await supabase
+        .from("envios").select("estado").eq("id", id).single();
+      if (actual && actual.estado !== body.estado) {
+        await supabase.from("tracking_eventos").insert({
+          tenant_id: tenant, envio_id: id, estado: body.estado,
+          descripcion: body.descripcion_evento ?? `Estado actualizado a ${body.estado}`,
+          ubicacion: body.ubicacion ?? "Sistema",
+          usuario_id: body.usuario_id,
         });
       }
     }
-    
     const { data, error } = await supabase
       .from("envios")
-      .update(body)
-      .eq("id", id)
-      .select()
-      .single();
-    
+      .update({ ...body, updated_at: new Date().toISOString() })
+      .eq("id", id).eq("tenant_id", tenant)
+      .select().single();
     if (error) throw error;
-    
-    return c.json({ envio: data });
-  } catch (err) {
-    console.log(`[envios] PUT /:id error: ${err}`);
-    return c.json({ error: `Error actualizando envío: ${err}` }, 500);
+    return c.json({ data });
+  } catch (e) {
+    return c.json({ error: errMsg(e) }, 500);
   }
 });
 
-// POST /envios/:id/evento — agregar evento de tracking
-envios.post("/:id/evento", async (c) => {
+// DELETE /envios/:id
+envios.delete("/:id", async (c) => {
   try {
-    const id = c.req.param("id");
-    const body = await c.req.json();
     const supabase = getSupabase();
-    
-    const { data, error } = await supabase
-      .from("envios_eventos")
-      .insert({
-        envio_id: id,
-        estado: body.estado,
-        descripcion: body.descripcion,
-        ubicacion: body.ubicacion,
-        lat: body.lat,
-        lng: body.lng,
-        origen: body.origen || "manual",
-      })
-      .select()
-      .single();
-    
+    const { error } = await supabase
+      .from("envios").delete()
+      .eq("id", c.req.param("id")).eq("tenant_id", getTenant(c));
     if (error) throw error;
-    
-    // Si el evento cambia el estado, actualizar el envío
-    if (body.estado) {
-      await supabase
-        .from("envios")
-        .update({ estado: body.estado })
-        .eq("id", id);
-    }
-    
-    return c.json({ evento: data }, 201);
-  } catch (err) {
-    console.log(`[envios] POST /:id/evento error: ${err}`);
-    return c.json({ error: `Error creando evento: ${err}` }, 500);
-  }
-});
-
-// POST /envios/:id/acuse — registrar acuse de recibo
-envios.post("/:id/acuse", async (c) => {
-  try {
-    const id = c.req.param("id");
-    const body = await c.req.json();
-    const supabase = getSupabase();
-    
-    const { data, error } = await supabase
-      .from("envios")
-      .update({
-        acuse_recibido: true,
-        acuse_fecha: new Date().toISOString(),
-        acuse_firmado_por: body.firmado_por,
-        acuse_firma_url: body.firma_url,
-        estado: "entregado",
-      })
-      .eq("id", id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    // Crear evento de acuse
-    await supabase.from("envios_eventos").insert({
-      envio_id: id,
-      estado: "entregado",
-      descripcion: `Acuse de recibo firmado por ${body.firmado_por}`,
-      ubicacion: body.ubicacion || "Destino",
-      origen: "manual",
-    });
-    
-    return c.json({ envio: data });
-  } catch (err) {
-    console.log(`[envios] POST /:id/acuse error: ${err}`);
-    return c.json({ error: `Error registrando acuse: ${err}` }, 500);
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ error: errMsg(e) }, 500);
   }
 });
 

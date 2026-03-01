@@ -1,97 +1,72 @@
-/* =====================================================
-   Tracking API Service — Dashboard ↔ Backend
+﻿/* =====================================================
+   Tracking API Service — actualizado Paso 7
    ===================================================== */
 import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
 const BASE = `${apiUrl}/tracking`;
+const TENANT = 'oddy';
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,
+  'apikey': publicAnonKey,
+  'x-tenant-id': TENANT,
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────
 export interface TrackingEnvio {
   id: string;
-  codigo: string;
-  numero?: string;
-  tracking_externo?: string;
-  estado: 'pendiente' | 'creado' | 'despachado' | 'en_transito' | 'en_deposito' | 'en_reparto' | 'entregado' | 'fallido';
-  estado_tipo?: 'creado' | 'despachado' | 'en_transito' | 'en_deposito' | 'en_reparto' | 'entregado' | 'fallido';
+  numero: string;
+  tracking?: string;
+  estado: string;
   origen?: string;
   destino?: string;
   destinatario?: string;
   carrier?: string;
-  peso?: string;
+  peso?: number;
+  bultos?: number;
   fecha_estimada?: string;
-  envio_id?: string;
-  eventos?: TrackingEvento[];
-  created_at?: string;
-  updated_at?: string;
+  fecha_entrega?: string;
 }
 
 export interface TrackingEvento {
-  id: string;
-  tracking_id: string;
-  fecha: string;
-  hora?: string;
+  estado: string;
   descripcion: string;
-  lugar?: string;
   ubicacion?: string;
-  tipo?: 'info' | 'alerta' | 'entregado' | 'creado' | 'despachado' | 'en_transito' | 'en_deposito' | 'en_reparto' | 'entregado' | 'fallido';
-  created_at?: string;
+  lat?: number;
+  lng?: number;
+  created_at: string;
 }
 
-export interface TrackingEnvioInput {
-  codigo: string;
-  numero?: string;
-  tracking_externo?: string;
-  estado?: TrackingEnvio['estado'];
-  estado_tipo?: TrackingEnvio['estado_tipo'];
-  origen?: string;
-  destino?: string;
-  destinatario?: string;
-  carrier?: string;
-  peso?: string;
-  fecha_estimada?: string;
-  envio_id?: string;
+export interface TrackingEntrega {
+  estado: string;
+  fecha_entrega: string;
+  firmado_por?: string;
+  foto_url?: string;
 }
 
-export interface TrackingEventoInput {
-  tracking_id: string;
-  fecha?: string;
-  hora?: string;
+export interface TrackingResult {
+  data: TrackingEnvio;
+  eventos: TrackingEvento[];
+  entrega?: TrackingEntrega;
+}
+
+/** Buscar por número de envío o código de tracking — endpoint público */
+export async function getTrackingEnvioByCodigo(numero: string): Promise<TrackingResult> {
+  const res = await fetch(`${BASE}/${numero}`, { headers: HEADERS });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+/** Agregar evento de tracking (uso interno / conductores) */
+export async function addTrackingEvento(envioId: string, data: {
+  estado: string;
   descripcion: string;
-  lugar?: string;
   ubicacion?: string;
-  tipo?: TrackingEvento['tipo'];
-}
-
-// ─── CRUD Envíos ──────────────────────────────────────────────────────────
-
-export async function getTrackingEnvios(estado?: string): Promise<TrackingEnvio[]> {
-  const url = estado ? `${BASE}/envios?estado=${estado}` : `${BASE}/envios`;
-  const res = await fetch(url, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
-}
-
-export async function getTrackingEnvioById(id: string): Promise<TrackingEnvio> {
-  const res = await fetch(`${BASE}/envios/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
-}
-
-export async function getTrackingEnvioByCodigo(codigo: string): Promise<TrackingEnvio> {
-  const res = await fetch(`${BASE}/envios/codigo/${codigo}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
-}
-
-export async function createTrackingEnvio(data: TrackingEnvioInput): Promise<TrackingEnvio> {
-  const res = await fetch(`${BASE}/envios`, {
+  lat?: number;
+  lng?: number;
+  usuario_id?: string;
+}): Promise<TrackingEvento> {
+  const res = await fetch(`${BASE}/${envioId}/evento`, {
     method: 'POST',
     headers: HEADERS,
     body: JSON.stringify(data),
@@ -101,62 +76,10 @@ export async function createTrackingEnvio(data: TrackingEnvioInput): Promise<Tra
   return json.data;
 }
 
-export async function updateTrackingEnvio(id: string, data: Partial<TrackingEnvioInput>): Promise<TrackingEnvio> {
-  const res = await fetch(`${BASE}/envios/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
-}
-
-export async function deleteTrackingEnvio(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/envios/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-}
-
-// ─── CRUD Eventos ─────────────────────────────────────────────────────────
-
-export async function getTrackingEventos(trackingId: string): Promise<TrackingEvento[]> {
-  const res = await fetch(`${BASE}/eventos/${trackingId}`, { headers: HEADERS });
+/** Historial completo de eventos de un envío */
+export async function getHistorialEnvio(envioId: string): Promise<TrackingEvento[]> {
+  const res = await fetch(`${BASE}/envio/${envioId}/historial`, { headers: HEADERS });
   const json = await res.json();
   if (json.error) throw new Error(json.error);
   return json.data || [];
-}
-
-export async function createTrackingEvento(data: TrackingEventoInput): Promise<TrackingEvento> {
-  const res = await fetch(`${BASE}/eventos`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
-}
-
-export async function updateTrackingEvento(id: string, data: Partial<TrackingEventoInput>): Promise<TrackingEvento> {
-  const res = await fetch(`${BASE}/eventos/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
-}
-
-export async function deleteTrackingEvento(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/eventos/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
 }

@@ -4,7 +4,7 @@ import type { MainSection } from '../../../AdminDashboard';
 import {
   Truck, Map, Users, Package, ShoppingCart, Navigation,
   CheckCircle, Layers, TrendingUp, Clock, MapPin, BarChart2,
-  Box, AlertCircle, Star,
+  Box, AlertCircle, Star, Car, Warehouse, Boxes, PackageCheck,
 } from 'lucide-react';
 
 interface Props { onNavigate: (s: MainSection) => void; }
@@ -33,6 +33,34 @@ export function LogisticaView({ onNavigate }: Props) {
       badge: 'Planificación', label: 'Rutas',
       description: 'Gestión de rutas standard y personalizadas por proyecto. Mapa de paradas y progreso de entrega.',
       stats: [{ icon: Map, value: '—', label: 'Rutas activas' }, { icon: MapPin, value: '—', label: 'Paradas' }, { icon: TrendingUp, value: '—', label: 'Completadas' }],
+    },
+    {
+      id: 'vehiculos', icon: Car, onClick: nav('vehiculos'),
+      gradient: 'linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%)', color: '#8B5CF6',
+      badge: 'Flota', label: 'Vehículos',
+      description: 'Flota de vehículos · asignación a rutas · estado y mantenimiento',
+      stats: [{ icon: Car, value: '—', label: 'Vehículos' }, { icon: CheckCircle, value: '—', label: 'Disponibles' }, { icon: AlertCircle, value: '—', label: 'En mantenimiento' }],
+    },
+    {
+      id: 'depositos', icon: Warehouse, onClick: nav('depositos'),
+      gradient: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: '#14B8A6',
+      badge: 'Almacenes', label: 'Depósitos',
+      description: 'Almacenes propios, terceros y cross-docking',
+      stats: [{ icon: Warehouse, value: '—', label: 'Depósitos' }, { icon: MapPin, value: '—', label: 'Ubicaciones' }, { icon: Box, value: '—', label: 'Capacidad' }],
+    },
+    {
+      id: 'inventario', icon: Boxes, onClick: nav('inventario'),
+      gradient: 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)', color: '#F97316',
+      badge: 'Stock', label: 'Inventario',
+      description: 'Stock por depósito · alertas de mínimo · movimientos entrada/salida',
+      stats: [{ icon: Boxes, value: '—', label: 'Artículos' }, { icon: AlertCircle, value: '—', label: 'Alertas' }, { icon: TrendingUp, value: '—', label: 'Movimientos' }],
+    },
+    {
+      id: 'entregas', icon: PackageCheck, onClick: nav('entregas'),
+      gradient: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', color: '#22C55E',
+      badge: 'Confirmación', label: 'Entregas',
+      description: 'Confirmaciones de entrega · firma · fotos · motivos de no entrega',
+      stats: [{ icon: PackageCheck, value: '—', label: 'Entregadas' }, { icon: CheckCircle, value: '—', label: 'Confirmadas' }, { icon: AlertCircle, value: '—', label: 'Pendientes' }],
     },
     {
       id: 'fulfillment', icon: Layers, onClick: nav('fulfillment'),
