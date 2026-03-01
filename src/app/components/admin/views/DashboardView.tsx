@@ -13,13 +13,13 @@ import {
   Package, Users, BarChart2, Plug, CheckSquare,
   DollarSign, Activity, Map, MapPin,
 } from 'lucide-react';
-
-const ORANGE = '#FF6835';
+import { useOrchestrator } from '../../../../shells/DashboardShell/app/providers/OrchestratorProvider';
 interface Props { onNavigate: (s: MainSection) => void; }
 
-const PIE_COLORS = [ORANGE, '#1F2937', '#6B7280', '#9CA3AF'];
-
 export function DashboardView({ onNavigate }: Props) {
+  const { config, clienteNombre } = useOrchestrator();
+  const ORANGE = config?.theme?.primary ?? '#FF6835';
+  const PIE_COLORS = [ORANGE, '#1F2937', '#6B7280', '#9CA3AF'];
   const [timeRange, setTimeRange] = useState('7d');
   const [showIdeaModal, setShowIdeaModal] = useState(false);
   const nav = (s: MainSection) => () => onNavigate(s);
@@ -127,7 +127,7 @@ export function DashboardView({ onNavigate }: Props) {
           <div style={{ flex: 1 }}>
             <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: '800', color: '#1A1A2E' }}>Dashboard</h1>
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#6C757D' }}>
-              Charlie Marketplace Builder v1.5 · Sistema de Gestión Enterprise
+              {clienteNombre} · Sistema de Gestión Enterprise
             </p>
           </div>
           {/* Botón Ideas */}
