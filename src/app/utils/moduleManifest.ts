@@ -28,6 +28,8 @@ export interface ManifestEntry {
   isReal: boolean;
   /** ¿Conecta con Supabase/backend? */
   hasSupabase?: boolean;
+  /** ¿El componente acepta la prop onNavigate? (default: true) */
+  acceptsOnNavigate?: boolean;
   /** Nota descriptiva */
   notes?: string;
 }
@@ -791,6 +793,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'GoogleMapsTestView.tsx',
     component: React.lazy(() => import('../components/admin/views/GoogleMapsTestView').then(m => ({ default: m.GoogleMapsTestView }))),
     isReal: true,
+    acceptsOnNavigate: false,
     notes: 'Test de Google Maps',
   },
 ];
