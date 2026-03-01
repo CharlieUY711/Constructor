@@ -82,26 +82,19 @@ export interface Campana {
 }
 
 export async function getCampanas(): Promise<Campana[]> {
-  const res = await apiGet<Campana[]>('/campanas');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  return [];
 }
 
 export async function createCampana(data: Partial<Campana>): Promise<Campana | null> {
-  const res = await apiPost<Campana>('/campanas', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function updateCampana(id: string, data: Partial<Campana>): Promise<Campana | null> {
-  const res = await apiPut<Campana>(`/campanas/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function deleteCampana(id: string): Promise<boolean> {
-  const res = await apiDelete(`/campanas/${id}`);
-  return res.ok;
+  return false;
 }
 
 // ── SUSCRIPTORES ─────────────────────────────────────
@@ -118,27 +111,19 @@ export interface Suscriptor {
 }
 
 export async function getSuscriptores(estado?: string): Promise<Suscriptor[]> {
-  const query = estado ? `?estado=${estado}` : '';
-  const res = await apiGet<Suscriptor[]>(`/suscriptores${query}`);
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  return [];
 }
 
 export async function createSuscriptor(data: Partial<Suscriptor>): Promise<Suscriptor | null> {
-  const res = await apiPost<Suscriptor>('/suscriptores', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function updateSuscriptor(id: string, data: Partial<Suscriptor>): Promise<Suscriptor | null> {
-  const res = await apiPut<Suscriptor>(`/suscriptores/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function deleteSuscriptor(id: string): Promise<boolean> {
-  const res = await apiDelete(`/suscriptores/${id}`);
-  return res.ok;
+  return false;
 }
 
 // ── FIDELIZACIÓN ─────────────────────────────────────
@@ -181,42 +166,27 @@ export interface MiembroDetalle extends Miembro {
 }
 
 export async function getMiembros(): Promise<Miembro[]> {
-  const res = await apiGet<Miembro[]>('/fidelizacion/miembros');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  return [];
 }
 
 export async function getMiembro(id: string): Promise<MiembroDetalle | null> {
-  const res = await apiGet<MiembroDetalle>(`/fidelizacion/miembros/${id}`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function createMiembro(data: Partial<Miembro>): Promise<Miembro | null> {
-  const res = await apiPost<Miembro>('/fidelizacion/miembros', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function updateMiembro(id: string, data: Partial<Miembro>): Promise<Miembro | null> {
-  const res = await apiPut<Miembro>(`/fidelizacion/miembros/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function addPuntos(miembroId: string, puntos: number, descripcion: string, referenciaId?: string): Promise<boolean> {
-  const res = await apiPost(`/fidelizacion/miembros/${miembroId}/puntos`, {
-    puntos,
-    descripcion,
-    referencia_id: referenciaId,
-  });
-  return res.ok;
+  return false;
 }
 
 export async function getNiveles(): Promise<Nivel[]> {
-  const res = await apiGet<Nivel[]>('/fidelizacion/niveles');
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  return [];
 }
 
 // ── SORTEOS ───────────────────────────────────────────
@@ -244,32 +214,21 @@ export interface Sorteo {
 }
 
 export async function getSorteos(estado?: string): Promise<Sorteo[]> {
-  const query = estado ? `?estado=${estado}` : '';
-  const res = await apiGet<Sorteo[]>(`/sorteos${query}`);
-  if (!res.ok || !res.data) return [];
-  return res.data;
+  return [];
 }
 
 export async function createSorteo(data: Partial<Sorteo>): Promise<Sorteo | null> {
-  const res = await apiPost<Sorteo>('/sorteos', data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function updateSorteo(id: string, data: Partial<Sorteo>): Promise<Sorteo | null> {
-  const res = await apiPut<Sorteo>(`/sorteos/${id}`, data);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function participarSorteo(id: string, email: string, nombre?: string): Promise<Participante | null> {
-  const res = await apiPost<Participante>(`/sorteos/${id}/participar`, { email, nombre });
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }
 
 export async function girarSorteo(id: string): Promise<{ ganador: Participante; sorteo: Sorteo } | null> {
-  const res = await apiPost<{ ganador: Participante; sorteo: Sorteo }>(`/sorteos/${id}/girar`);
-  if (!res.ok || !res.data) return null;
-  return res.data;
+  return null;
 }

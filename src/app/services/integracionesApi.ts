@@ -69,62 +69,29 @@ export interface Webhook {
 // ── Integraciones ───────────────────────────────────────────────────────────
 
 export async function getIntegraciones(filters?: { tipo?: string; estado?: string }): Promise<Integracion[]> {
-  const params = new URLSearchParams();
-  if (filters?.tipo) params.append('tipo', filters.tipo);
-  if (filters?.estado) params.append('estado', filters.estado);
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const res = await fetch(`${BASE}${query}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  return [];
 }
 
 export async function getIntegracionById(id: string): Promise<Integracion> {
-  const res = await fetch(`${BASE}/${id}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  throw new Error('Not implemented');
 }
 
 export async function updateIntegracion(id: string, data: Partial<Integracion>): Promise<Integracion> {
-  const res = await fetch(`${BASE}/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  throw new Error('Not implemented');
 }
 
 export async function pingIntegracion(id: string): Promise<{ data: Integracion; success: boolean }> {
-  const res = await fetch(`${BASE}/${id}/ping`, {
-    method: 'POST',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json;
+  throw new Error('Not implemented');
 }
 
 export async function getIntegracionLogs(id: string, limit?: number): Promise<IntegracionLog[]> {
-  const params = new URLSearchParams();
-  if (limit) params.append('limit', limit.toString());
-  const query = params.toString() ? `?${params.toString()}` : '';
-  const res = await fetch(`${BASE}/${id}/logs${query}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  return [];
 }
 
 // ── API Keys ────────────────────────────────────────────────────────────────
 
 export async function getApiKeys(estado?: string): Promise<ApiKey[]> {
-  const query = estado ? `?estado=${estado}` : '';
-  const res = await fetch(`${BASE}/api-keys${query}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  return [];
 }
 
 export async function createApiKey(data: {
@@ -133,62 +100,27 @@ export async function createApiKey(data: {
   permisos: string[];
   expira_en?: string;
 }): Promise<ApiKey> {
-  const res = await fetch(`${BASE}/api-keys`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  throw new Error('Not implemented');
 }
 
 export async function deleteApiKey(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/api-keys/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  return;
 }
 
 // ── Webhooks ────────────────────────────────────────────────────────────────
 
 export async function getWebhooks(estado?: string): Promise<Webhook[]> {
-  const query = estado ? `?estado=${estado}` : '';
-  const res = await fetch(`${BASE}/webhooks${query}`, { headers: HEADERS });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data || [];
+  return [];
 }
 
 export async function createWebhook(data: Partial<Webhook>): Promise<Webhook> {
-  const res = await fetch(`${BASE}/webhooks`, {
-    method: 'POST',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  throw new Error('Not implemented');
 }
 
 export async function updateWebhook(id: string, data: Partial<Webhook>): Promise<Webhook> {
-  const res = await fetch(`${BASE}/webhooks/${id}`, {
-    method: 'PUT',
-    headers: HEADERS,
-    body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json.data;
+  throw new Error('Not implemented');
 }
 
 export async function deleteWebhook(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/webhooks/${id}`, {
-    method: 'DELETE',
-    headers: HEADERS,
-  });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  return;
 }
