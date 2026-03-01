@@ -1,13 +1,6 @@
-﻿import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+﻿import { supabase } from '../../utils/supabase/client';
 
-const BASE = `${apiUrl}/depositos`;
 const TENANT = 'oddy';
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-  'apikey': publicAnonKey,
-  'x-tenant-id': TENANT,
-};
 
 export interface Deposito {
   id: string;
@@ -27,34 +20,91 @@ export interface Deposito {
   inventario?: any[];
 }
 
-async function req<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { headers: HEADERS, ...options });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
-  return json;
-}
-
 export async function getDepositos(): Promise<Deposito[]> {
-  const res = await req<{ data: Deposito[] }>('');
-  return res.data || [];
+  const { data, error } = await supabase
+    .from('depositos')
+    .select('*, inventario(id, sku, nombre, cantidad)')
+    .eq('tenant_id', TENANT)
+    .order('nombre');
+  
+  if (error) {
+    console.error('[depositosApi] Error obteniendo depósitos:', error);
+    throw new Error(error.message || 'Error cargando depósitos');
+  }
+  
+  return data || [];
 }
 
 export async function getDeposito(id: string): Promise<Deposito | null> {
-  const res = await req<{ data: Deposito }>(`/${id}`);
-  return res.data || null;
+  const { data, error } = await supabase
+    .from('depositos')
+    .select('*, inventario(*)')
+    .eq('id', id)
+    .eq('tenant_id', TENANT)
+    .single();
+  
+  if (error) {
+    console.error('[depositosApi] Error obteniendo depósito:', error);
+    return null;
+  }
+  
+  return data;
 }
 
 export async function createDeposito(data: Partial<Deposito>): Promise<Deposito | null> {
-  const res = await req<{ data: Deposito }>('', { method: 'POST', body: JSON.stringify(data) });
-  return res.data || null;
+  if (!data.nombre || !data.direccion) {
+    throw new Error('nombre y direccion son requeridos');
+  }
+  
+  const { data: result, error } = await supabase
+    .from('depositos')
+    .insert({
+      ...data,
+      tenant_id: TENANT,
+      activo: data.activo ?? true,
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[depositosApi] Error creando depósito:', error);
+    throw new Error(error.message || 'Error creando depósito');
+  }
+  
+  return result;
 }
 
 export async function updateDeposito(id: string, data: Partial<Deposito>): Promise<Deposito | null> {
-  const res = await req<{ data: Deposito }>(`/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-  return res.data || null;
+  const { data: result, error } = await supabase
+    .from('depositos')
+    .update({
+      ...data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('tenant_id', TENANT)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('[depositosApi] Error actualizando depósito:', error);
+    throw new Error(error.message || 'Error actualizando depósito');
+  }
+  
+  return result;
 }
 
 export async function deleteDeposito(id: string): Promise<boolean> {
-  try { await req(`/${id}`, { method: 'DELETE' }); return true; }
-  catch { return false; }
+  const { error } = await supabase
+    .from('depositos')
+    .delete()
+    .eq('id', id)
+    .eq('tenant_id', TENANT);
+  
+  if (error) {
+    console.error('[depositosApi] Error eliminando depósito:', error);
+    return false;
+  }
+  
+  return true;
 }
