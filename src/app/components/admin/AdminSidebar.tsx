@@ -1,5 +1,5 @@
 /* =====================================================
-   AdminSidebar ââ navegación plana, sin sub-menús, sin scroll
+   AdminSidebar — navegación plana, sin sub-menús, sin scroll
    ===================================================== */
 import React from 'react';
 import {
@@ -42,9 +42,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
   const { config } = useOrchestrator();
   
   // Obtener valores de la configuración con fallbacks
-  // Soporta tanto config.nombre como config.clienteNombre
   const clienteNombre = config?.theme?.nombre ?? 'Charlie';
-  // Soporta tanto config.tokens.colorPrimario como config.theme.primary
   const colorPrimario = config?.theme?.primary ?? '#FF6B35';
   const modulosConfig = config?.modulos ?? [];
   
@@ -71,7 +69,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         overflow: 'hidden',          /* sin scroll */
       }}
     >
-      {/* Ã¢ââ¬Ã¢ââ¬ Logo Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Logo ── */}
       <div style={{
         height: '88px',
         display: 'flex',
@@ -91,22 +89,10 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
           }}>
             {clienteNombre}
           </span>
-          <p style={{
-            color: '#000',
-            fontSize: '0.64rem',
-            margin: '0',
-            letterSpacing: '0.08em',
-            textTransform: 'none',
-            fontWeight: '500',
-            lineHeight: 1,
-            whiteSpace: 'nowrap',
-          }}>
-            Marketplace Builder
-          </p>
         </div>
       </div>
 
-      {/* Ã¢ââ¬Ã¢ââ¬ User Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── User ── */}
       <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.18)', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{
@@ -125,7 +111,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         </div>
       </div>
 
-      {/* Ã¢ââ¬Ã¢ââ¬ Nav Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Nav ── */}
       <nav style={{ flex: 1, padding: '6px 0', overflowY: 'auto' }}>
         {navItems.map(item => {
           const isActive = activeSection === item.id || activeHub === item.id;
@@ -166,13 +152,13 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
           );
         })}
 
-        {/* Ã¢ââ¬Ã¢ââ¬ Divisor Constructor Ã¢ââ¬Ã¢ââ¬ */}
+        {/* ── Divisor Constructor ── */}
         <div style={{
           margin: '8px 14px',
           borderTop: '1px solid rgba(255,255,255,0.25)',
         }} />
 
-        {/* Ã¢ââ¬Ã¢ââ¬ Constructor Ã¢ââ¬Ã¢ââ¬ */}
+        {/* ── Constructor ── */}
         {(() => {
           const isActive = activeSection === 'constructor';
           return (
@@ -213,7 +199,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         })()}
       </nav>
 
-      {/* Ã¢ââ¬Ã¢ââ¬ Tip Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Tip ── */}
       <div style={{
         margin: '0 10px 10px',
         padding: '10px',
@@ -230,7 +216,7 @@ export function AdminSidebar({ activeSection, onNavigate }: Props) {
         </p>
       </div>
 
-      {/* Ã¢ââ¬Ã¢ââ¬ Ver Tienda Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Ver Tienda ── */}
       <a
         href="/"
         target="_blank"

@@ -8,6 +8,7 @@
 import React, { useState, useCallback } from 'react';
 import { OrangeHeader } from '../OrangeHeader';
 import type { MainSection } from '../../../AdminDashboard';
+import { useOrchestrator } from '../../../../shells/DashboardShell/app/providers/OrchestratorProvider';
 import {
   BookOpen, FileText, Code, Settings, Shield, Package,
   Plug, Truck, ShoppingCart, Wrench, ChevronRight,
@@ -620,6 +621,7 @@ SUPABASE_DB_URL=postgresql://...
 
 /* ── Componente principal ── */
 export function DocumentacionView({ onNavigate: _ }: Props) {
+  const { clienteNombre } = useOrchestrator();
   const [activeTab,    setActiveTab]    = useState<DocTab>('usuario');
   const [activeSec,    setActiveSec]    = useState('introduccion');
   const [editing,      setEditing]      = useState(false);
@@ -700,7 +702,7 @@ export function DocumentacionView({ onNavigate: _ }: Props) {
       <OrangeHeader
         icon={BookOpen}
         title="Documentación"
-        subtitle="Charlie Marketplace Builder v1.5 · Manual técnico y de usuario"
+        subtitle={`${clienteNombre} · Sistema de Gestión`}
         rightSlot={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: '0.72rem', color: '#9CA3AF', fontWeight: '500' }}>Vista como:</span>

@@ -9,6 +9,7 @@ import { OrchestratorShell } from './components/OrchestratorShell';
 import { Toaster }           from 'sonner';
 import type { MainSection }  from './AdminDashboard';
 import { syncManifestToRoadmap } from './services/syncManifest';
+import { useOrchestrator } from '../shells/DashboardShell/app/providers/OrchestratorProvider';
 
 export type MainSection =
   | 'dashboard'
@@ -103,10 +104,17 @@ export type MainSection =
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<MainSection>('dashboard');
   const nav = (s: MainSection) => setActiveSection(s);
+  const { clienteNombre } = useOrchestrator();
 
   useEffect(() => {
     syncManifestToRoadmap();
   }, []);
+
+  useEffect(() => {
+    if (clienteNombre) {
+      document.title = clienteNombre;
+    }
+  }, [clienteNombre]);
 
   return (
     <>
