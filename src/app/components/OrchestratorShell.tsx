@@ -1,6 +1,6 @@
 /**
- * OrchestratorShell — Charlie Platform v1.0
- * ══════════════════════════════════════════
+ * OrchestratorShell â Charlie Platform v1.0
+ * ââââââââââââââââââââââââââââââââââââââââââ
  * Reemplaza el switch manual de AdminDashboard.
  * Lee MODULE_MANIFEST y renderiza el componente correspondiente
  * a la sección activa. Zero hardcoding.
@@ -35,7 +35,7 @@ export function OrchestratorShell({ activeSection, onNavigate }: OrchestratorShe
         color: '#888',
         fontFamily: 'inherit'
       }}>
-        <span style={{ fontSize: '32px' }}>🔧</span>
+        <span style={{ fontSize: '32px' }}>ð§</span>
         <p style={{ margin: 0, fontSize: '14px' }}>
           Módulo <strong>{activeSection}</strong> no encontrado en el manifest.
         </p>

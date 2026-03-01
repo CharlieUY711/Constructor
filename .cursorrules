@@ -1,0 +1,23 @@
+﻿# Charlie Marketplace Builder — Cursor Rules
+
+## ENCODING
+- Todos los archivos deben guardarse en UTF-8 sin BOM
+- Nunca usar PowerShell directo para modificar archivos .tsx o .ts
+- Para scripts de modificación de archivos, siempre usar Node.js (.cjs)
+- Los caracteres especiales en español (á, é, í, ó, ú, ñ, ¿, ¡) deben 
+  preservarse tal cual — nunca reemplazar por secuencias escapadas
+
+## ARQUITECTURA
+- El sistema es multi-cliente — cada cliente tiene su config en cliente_config
+- La estructura de config es: theme.nombre, theme.primary, modulos (array)
+- Nunca hardcodear nombre de cliente, colores o listas de módulos
+- Siempre usar useOrchestrator() para leer la config del cliente activo
+
+## IMPORTS
+- OrchestratorProvider: ../shells/DashboardShell/app/providers/OrchestratorProvider
+- Supabase client: ../utils/supabase/client
+- Nunca instanciar un cliente Supabase propio — usar el centralizado
+
+## BUNDLE
+- Los componentes del MODULE_MANIFEST deben usar React.lazy() con dynamic import
+- Nunca importar componentes de vistas de forma estática en moduleManifest.ts

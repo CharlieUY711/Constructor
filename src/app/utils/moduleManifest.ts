@@ -1,34 +1,34 @@
-﻿/**
- * MODULE MANIFEST â€” Charlie Marketplace Builder v1.5
- * â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
- * FUENTE ÃšNICA DE VERDAD sobre quÃ© vistas existen y quÃ© IDs del checklist cubren.
+ï»¿/**
+ * MODULE MANIFEST ââ Charlie Marketplace Builder v1.5
+ * Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
+ * FUENTE ÃNICA DE VERDAD sobre qué vistas existen y qué IDs del checklist cubren.
  *
- * â”Œâ”€ REGLA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
- * â”‚  Cuando construÃ­s una vista nueva, SOLO tenÃ©s que agregar/editar UNA entrada â”‚
- * â”‚  aquÃ­. moduleRegistry.ts y el ChecklistRoadmap se actualizan solos.          â”‚
- * â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+ * Ã¢âÅÃ¢ââ¬ REGLA Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢âÂ
+ * Ã¢ââ  Cuando construís una vista nueva, SOLO tenés que agregar/editar UNA entrada Ã¢ââ
+ * Ã¢ââ  aquí. moduleRegistry.ts y el ChecklistRoadmap se actualizan solos.          Ã¢ââ
+ * Ã¢ââÃ¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢âË
  *
- * isReal = true  â†’ Vista funcional con UI completa (puede ser mock o real Supabase)
- * isReal = false â†’ Hub de navegaciÃ³n o placeholder; no cuenta como completado
+ * isReal = true  Ã¢â â Vista funcional con UI completa (puede ser mock o real Supabase)
+ * isReal = false Ã¢â â Hub de navegación o placeholder; no cuenta como completado
  */
 
 import React from 'react';
 import type { MainSection } from '../AdminDashboard';
 
-// â”€â”€ Imports de todos los componentes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬ Imports de todos los componentes Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 
 export interface ManifestEntry {
-  /** IDs exactos en MODULES_DATA que esta vista cubre (vacÃ­o = hub, no mapea nada) */
+  /** IDs exactos en MODULES_DATA que esta vista cubre (vacío = hub, no mapea nada) */
   checklistIds: string[];
-  /** SecciÃ³n en AdminDashboard / sidebar */
+  /** Sección en AdminDashboard / sidebar */
   section: MainSection;
   /** Nombre del archivo de vista (solo informativo) */
   viewFile: string;
   /** Componente React correspondiente a esta vista */
   component: React.ComponentType<{ onNavigate: (s: MainSection) => void }> | React.ComponentType<{}> | null;
-  /** true = vista funcional real | false = hub de navegaciÃ³n o placeholder */
+  /** true = vista funcional real | false = hub de navegación o placeholder */
   isReal: boolean;
-  /** Â¿Conecta con Supabase/backend? */
+  /** ¿Conecta con Supabase/backend? */
   hasSupabase?: boolean;
   /** Nota descriptiva */
   notes?: string;
@@ -36,16 +36,16 @@ export interface ManifestEntry {
 
 export const MODULE_MANIFEST: ManifestEntry[] = [
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // ADMIN / SISTEMA
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: ['admin-settings', 'admin-users'],
     section: 'dashboard',
     viewFile: 'DashboardView.tsx',
     component: React.lazy(() => import('../components/admin/views/DashboardView').then(m => ({ default: m.DashboardView }))),
     isReal: true,
-    notes: 'Dashboard con mÃ©tricas, charts y navegaciÃ³n rÃ¡pida',
+    notes: 'Dashboard con métricas, charts y navegación rápida',
   },
   {
     checklistIds: ['admin-settings', 'admin-users'],
@@ -53,7 +53,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'SistemaView.tsx',
     component: React.lazy(() => import('../components/admin/views/SistemaView').then(m => ({ default: m.SistemaView }))),
     isReal: true,
-    notes: 'ConfiguraciÃ³n del sistema â€” hub con cards de config',
+    notes: 'Configuración del sistema ââ hub con cards de config',
   },
   {
     checklistIds: ['admin-users'],
@@ -61,7 +61,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'DepartamentosView.tsx',
     component: React.lazy(() => import('../components/admin/views/DepartamentosView').then(m => ({ default: m.DepartamentosView }))),
     isReal: true,
-    notes: 'GestiÃ³n de departamentos, roles y permisos',
+    notes: 'Gestión de departamentos, roles y permisos',
   },
   {
     checklistIds: ['admin-settings'],
@@ -77,12 +77,12 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'DisenoView.tsx',
     component: React.lazy(() => import('../components/admin/views/DisenoView').then(m => ({ default: m.DisenoView }))),
     isReal: false,
-    notes: 'Hub de diseÃ±o y branding (tabs de navegaciÃ³n)',
+    notes: 'Hub de diseño y branding (tabs de navegación)',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // BASE DE PERSONAS
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: ['base-personas'],
     section: 'personas',
@@ -90,7 +90,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/PersonasView').then(m => ({ default: m.PersonasView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'CRUD completo de personas fÃ­sicas y jurÃ­dicas',
+    notes: 'CRUD completo de personas físicas y jurídicas',
   },
   {
     checklistIds: ['base-personas'],
@@ -111,16 +111,16 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     notes: 'Vista filtrada de personas/organizaciones con rol cliente',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // eCOMMERCE
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [],
     section: 'ecommerce',
     viewFile: 'EcommerceView.tsx',
     component: React.lazy(() => import('../components/admin/views/EcommerceView').then(m => ({ default: m.EcommerceView }))),
     isReal: false,
-    notes: 'Hub de navegaciÃ³n eCommerce (cards a sub-mÃ³dulos)',
+    notes: 'Hub de navegación eCommerce (cards a sub-módulos)',
   },
   {
     checklistIds: ['ecommerce-pedidos'],
@@ -129,7 +129,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/PedidosView').then(m => ({ default: m.PedidosView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'CRUD de pedidos con estados, filtros y Ã¡rbol madre/hijos',
+    notes: 'CRUD de pedidos con estados, filtros y árbol madre/hijos',
   },
   {
     checklistIds: ['ecommerce-pedidos'],
@@ -147,7 +147,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/MetodosPagoView').then(m => ({ default: m.MetodosPagoView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'ConfiguraciÃ³n de pasarelas y mÃ©todos de pago',
+    notes: 'Configuración de pasarelas y métodos de pago',
   },
   {
     checklistIds: ['ecommerce-metodos-envio'],
@@ -156,19 +156,19 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/MetodosEnvioView').then(m => ({ default: m.MetodosEnvioView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'ConfiguraciÃ³n de mÃ©todos de envÃ­o y tarifas',
+    notes: 'Configuración de métodos de envío y tarifas',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // LOGÃSTICA
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
+  // LOGÃÂSTICA
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: ['logistics-hub'],
     section: 'logistica',
     viewFile: 'LogisticaView.tsx',
     component: React.lazy(() => import('../components/admin/views/LogisticaView').then(m => ({ default: m.LogisticaView }))),
     isReal: false,
-    notes: 'Hub con diagrama de flujo logÃ­stico 7 pasos y cards a todos los sub-mÃ³dulos',
+    notes: 'Hub con diagrama de flujo logístico 7 pasos y cards a todos los sub-módulos',
   },
   {
     checklistIds: ['logistics-shipping'],
@@ -177,7 +177,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/EnviosView').then(m => ({ default: m.EnviosView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Vista Ã¡rbol PedidoMadreâ†’EnvÃ­osHijos Â· estados Â· multi-tramo Â· panel detalle + timeline',
+    notes: 'Vista árbol PedidoMadreÃ¢â âEnvíosHijos ÃÂ· estados ÃÂ· multi-tramo ÃÂ· panel detalle + timeline',
   },
   {
     checklistIds: ['logistics-carriers'],
@@ -186,7 +186,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/TransportistasView').then(m => ({ default: m.TransportistasView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'CatÃ¡logo carriers Â· tramos y zonas Â· simulador de tarifas',
+    notes: 'Catálogo carriers ÃÂ· tramos y zonas ÃÂ· simulador de tarifas',
   },
   {
     checklistIds: ['logistics-routes'],
@@ -195,7 +195,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/RutasView').then(m => ({ default: m.RutasView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Rutas standard y por proyecto Â· vista detalle con paradas Â· progreso de entrega',
+    notes: 'Rutas standard y por proyecto ÃÂ· vista detalle con paradas ÃÂ· progreso de entrega',
   },
   {
     checklistIds: ['logistics-fulfillment'],
@@ -204,7 +204,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/FulfillmentView').then(m => ({ default: m.FulfillmentView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Wave picking Â· lotes Â· cola de Ã³rdenes Â· empaque Â· materiales de packaging',
+    notes: 'Wave picking ÃÂ· lotes ÃÂ· cola de órdenes ÃÂ· empaque ÃÂ· materiales de packaging',
   },
   {
     checklistIds: ['logistics-production'],
@@ -213,7 +213,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/ProduccionView').then(m => ({ default: m.ProduccionView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'BOM Â· Ã³rdenes de armado Â· catÃ¡logo de kits / canastas / combos / packs',
+    notes: 'BOM ÃÂ· órdenes de armado ÃÂ· catálogo de kits / canastas / combos / packs',
   },
   {
     checklistIds: ['logistics-supply'],
@@ -222,7 +222,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/AbastecimientoView').then(m => ({ default: m.AbastecimientoView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Alertas de stock Â· OC sugeridas Â· MRP con cÃ¡lculo de componentes necesarios',
+    notes: 'Alertas de stock ÃÂ· OC sugeridas ÃÂ· MRP con cálculo de componentes necesarios',
   },
   {
     checklistIds: ['logistics-map'],
@@ -231,7 +231,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/MapaEnviosView').then(m => ({ default: m.MapaEnviosView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Mapa SVG de Argentina con puntos de envÃ­os activos Â· filtro por estado Â· tooltip detalle',
+    notes: 'Mapa SVG de Argentina con puntos de envíos activos ÃÂ· filtro por estado ÃÂ· tooltip detalle',
   },
   {
     checklistIds: ['logistics-tracking'],
@@ -240,19 +240,19 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/TrackingPublicoView').then(m => ({ default: m.TrackingPublicoView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'BÃºsqueda por nÃºmero de envÃ­o Â· timeline de estados Â· link pÃºblico para destinatarios',
+    notes: 'Búsqueda por número de envío ÃÂ· timeline de estados ÃÂ· link público para destinatarios',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // MARKETING
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [],
     section: 'marketing',
     viewFile: 'MarketingView.tsx',
     component: React.lazy(() => import('../components/admin/views/MarketingView').then(m => ({ default: m.MarketingView }))),
     isReal: false,
-    notes: 'Hub de navegaciÃ³n Marketing (cards a sub-mÃ³dulos)',
+    notes: 'Hub de navegación Marketing (cards a sub-módulos)',
   },
   {
     checklistIds: ['marketing-campaigns'],
@@ -260,7 +260,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'GoogleAdsView.tsx',
     component: React.lazy(() => import('../components/admin/views/GoogleAdsView').then(m => ({ default: m.GoogleAdsView }))),
     isReal: true,
-    notes: 'Dashboard Google Ads con charts recharts, KPIs y tabla de campaÃ±as',
+    notes: 'Dashboard Google Ads con charts recharts, KPIs y tabla de campañas',
   },
   {
     checklistIds: ['marketing-email', 'marketing-email-bulk'],
@@ -269,7 +269,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/MailingView').then(m => ({ default: m.MailingView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'UI completa (5 tabs: CampaÃ±as, Suscriptores, SegmentaciÃ³n, A/B Testing, AnalÃ­ticas) â€” MOCK DATA. Resend API no conectada aÃºn.',
+    notes: 'UI completa (5 tabs: Campañas, Suscriptores, Segmentación, A/B Testing, Analíticas) ââ MOCK DATA. Resend API no conectada aún.',
   },
   {
     checklistIds: ['marketing-seo'],
@@ -278,7 +278,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/SEOView').then(m => ({ default: m.SEOView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Dashboard SEO Â· Keywords + rankings Â· anÃ¡lisis on-page de pÃ¡ginas Â· backlinks Â· salud SEO Â· sugerencias IA',
+    notes: 'Dashboard SEO ÃÂ· Keywords + rankings ÃÂ· análisis on-page de páginas ÃÂ· backlinks ÃÂ· salud SEO ÃÂ· sugerencias IA',
   },
   {
     checklistIds: ['marketing-loyalty'],
@@ -286,7 +286,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'FidelizacionView.tsx',
     component: React.lazy(() => import('../components/admin/views/FidelizacionView').then(m => ({ default: m.FidelizacionView }))),
     isReal: true,
-    notes: 'Programa de fidelizaciÃ³n con niveles y charts',
+    notes: 'Programa de fidelización con niveles y charts',
   },
   {
     checklistIds: ['marketing-loyalty'],
@@ -302,7 +302,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'RedesSocialesView.tsx',
     component: React.lazy(() => import('../components/admin/views/RedesSocialesView').then(m => ({ default: m.RedesSocialesView }))),
     isReal: true,
-    notes: 'Centro Operativo RRSS â€” mÃ©tricas, programaciÃ³n de posts y anÃ¡lisis de audiencia',
+    notes: 'Centro Operativo RRSS ââ métricas, programación de posts y análisis de audiencia',
   },
   {
     checklistIds: ['rrss-migracion'],
@@ -310,7 +310,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'MigracionRRSSView.tsx',
     component: React.lazy(() => import('../components/admin/views/MigracionRRSSView').then(m => ({ default: m.MigracionRRSSView }))),
     isReal: true,
-    notes: 'Herramienta de migraciÃ³n/rebranding Instagram + Facebook',
+    notes: 'Herramienta de migración/rebranding Instagram + Facebook',
   },
   {
     checklistIds: ['marketing-etiqueta-emotiva'],
@@ -319,31 +319,31 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/EtiquetaEmotivaView').then(m => ({ default: m.EtiquetaEmotivaView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Mensajes personalizados con QR para envÃ­os Â· Supabase + QR real',
+    notes: 'Mensajes personalizados con QR para envíos ÃÂ· Supabase + QR real',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // RRSS
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [],
     section: 'rrss',
     viewFile: 'RRSSHubView.tsx',
     component: React.lazy(() => import('../components/admin/views/RRSSHubView').then(m => ({ default: m.RRSSHubView }))),
     isReal: false,
-    notes: 'Hub de navegaciÃ³n RRSS â€” Centro Operativo + MigraciÃ³n RRSS',
+    notes: 'Hub de navegación RRSS ââ Centro Operativo + Migración RRSS',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // HERRAMIENTAS
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [],
     section: 'herramientas',
     viewFile: 'HerramientasView.tsx',
     component: React.lazy(() => import('../components/admin/views/HerramientasView').then(m => ({ default: m.HerramientasView }))),
     isReal: false,
-    notes: 'Hub de navegaciÃ³n â€” 6 workspace tools + 3 herramientas rÃ¡pidas',
+    notes: 'Hub de navegación ââ 6 workspace tools + 3 herramientas rápidas',
   },
   {
     checklistIds: ['tools-library'],
@@ -352,7 +352,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/BibliotecaWorkspace').then(m => ({ default: m.BibliotecaWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Biblioteca de assets â€” upload drag&drop, colecciones, tags, grid/lista, export',
+    notes: 'Biblioteca de assets ââ upload drag&drop, colecciones, tags, grid/lista, export',
   },
   {
     checklistIds: ['tools-image-editor'],
@@ -361,7 +361,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/EditorImagenesWorkspace').then(m => ({ default: m.EditorImagenesWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Editor de imÃ¡genes â€” filtros CSS, rotaciÃ³n, flip, 8 presets, export PNG/JPG',
+    notes: 'Editor de imágenes ââ filtros CSS, rotación, flip, 8 presets, export PNG/JPG',
   },
   {
     checklistIds: ['tools-documents'],
@@ -370,7 +370,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/GenDocumentosWorkspace').then(m => ({ default: m.GenDocumentosWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Generador de documentos WYSIWYG â€” 8 tipos de bloque, A4, export PDF',
+    notes: 'Generador de documentos WYSIWYG ââ 8 tipos de bloque, A4, export PDF',
   },
   {
     checklistIds: ['tools-quotes'],
@@ -379,7 +379,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/GenPresupuestosWorkspace').then(m => ({ default: m.GenPresupuestosWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'Generador de presupuestos â€” Ã­tems, IVA, descuentos, multi-moneda, export PDF',
+    notes: 'Generador de presupuestos ââ ítems, IVA, descuentos, multi-moneda, export PDF',
   },
   {
     checklistIds: ['tools-ocr'],
@@ -388,7 +388,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/OCRWorkspace').then(m => ({ default: m.OCRWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'OCR con Tesseract.js â€” 100% browser, sin API key, EspaÃ±ol/InglÃ©s/PT, export TXT',
+    notes: 'OCR con Tesseract.js ââ 100% browser, sin API key, Español/Inglés/PT, export TXT',
   },
   {
     checklistIds: ['tools-print'],
@@ -397,7 +397,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/ImpresionWorkspace').then(m => ({ default: m.ImpresionWorkspace }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'MÃ³dulo de impresiÃ³n â€” cola de trabajos, A4 preview, papel/orientaciÃ³n/color/calidad',
+    notes: 'Módulo de impresión ââ cola de trabajos, A4 preview, papel/orientación/color/calidad',
   },
   {
     checklistIds: ['tools-qr'],
@@ -405,7 +405,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'QrGeneratorView.tsx',
     component: React.lazy(() => import('../components/admin/views/QrGeneratorView').then(m => ({ default: m.QrGeneratorView }))),
     isReal: true,
-    notes: 'Generador QR â€” sin APIs externas, genera PNG y SVG vectorial',
+    notes: 'Generador QR ââ sin APIs externas, genera PNG y SVG vectorial',
   },
   {
     checklistIds: ['tools-ideas-board'],
@@ -414,19 +414,19 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/IdeasBoardView').then(m => ({ default: m.IdeasBoardView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'Canvas visual de mÃ³dulos e ideas â€” stickers, conectores, canvases jerÃ¡rquicos, lamparita en Mi Vista',
+    notes: 'Canvas visual de módulos e ideas ââ stickers, conectores, canvases jerárquicos, lamparita en Mi Vista',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // ERP
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [],
     section: 'gestion',
     viewFile: 'GestionView.tsx',
     component: React.lazy(() => import('../components/admin/views/GestionView').then(m => ({ default: m.GestionView }))),
     isReal: false,
-    notes: 'Hub de navegaciÃ³n ERP (cards a Inventario, FacturaciÃ³n, Compras, CRM, etc.)',
+    notes: 'Hub de navegación ERP (cards a Inventario, Facturación, Compras, CRM, etc.)',
   },
   {
     checklistIds: ['erp-inventory'],
@@ -434,7 +434,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'ERPInventarioView.tsx',
     component: React.lazy(() => import('../components/admin/views/ERPInventarioView').then(m => ({ default: m.ERPInventarioView }))),
     isReal: true,
-    notes: 'Inventario con tabs: ArtÃ­culos, Stock, Movimientos, Alertas',
+    notes: 'Inventario con tabs: Artículos, Stock, Movimientos, Alertas',
   },
   {
     checklistIds: ['erp-invoicing'],
@@ -442,7 +442,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'ERPFacturacionView.tsx',
     component: React.lazy(() => import('../components/admin/views/ERPFacturacionView').then(m => ({ default: m.ERPFacturacionView }))),
     isReal: true,
-    notes: 'FacturaciÃ³n con tabs: Facturas, Tickets, Nueva factura',
+    notes: 'Facturación con tabs: Facturas, Tickets, Nueva factura',
   },
   {
     checklistIds: ['erp-purchasing'],
@@ -450,7 +450,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'ERPComprasView.tsx',
     component: React.lazy(() => import('../components/admin/views/ERPComprasView').then(m => ({ default: m.ERPComprasView }))),
     isReal: true,
-    notes: 'Compras con tabs: Ã“rdenes, Proveedores, Nueva orden',
+    notes: 'Compras con tabs: Ãârdenes, Proveedores, Nueva orden',
   },
   {
     checklistIds: ['crm-contacts', 'crm-opportunities', 'crm-activities'],
@@ -474,12 +474,12 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'ERPRRHHView.tsx',
     component: React.lazy(() => import('../components/admin/views/ERPRRHHView').then(m => ({ default: m.ERPRRHHView }))),
     isReal: true,
-    notes: 'RRHH: Empleados, Asistencia y NÃ³mina',
+    notes: 'RRHH: Empleados, Asistencia y Nómina',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // PROYECTOS
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: ['projects-management', 'projects-tasks', 'projects-time'],
     section: 'proyectos',
@@ -489,29 +489,29 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     notes: 'Proyectos con Gantt simplificado y tablero Kanban',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // MARKETPLACE
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: ['marketplace-secondhand', 'marketplace-secondhand-mediacion'],
     section: 'secondhand',
     viewFile: 'SecondHandView.tsx',
     component: React.lazy(() => import('../components/admin/views/SecondHandView').then(m => ({ default: m.SecondHandView }))),
     isReal: true,
-    notes: 'Marketplace Segunda Mano: EstadÃ­sticas, ModeraciÃ³n, Publicaciones y âš–ï¸ MediaciÃ³n de disputas',
+    notes: 'Marketplace Segunda Mano: Estadísticas, Moderación, Publicaciones y Ã¢Å¡âÃ¯Â¸Â Mediación de disputas',
   },
   {
     checklistIds: ['marketplace-storefront'],
     section: 'storefront',
     viewFile: 'StorefrontAdminView.tsx',
-    component: null, // StorefrontAdminView no estÃ¡ importado en AdminDashboard, se omite por ahora
+    component: null, // StorefrontAdminView no está importado en AdminDashboard, se omite por ahora
     isReal: true,
-    notes: 'Panel de acceso rÃ¡pido al storefront pÃºblico con stats y links',
+    notes: 'Panel de acceso rápido al storefront público con stats y links',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   // INTEGRACIONES
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [
       'integrations-mercadolibre',
@@ -526,7 +526,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesView').then(m => ({ default: m.IntegracionesView }))),
     isReal: true,
-    notes: 'Hub de 5 mÃ³dulos de integraciÃ³n â€” Uruguay first, Latam progresivo',
+    notes: 'Hub de 5 módulos de integración ââ Uruguay first, Latam progresivo',
   },
   {
     checklistIds: ['integrations-plexo', 'integrations-mercadopago', 'integrations-paypal', 'integrations-stripe'],
@@ -534,7 +534,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesPagosView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesPagosView').then(m => ({ default: m.IntegracionesPagosView }))),
     isReal: true,
-    notes: 'ðŸ’³ Pasarela de pagos â€” Plexo, OCA, Abitab, RedPagos, MP, PayPal, Stripe',
+    notes: 'Ã°Å¸âÂ³ Pasarela de pagos ââ Plexo, OCA, Abitab, RedPagos, MP, PayPal, Stripe',
   },
   {
     checklistIds: ['integrations-logistics'],
@@ -542,7 +542,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesLogisticaView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesLogisticaView').then(m => ({ default: m.IntegracionesLogisticaView }))),
     isReal: true,
-    notes: 'ðŸšš LogÃ­stica â€” Carriers con y sin API. URL de tracking configurable para carriers sin API',
+    notes: 'Ã°Å¸Å¡Å¡ Logística ââ Carriers con y sin API. URL de tracking configurable para carriers sin API',
   },
   {
     checklistIds: ['integrations-mercadolibre'],
@@ -550,7 +550,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesTiendasView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesTiendasView').then(m => ({ default: m.IntegracionesTiendasView }))),
     isReal: true,
-    notes: 'ðŸª Tiendas â€” ML, TiendaNube, WooCommerce, Shopify, VTEX, Magento',
+    notes: 'Ã°Å¸ÂÂª Tiendas ââ ML, TiendaNube, WooCommerce, Shopify, VTEX, Magento',
   },
   {
     checklistIds: ['integrations-meta'],
@@ -558,7 +558,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesRRSSView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesRRSSView').then(m => ({ default: m.IntegracionesRRSSView }))),
     isReal: true,
-    notes: 'ðŸ“± Redes Sociales â€” Meta, Instagram Shopping, WhatsApp, Facebook Shops, TikTok, Pinterest',
+    notes: 'Ã°Å¸âÂ± Redes Sociales ââ Meta, Instagram Shopping, WhatsApp, Facebook Shops, TikTok, Pinterest',
   },
   {
     checklistIds: ['integrations-twilio'],
@@ -566,7 +566,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesServiciosView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesServiciosView').then(m => ({ default: m.IntegracionesServiciosView }))),
     isReal: true,
-    notes: 'âš™ï¸ Servicios â€” Twilio, Resend, SendGrid, GA4, GTM, Zapier, n8n',
+    notes: 'Ã¢Å¡â¢Ã¯Â¸Â Servicios ââ Twilio, Resend, SendGrid, GA4, GTM, Zapier, n8n',
   },
   {
     checklistIds: [],
@@ -582,7 +582,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'IntegracionesComunicacionView.tsx',
     component: React.lazy(() => import('../components/admin/views/IntegracionesComunicacionView').then(m => ({ default: m.IntegracionesComunicacionView }))),
     isReal: true,
-    notes: 'ComunicaciÃ³n integrations',
+    notes: 'Comunicación integrations',
   },
   {
     checklistIds: [],
@@ -608,9 +608,9 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     isReal: true,
     notes: 'Webhooks management',
   },
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // AUDITORÃA & DIAGNÃ“STICO
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
+  // AUDITORÃÂA & DIAGNÃâSTICO
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: ['audit-hub'],
     section: 'auditoria',
@@ -618,7 +618,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/AuditoriaHubView').then(m => ({ default: m.AuditoriaHubView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'ðŸ” Hub AuditorÃ­a â€” mÃ©tricas de estado, diagnÃ³stico rÃ¡pido y acceso a todas las herramientas',
+    notes: 'Ã°Å¸âÂ Hub Auditoría ââ métricas de estado, diagnóstico rápido y acceso a todas las herramientas',
   },
   {
     checklistIds: ['audit-health'],
@@ -627,7 +627,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/HealthMonitorView').then(m => ({ default: m.HealthMonitorView }))),
     isReal: true,
     hasSupabase: true,
-    notes: 'ðŸ’š Health Monitor â€” verifica en tiempo real Supabase DB/Auth/Edge/KV/Storage + APIs externas',
+    notes: 'Ã°Å¸âÅ¡ Health Monitor ââ verifica en tiempo real Supabase DB/Auth/Edge/KV/Storage + APIs externas',
   },
   {
     checklistIds: ['audit-logs'],
@@ -636,7 +636,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/SystemLogsView').then(m => ({ default: m.SystemLogsView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'ðŸ“œ Logs del Sistema â€” registro de actividad, errores y eventos con filtros y export TXT',
+    notes: 'Ã°Å¸âÅ Logs del Sistema ââ registro de actividad, errores y eventos con filtros y export TXT',
   },
   {
     checklistIds: ['audit-apis-repo'],
@@ -645,12 +645,12 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     component: React.lazy(() => import('../components/admin/views/RepositorioAPIsView').then(m => ({ default: m.RepositorioAPIsView }))),
     isReal: true,
     hasSupabase: false,
-    notes: 'ðŸ“¡ Repositorio centralizado â€” 23 APIs con estado, credenciales, docs y test de conexiÃ³n',
+    notes: 'Ã°Å¸â¡ Repositorio centralizado ââ 23 APIs con estado, credenciales, docs y test de conexión',
   },
 
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-  // MÃ“DULOS ADICIONALES
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
+  // MÃâDULOS ADICIONALES
+  // Ã¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢ÂÃ¢â¢Â
   {
     checklistIds: [],
     section: 'pos',
@@ -673,7 +673,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'ConstructorView.tsx',
     component: React.lazy(() => import('../components/admin/views/ConstructorView').then(m => ({ default: m.ConstructorView }))),
     isReal: true,
-    notes: 'Constructor de mÃ³dulos',
+    notes: 'Constructor de módulos',
   },
   {
     checklistIds: [],
@@ -681,7 +681,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'AuthRegistroView.tsx',
     component: React.lazy(() => import('../components/admin/views/AuthRegistroView').then(m => ({ default: m.AuthRegistroView }))),
     isReal: true,
-    notes: 'AutenticaciÃ³n y registro',
+    notes: 'Autenticación y registro',
   },
   {
     checklistIds: [],
@@ -713,7 +713,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'AdminDashboardView.tsx',
     component: React.lazy(() => import('../components/admin/views/AdminDashboardView').then(m => ({ default: m.AdminDashboardView }))),
     isReal: true,
-    notes: 'Dashboard de administraciÃ³n',
+    notes: 'Dashboard de administración',
   },
   {
     checklistIds: [],
@@ -729,7 +729,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'ConfigVistasPorRolView.tsx',
     component: React.lazy(() => import('../components/admin/views/ConfigVistasPorRolView').then(m => ({ default: m.ConfigVistasPorRolView }))),
     isReal: true,
-    notes: 'ConfiguraciÃ³n de vistas por rol',
+    notes: 'Configuración de vistas por rol',
   },
   {
     checklistIds: [],
@@ -737,7 +737,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'DocumentacionView.tsx',
     component: React.lazy(() => import('../components/admin/views/DocumentacionView').then(m => ({ default: m.DocumentacionView }))),
     isReal: true,
-    notes: 'DocumentaciÃ³n del sistema',
+    notes: 'Documentación del sistema',
   },
   {
     checklistIds: [],
@@ -745,7 +745,7 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
     viewFile: 'MetaMapView.tsx',
     component: React.lazy(() => import('../components/admin/views/MetaMapView').then(m => ({ default: m.MetaMapView }))),
     isReal: true,
-    notes: 'ConfiguraciÃ³n Meta Map',
+    notes: 'Configuración Meta Map',
   },
   {
     checklistIds: [],
@@ -757,16 +757,16 @@ export const MODULE_MANIFEST: ManifestEntry[] = [
   },
 ];
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 // HELPERS (consumidos por moduleRegistry y AuditPanel)
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬
 
 /** Set de todos los checklistIds cubiertos por vistas reales */
 export const REAL_CHECKLIST_IDS = new Set<string>(
   MODULE_MANIFEST.filter(e => e.isReal).flatMap(e => e.checklistIds)
 );
 
-/** Map secciÃ³n â†’ entry del manifest */
+/** Map sección Ã¢â â entry del manifest */
 export const MANIFEST_BY_SECTION = new Map<MainSection, ManifestEntry>(
   MODULE_MANIFEST.map(e => [e.section, e])
 );
