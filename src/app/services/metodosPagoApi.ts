@@ -1,9 +1,9 @@
 /* =====================================================
    Métodos de Pago API Service — Frontend ↔ Backend
    ===================================================== */
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/metodos-pago`;
+const BASE = `${apiUrl}/metodos-pago`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,

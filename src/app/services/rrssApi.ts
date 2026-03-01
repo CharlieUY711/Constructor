@@ -2,9 +2,9 @@
    RRSS API Service — Frontend ↔ Backend
    Charlie Marketplace Builder v1.5
    ===================================================== */
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/rrss`;
+const BASE = `${apiUrl}/rrss`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,

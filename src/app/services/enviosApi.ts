@@ -1,9 +1,9 @@
 /* =====================================================
    Envíos API Service — Frontend ↔ Backend
    ===================================================== */
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/envios`;
+const BASE = `${apiUrl}/envios`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,

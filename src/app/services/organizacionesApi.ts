@@ -1,9 +1,9 @@
 /* =====================================================
    Organizaciones API Service — Frontend ↔ Backend
    ===================================================== */
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/organizaciones`;
+const BASE = `${apiUrl}/organizaciones`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,

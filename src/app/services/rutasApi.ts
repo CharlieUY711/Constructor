@@ -1,9 +1,9 @@
 /* =====================================================
    Rutas API Service — Frontend ↔ Backend
    ===================================================== */
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/rutas`;
+const BASE = `${apiUrl}/rutas`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,

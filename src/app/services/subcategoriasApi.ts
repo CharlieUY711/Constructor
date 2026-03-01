@@ -2,9 +2,9 @@
    Subcategorías API Service — Dashboard ↔ Backend
    Charlie Marketplace Builder v1.5
    ===================================================== */
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/api/subcategorias`;
+const BASE = `${apiUrl}/subcategorias`;
 const HEADERS = {
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${publicAnonKey}`,
