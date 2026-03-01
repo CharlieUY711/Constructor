@@ -12,6 +12,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import { getTransportistas, getTramos, type Transportista as TransportistaApi, type Tramo as TramoApi } from '../../../services/transportistasApi';
+import { DrawerForm } from '../DrawerForm';
+import type { SheetDef } from '../DrawerForm';
 
 interface Props { onNavigate: (s: MainSection) => void; }
 const ORANGE = '#FF6835';
@@ -47,6 +49,108 @@ interface Tramo {
 
 type Tab = 'transportistas' | 'tramos' | 'tarifas';
 
+// Sheets de prueba para DrawerForm
+const TRANSPORTISTA_SHEETS: SheetDef[] = [
+  {
+    id: 'general',
+    title: 'General',
+    subtitle: 'Datos generales · Información principal del carrier',
+    fields: [
+      { id: 'nombre',  label: 'Nombre del carrier', type: 'text',   required: true,  placeholder: 'Ej: Transporte del Sur SRL' },
+      { id: 'tipo',    label: 'Tipo',               type: 'select', required: true,
+        options: [
+          { value: 'propio',         label: 'Propio' },
+          { value: 'tercero',        label: 'Tercero' },
+          { value: 'courier',        label: 'Courier' },
+          { value: 'nacional',       label: 'Nacional' },
+          { value: 'internacional',  label: 'Internacional' },
+        ],
+        row: 'row1'
+      },
+      { id: 'estado',  label: 'Estado',             type: 'select', required: true,
+        options: [{ value: 'activo', label: 'Activo' }, { value: 'inactivo', label: 'Inactivo' }],
+        row: 'row1'
+      },
+      { id: 'logo',    label: 'Logo / Imagen',      type: 'image' },
+      { id: 'activo',  label: 'Carrier activo',     type: 'toggle', helpText: 'Visible para asignación de envíos' },
+    ]
+  },
+  {
+    id: 'contacto',
+    title: 'Contacto',
+    subtitle: 'Contacto · Persona y medios de comunicación',
+    fields: [
+      { id: 'contacto_nombre',   label: 'Nombre completo',    type: 'text',  placeholder: 'Ej: Juan Pérez' },
+      { id: 'email',             label: 'Email',              type: 'email', placeholder: 'contacto@empresa.com', row: 'row1' },
+      { id: 'telefono',          label: 'Teléfono',           type: 'tel',   placeholder: '09X XXX XXX',          row: 'row1' },
+      { id: 'rut',               label: 'Documento / RUT',    type: 'text',  placeholder: 'XX.XXX.XXX-X',         row: 'row2' },
+      { id: 'cargo',             label: 'Cargo',              type: 'text',  placeholder: 'Ej: Gerente logística', row: 'row2' },
+      { id: 'web',               label: 'Sitio web',          type: 'url',   placeholder: 'https://empresa.com',  row: 'row3' },
+      { id: 'whatsapp',          label: 'WhatsApp',           type: 'tel',   placeholder: '598 9X XXX XXX',       row: 'row3' },
+    ]
+  },
+  {
+    id: 'direccion',
+    title: 'Dirección',
+    subtitle: 'Dirección y cobertura · Ubicación y zonas operativas',
+    fields: [
+      { id: 'calle',        label: 'Calle y número',         type: 'text',   placeholder: 'Ej: Av. Italia 2500', hint: '💡 Completá la dirección y validamos con Google Maps' },
+      { id: 'ciudad',       label: 'Ciudad',                 type: 'text',   placeholder: 'Montevideo',  row: 'row1' },
+      { id: 'cp',           label: 'Código postal',          type: 'text',   placeholder: '11300',        row: 'row1' },
+      { id: 'departamento', label: 'Departamento / Estado',  type: 'text',   placeholder: 'Montevideo',  row: 'row2' },
+      { id: 'pais',         label: 'País',                   type: 'select',
+        options: [{ value: 'uy', label: 'Uruguay' }, { value: 'ar', label: 'Argentina' }, { value: 'br', label: 'Brasil' }],
+        row: 'row2'
+      },
+      { id: 'tramos',       label: 'Tramos habilitados',     type: 'multicheck',
+        options: [
+          { value: 'local',          label: 'Local' },
+          { value: 'intercity',      label: 'Intercity' },
+          { value: 'internacional',  label: 'Internacional' },
+          { value: 'last_mile',      label: 'Last mile' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'depositos',
+    title: 'Depósitos',
+    subtitle: 'Depósitos y horarios · Instalaciones y disponibilidad',
+    fields: [
+      { id: 'depositos_ids', label: 'Depósitos asociados', type: 'text', placeholder: 'Se conectará a datos reales', hint: 'Próximamente: selector de depósitos existentes' },
+      { id: 'horario_lv_desde', label: 'Lun-Vie desde', type: 'time', row: 'row1' },
+      { id: 'horario_lv_hasta', label: 'Lun-Vie hasta', type: 'time', row: 'row1' },
+      { id: 'horario_sab_desde', label: 'Sábado desde', type: 'time', row: 'row2' },
+      { id: 'horario_sab_hasta', label: 'Sábado hasta', type: 'time', row: 'row2' },
+    ]
+  },
+  {
+    id: 'tarifas',
+    title: 'Tarifas',
+    subtitle: 'Tarifas y configuración · Costos y condiciones',
+    fields: [
+      { id: 'tarifa_base',    label: 'Tarifa base',               type: 'number', placeholder: '0.00', row: 'row1' },
+      { id: 'moneda',         label: 'Moneda',                    type: 'select',
+        options: [{ value: 'UYU', label: 'UYU' }, { value: 'USD', label: 'USD' }, { value: 'ARS', label: 'ARS' }],
+        row: 'row1'
+      },
+      { id: 'tiempo_entrega', label: 'Tiempo promedio entrega',   type: 'text',   placeholder: 'Ej: 24-48hs', row: 'row2' },
+      { id: 'rating',         label: 'Rating inicial',            type: 'number', placeholder: '0.0',          row: 'row2' },
+      { id: 'notas',          label: 'Observaciones',             type: 'textarea', placeholder: 'Condiciones especiales, acuerdos, notas...' },
+    ]
+  },
+  {
+    id: 'documentos',
+    title: 'Docs',
+    subtitle: 'Documentos · Contratos y habilitaciones',
+    fields: [
+      { id: 'doc_contrato',     label: 'Contrato de servicio',   type: 'image', hint: 'PDF, DOC hasta 10MB' },
+      { id: 'doc_habilitacion', label: 'Habilitación / Licencia', type: 'image', hint: 'PDF, JPG, PNG hasta 10MB' },
+      { id: 'doc_tarifario',    label: 'Tarifario completo',     type: 'image', hint: 'PDF, XLS, CSV hasta 10MB' },
+    ]
+  },
+];
+
 const TIPO_CFG: Record<string, { label: string; color: string; bg: string }> = {
   local:         { label: 'Local',          color: '#059669', bg: '#ECFDF5' },
   nacional:      { label: 'Nacional',       color: '#2563EB', bg: '#EFF6FF' },
@@ -76,6 +180,7 @@ export function TransportistasView({ onNavigate }: Props) {
   const [tramos, setTramos] = useState<Tramo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -187,7 +292,7 @@ export function TransportistasView({ onNavigate }: Props) {
         subtitle={`${activos} carriers activos · ${totalEnviosActivos} envíos en curso`}
         actions={[
           { label: '← Logística', onClick: () => onNavigate('logistica') },
-          { label: '+ Nuevo Carrier', primary: true },
+          { label: '+ Nuevo Carrier', primary: true, onClick: () => setDrawerOpen(true) },
         ]}
       />
 
@@ -284,7 +389,9 @@ export function TransportistasView({ onNavigate }: Props) {
                 );
               })}
               {/* Card agregar */}
-              <div style={{ backgroundColor: '#FAFAFA', borderRadius: '12px', border: '2px dashed #E5E7EB', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', minHeight: '160px' }}>
+              <div 
+                onClick={() => setDrawerOpen(true)}
+                style={{ backgroundColor: '#FAFAFA', borderRadius: '12px', border: '2px dashed #E5E7EB', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', minHeight: '160px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#FFF4EC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Plus size={22} color={ORANGE} />
                 </div>
@@ -378,6 +485,19 @@ export function TransportistasView({ onNavigate }: Props) {
           )}
         </div>
       </div>
+
+      {/* DrawerForm */}
+      <DrawerForm
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onSave={async (data) => {
+          console.log('[TransportistasView] Guardar transportista:', data);
+          // Por ahora solo log — conectar a Supabase en siguiente iteración
+        }}
+        title="Nuevo Carrier"
+        icon={Truck}
+        sheets={TRANSPORTISTA_SHEETS}
+      />
     </div>
   );
 }
