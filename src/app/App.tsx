@@ -1,23 +1,17 @@
-/**
- * App.tsx — DashboardShell v2.0
- *
- * Jerarquía de providers:
- *   OrchestratorProvider  → carga config remota + inyecta tokens CSS
- *     ThemeProvider       → aplica tema base del shell (fallback/defaults)
- *       RouterProvider    → navegación
- */
-import React from 'react';
+﻿import React from 'react';
 import { RouterProvider } from 'react-router';
 import { OrchestratorProvider } from '../shells/DashboardShell/app/providers/OrchestratorProvider';
+import { AuthProvider } from '../shells/DashboardShell/app/providers/AuthProvider';
 import { ThemeProvider } from '../shells/DashboardShell/app/providers/ThemeProvider';
 import { router } from './routes';
-
 export default function App() {
   return (
     <OrchestratorProvider>
-      <ThemeProvider>
-        <RouterProvider router={router} />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </AuthProvider>
     </OrchestratorProvider>
   );
 }
