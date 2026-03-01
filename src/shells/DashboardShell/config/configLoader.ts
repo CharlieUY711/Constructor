@@ -67,14 +67,19 @@ export async function loadRemoteConfig(): Promise<RemoteConfig | null> {
   try {
     const slug = detectClientSlug();
 
-    let clientes;
+    let clientes: any[] = [];
     if (slug) {
-      // Buscar por slug o por dominio
+      // Buscar primero por dominio
       clientes = await charlieFetch(
-        `clientes?or=(slug.eq.${slug},dominio.eq.${slug})&activo=eq.true&limit=1`
+        `clientes?dominio=eq.${encodeURIComponent(slug)}&activo=eq.true&limit=1`
       );
+      // Si no encuentra por dominio, buscar por slug
+      if (!clientes || clientes.length === 0) {
+        clientes = await charlieFetch(
+          `clientes?slug=eq.${encodeURIComponent(slug)}&activo=eq.true&limit=1`
+        );
+      }
     } else {
-      // Sin slug detectado — no hay config remota
       return null;
     }
 
