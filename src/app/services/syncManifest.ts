@@ -6,7 +6,6 @@ export async function syncManifestToRoadmap() {
     // Convertir cada entry a objeto para upsert
     const modulesToSync = MODULE_MANIFEST.map(entry => ({
       id: entry.section,
-      name: entry.section,
       status: 'not-started' as const,
       priority: 'medium' as const,
       tiene_view: !!entry.component,
