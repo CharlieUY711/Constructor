@@ -548,18 +548,16 @@ export function DrawerForm({
     <>
       {/* Overlay */}
       <div
-        onClick={onClose}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(15,23,42,0.45)',
-          backdropFilter: 'blur(2px)',
-          zIndex: 9998,
-          animation: 'fadeIn 0.3s ease',
-        }}
+  onClick={onClose}
+  style={{
+    position: 'fixed',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(15,23,42,0.45)',
+    backdropFilter: 'blur(2px)',
+    zIndex: 9998,
+    animation: 'fadeIn 0.3s ease',
+    right: '500px',
+  }}
       />
 
       {/* Drawer */}
