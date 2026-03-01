@@ -3,11 +3,12 @@
    Shell principal — Orquestador dinámico
    ===================================================== */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminSidebar }      from './components/admin/AdminSidebar';
 import { OrchestratorShell } from './components/OrchestratorShell';
 import { Toaster }           from 'sonner';
 import type { MainSection }  from './AdminDashboard';
+import { syncManifestToRoadmap } from './services/syncManifest';
 
 export type MainSection =
   | 'dashboard'
@@ -98,6 +99,10 @@ export type MainSection =
 export default function AdminDashboard() {
   const [activeSection, setActiveSection] = useState<MainSection>('dashboard');
   const nav = (s: MainSection) => setActiveSection(s);
+
+  useEffect(() => {
+    syncManifestToRoadmap();
+  }, []);
 
   return (
     <>
