@@ -1,14 +1,9 @@
 /* =====================================================
    Roadmap API Service — Frontend ↔ Backend
+   Migrado a supabase.from() directo para evitar CORS
    ===================================================== */
-import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
-
-const BASE = `${apiUrl}/roadmap`;
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': `Bearer ${publicAnonKey}`,
-  'apikey': publicAnonKey,
-};
+import { supabase } from '../../utils/supabase/client';
+import { MODULES_DATA } from '../utils/modulesData';
 
 // ── Tipos ────────────────────────────────────────────────────────────────
 
@@ -119,7 +114,16 @@ export interface PromocionInput {
   notas?: string;
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+// ── Helpers (mantenidos para endpoints que aún usan Edge Functions) ────────
+
+import { apiUrl, publicAnonKey } from '../../utils/supabase/client';
+
+const BASE = `${apiUrl}/roadmap`;
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${publicAnonKey}`,
+  'apikey': publicAnonKey,
+};
 
 async function apiGet<T>(path: string): Promise<{ ok: boolean; data?: T; error?: string }> {
   try {
@@ -191,25 +195,133 @@ async function apiDelete(path: string): Promise<{ ok: boolean; error?: string }>
 // ── Módulos ───────────────────────────────────────────────────────────────
 
 export async function getModules(): Promise<RoadmapModule[]> {
-  const res = await apiGet<{ modules: RoadmapModule[]; count: number }>('/modules');
-  if (!res.ok) {
-    console.error('[roadmapApi] Error en getModules:', res.error);
+  try {
+    // Obtener estado dinámico desde SQL
+    const { data: sqlData, error } = await supabase
+      .from('roadmap_modules')
+      .select('*')
+      .order('exec_order', { ascending: true, nullsFirst: false });
+    
+    if (error) {
+      console.error('[roadmapApi] Error en getModules:', error);
+      return [];
+    }
+    
+    // Crear mapa de estado desde SQL (id → estado)
+    const stateMap = new Map<string, any>();
+    (sqlData ?? []).forEach((row: any) => {
+      stateMap.set(row.id, {
+        status: row.status,
+        priority: row.priority,
+        execOrder: row.exec_order,
+        estimatedHours: row.estimated_hours,
+        notas: row.notas,
+        tiene_view: row.tiene_view,
+        tiene_backend: row.tiene_backend,
+        endpoint_ok: row.endpoint_ok,
+        tiene_datos: row.tiene_datos,
+        updated_at: row.updated_at,
+      });
+    });
+    
+    // Combinar datos base con estado de SQL
+    // Si SQL está vacío, usar datos base con estados por defecto
+    const modules = MODULES_DATA.map((base) => {
+      const state = stateMap.get(base.id);
+      
+      // Si hay estado en SQL, combinar; si no, usar valores por defecto
+      return {
+        id: base.id,
+        name: base.name,
+        category: base.category,
+        description: base.description,
+        status: state?.status ?? 'not-started',
+        priority: state?.priority ?? 'medium',
+        execOrder: state?.execOrder ?? undefined,
+        estimatedHours: state?.estimatedHours ?? base.estimatedHours ?? undefined,
+        notas: state?.notas ?? undefined,
+        submodules: base.submodules?.map(sub => ({
+          id: sub.id,
+          name: sub.name,
+          status: state?.status ?? 'not-started', // Los submódulos heredan el estado del padre por defecto
+          estimatedHours: sub.estimatedHours,
+        })),
+        tiene_view: state?.tiene_view ?? false,
+        tiene_backend: state?.tiene_backend ?? false,
+        endpoint_ok: state?.endpoint_ok ?? false,
+        tiene_datos: state?.tiene_datos ?? false,
+        updated_at: state?.updated_at ?? undefined,
+      };
+    });
+    
+    console.log('[roadmapApi] Módulos recibidos:', modules.length);
+    return modules;
+  } catch (err) {
+    console.error('[roadmapApi] Error en getModules:', err);
     return [];
   }
-  if (!res.data) {
-    console.warn('[roadmapApi] getModules: respuesta sin data');
-    return [];
-  }
-  console.log('[roadmapApi] Módulos recibidos:', res.data.modules?.length || 0);
-  return res.data.modules || [];
 }
 
 export async function saveModulesBulk(modules: RoadmapModule[]): Promise<void> {
-  await apiPost('/modules-bulk', { modules });
+  try {
+    // Preparar datos para upsert en SQL
+    const rows = modules.map(mod => ({
+      id: mod.id,
+      status: mod.status,
+      priority: mod.priority || 'medium',
+      exec_order: mod.execOrder ?? null,
+      estimated_hours: mod.estimatedHours ?? null,
+      notas: mod.notas || null,
+      tiene_view: mod.tiene_view ?? false,
+      tiene_backend: mod.tiene_backend ?? false,
+      endpoint_ok: mod.endpoint_ok ?? false,
+      tiene_datos: mod.tiene_datos ?? false,
+      updated_at: new Date().toISOString(),
+    }));
+    
+    const { error } = await supabase
+      .from('roadmap_modules')
+      .upsert(rows, { onConflict: 'id' });
+    
+    if (error) {
+      console.error('[roadmapApi] Error en saveModulesBulk:', error);
+      throw new Error(error.message);
+    }
+  } catch (err) {
+    console.error('[roadmapApi] Error en saveModulesBulk:', err);
+    throw err;
+  }
 }
 
 export async function saveModule(moduleId: string, data: Partial<RoadmapModule>): Promise<void> {
-  await apiPost(`/modules/${moduleId}`, { ...data, id: moduleId });
+  try {
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+    
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.priority !== undefined) updateData.priority = data.priority;
+    if (data.execOrder !== undefined) updateData.exec_order = data.execOrder;
+    if (data.estimatedHours !== undefined) updateData.estimated_hours = data.estimatedHours;
+    if (data.notas !== undefined) updateData.notas = data.notas;
+    if (data.tiene_view !== undefined) updateData.tiene_view = data.tiene_view;
+    if (data.tiene_backend !== undefined) updateData.tiene_backend = data.tiene_backend;
+    if (data.endpoint_ok !== undefined) updateData.endpoint_ok = data.endpoint_ok;
+    if (data.tiene_datos !== undefined) updateData.tiene_datos = data.tiene_datos;
+    
+    const { error } = await supabase
+      .from('roadmap_modules')
+      .update(updateData)
+      .eq('id', moduleId);
+    
+    if (error) {
+      console.error('[roadmapApi] Error en saveModule:', error);
+      throw new Error(error.message);
+    }
+  } catch (err) {
+    console.error('[roadmapApi] Error en saveModule:', err);
+    throw err;
+  }
 }
 
 export async function resetModules(): Promise<void> {
@@ -269,15 +381,68 @@ export async function auditAll(modules: AuditOpts[]): Promise<AuditResult[]> {
 // ── Ideas Promovidas ──────────────────────────────────────────────────────
 
 export async function getIdeasPromovidas(): Promise<IdeaPromovida[]> {
-  const res = await apiGet<{ ideas: IdeaPromovida[] }>('/ideas-promovidas');
-  if (!res.ok || !res.data) return [];
-  return res.data.ideas || [];
+  try {
+    const { data, error } = await supabase
+      .from('ideas_promovidas')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('[roadmapApi] Error en getIdeasPromovidas:', error);
+      return [];
+    }
+    
+    return (data ?? []).map((row: any) => ({
+      id: row.id,
+      idea_id: row.idea_id,
+      module_id: row.module_id,
+      idea_texto: row.idea_texto,
+      idea_area: row.idea_area,
+      estado: row.estado,
+      notas: row.notas,
+      created_at: row.created_at,
+    }));
+  } catch (err) {
+    console.error('[roadmapApi] Error en getIdeasPromovidas:', err);
+    return [];
+  }
 }
 
 export async function promoverIdea(data: PromocionInput): Promise<IdeaPromovida> {
-  const res = await apiPost<{ idea: IdeaPromovida }>('/ideas-promovidas', data);
-  if (!res.ok || !res.data) throw new Error(res.error || 'Error promoviendo idea');
-  return res.data.idea;
+  try {
+    const insertData = {
+      idea_id: data.idea_id,
+      idea_texto: data.idea_texto,
+      idea_area: data.idea_area || null,
+      estado: 'pendiente' as const,
+      notas: data.notas || null,
+    };
+    
+    const { data: inserted, error } = await supabase
+      .from('ideas_promovidas')
+      .insert(insertData)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('[roadmapApi] Error en promoverIdea:', error);
+      throw new Error(error.message);
+    }
+    
+    return {
+      id: inserted.id,
+      idea_id: inserted.idea_id,
+      module_id: inserted.module_id,
+      idea_texto: inserted.idea_texto,
+      idea_area: inserted.idea_area,
+      estado: inserted.estado,
+      notas: inserted.notas,
+      created_at: inserted.created_at,
+    };
+  } catch (err) {
+    console.error('[roadmapApi] Error en promoverIdea:', err);
+    throw err;
+  }
 }
 
 export async function resolverIdea(
@@ -285,6 +450,53 @@ export async function resolverIdea(
   estado: 'aprobada' | 'rechazada' | 'convertida',
   moduleId?: string
 ): Promise<void> {
-  const res = await apiPut<{ idea: IdeaPromovida }>(`/ideas-promovidas/${id}`, { estado, module_id: moduleId });
-  if (!res.ok) throw new Error(res.error || 'Error resolviendo idea');
+  try {
+    const updateData: any = { estado };
+    if (estado === 'convertida' && moduleId) {
+      updateData.module_id = moduleId;
+    }
+    
+    const { error } = await supabase
+      .from('ideas_promovidas')
+      .update(updateData)
+      .eq('id', id);
+    
+    if (error) {
+      console.error('[roadmapApi] Error en resolverIdea:', error);
+      throw new Error(error.message);
+    }
+    
+    // Si se convierte a módulo, crear/actualizar el módulo en roadmap_modules
+    if (estado === 'convertida' && moduleId) {
+      const { data: idea } = await supabase
+        .from('ideas_promovidas')
+        .select('idea_texto')
+        .eq('id', id)
+        .single();
+      
+      if (idea) {
+        await supabase
+          .from('roadmap_modules')
+          .upsert({
+            id: moduleId,
+            status: 'spec-ready',
+            priority: 'medium',
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'id' });
+        
+        await supabase
+          .from('roadmap_historial')
+          .insert({
+            module_id: moduleId,
+            status_anterior: null,
+            status_nuevo: 'spec-ready',
+            origen: 'promocion_idea',
+            notas: `Convertido desde idea: ${idea.idea_texto}`,
+          });
+      }
+    }
+  } catch (err) {
+    console.error('[roadmapApi] Error en resolverIdea:', err);
+    throw err;
+  }
 }
